@@ -1,12 +1,13 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { User } from "../../stores/authStore";
+import { User, useAuthStore } from "../../stores/authStore";
+import { AlertCircle, Eye, EyeOff } from "lucide-react";
 
 interface AddUserModalProps {
   isOpen: boolean;
@@ -19,39 +20,105 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
     nom: "",
     prenom: "",
     email: "",
-    role: "visualisateur" as User['role']
+    role: "visualisateur" as User['role'],
+    languePreferee: "",
+    devise: ""
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [tempPassword, setTempPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isEmailChecking, setIsEmailChecking] = useState(false);
   const { toast } = useToast();
+
+  // Mock existing users for email validation
+  const existingEmails = [
+    'admin@appseniors.fr',
+    'support@appseniors.fr',
+    'moderateur@appseniors.fr',
+    'viewer@appseniors.fr',
+    'admin2@appseniors.fr',
+    'support2@appseniors.fr',
+    'moderateur2@appseniors.fr'
+  ];
+
+  // Vérification en temps réel de l'email
+  useEffect(() => {
+    if (formData.email && formData.email.includes('@')) {
+      setIsEmailChecking(true);
+      const checkEmail = setTimeout(() => {
+        if (existingEmails.includes(formData.email.toLowerCase())) {
+          setEmailError("Cette adresse email est déjà utilisée");
+        } else {
+          setEmailError("");
+        }
+        setIsEmailChecking(false);
+      }, 500);
+
+      return () => clearTimeout(checkEmail);
+    } else {
+      setEmailError("");
+      setIsEmailChecking(false);
+    }
+  }, [formData.email]);
+
+  // Génération d'un mot de passe temporaire
+  const generateTempPassword = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (emailError) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez corriger les erreurs avant de continuer.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
+      const tempPass = generateTempPassword();
+      setTempPassword(tempPass);
+
       const newUser: Omit<User, 'id'> = {
-        ...formData,
+        nom: formData.nom,
+        prenom: formData.prenom,
+        email: formData.email,
+        role: formData.role,
         dateInscription: new Date().toISOString().split('T')[0]
       };
 
       onAddUser(newUser);
       
       toast({
-        title: "Utilisateur ajouté",
-        description: `${formData.prenom} ${formData.nom} a été ajouté avec succès.`,
+        title: "Utilisateur créé avec succès",
+        description: `${formData.prenom} ${formData.nom} a été ajouté. Un mot de passe temporaire a été généré.`,
       });
 
+      // Réinitialiser le formulaire
       setFormData({
         nom: "",
         prenom: "",
         email: "",
-        role: "visualisateur"
+        role: "visualisateur",
+        languePreferee: "",
+        devise: ""
       });
-      onClose();
+      setShowPassword(true); // Afficher le mot de passe temporaire
     } catch (error) {
       toast({
         title: "Erreur",
-        description: "Impossible d'ajouter l'utilisateur.",
+        description: "Impossible de créer l'utilisateur.",
         variant: "destructive"
       });
     } finally {
@@ -59,69 +126,164 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
     }
   };
 
+  const handleClose = () => {
+    setTempPassword("");
+    setShowPassword(false);
+    onClose();
+  };
+
+  const copyPassword = () => {
+    navigator.clipboard.writeText(tempPassword);
+    toast({
+      title: "Copié",
+      description: "Le mot de passe temporaire a été copié dans le presse-papier.",
+    });
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Ajouter un utilisateur</DialogTitle>
           <DialogDescription>
             Créez un nouveau compte utilisateur pour l'administration.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="prenom">Prénom</Label>
-              <Input
-                id="prenom"
-                value={formData.prenom}
-                onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
-                required
-              />
+
+        {tempPassword && showPassword ? (
+          <div className="space-y-4">
+            <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+              <h3 className="font-medium text-amber-800 mb-2">Mot de passe temporaire généré</h3>
+              <div className="flex items-center gap-2 bg-white p-3 rounded border">
+                <code className="flex-1 font-mono text-sm">{tempPassword}</code>
+                <Button size="sm" variant="outline" onClick={copyPassword}>
+                  Copier
+                </Button>
+              </div>
+              <p className="text-sm text-amber-700 mt-2">
+                ⚠️ Ce mot de passe ne sera affiché qu'une seule fois. L'utilisateur devra le modifier lors de sa première connexion.
+              </p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="nom">Nom</Label>
-              <Input
-                id="nom"
-                value={formData.nom}
-                onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                required
-              />
+            <div className="flex justify-end">
+              <Button onClick={handleClose}>
+                Fermer
+              </Button>
             </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="role">Rôle</Label>
-            <Select value={formData.role} onValueChange={(value: User['role']) => setFormData({ ...formData, role: value })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="administrateur">Administrateur</SelectItem>
-                <SelectItem value="moderateur">Modérateur</SelectItem>
-                <SelectItem value="support">Support</SelectItem>
-                <SelectItem value="visualisateur">Visualisateur</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Annuler
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Ajout..." : "Ajouter"}
-            </Button>
-          </div>
-        </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="prenom">Prénom *</Label>
+                <Input
+                  id="prenom"
+                  value={formData.prenom}
+                  onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="nom">Nom *</Label>
+                <Input
+                  id="nom"
+                  value={formData.nom}
+                  onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Adresse email *</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                required
+                className={emailError ? "border-red-500" : ""}
+              />
+              {isEmailChecking && (
+                <p className="text-sm text-blue-600 flex items-center gap-1">
+                  <div className="w-3 h-3 border border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  Vérification de l'email...
+                </p>
+              )}
+              {emailError && (
+                <p className="text-sm text-red-600 flex items-center gap-1">
+                  <AlertCircle className="w-4 h-4" />
+                  {emailError}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="role">Rôle *</Label>
+              <Select value={formData.role} onValueChange={(value: User['role']) => setFormData({ ...formData, role: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="administrateur">Administrateur</SelectItem>
+                  <SelectItem value="moderateur">Modérateur</SelectItem>
+                  <SelectItem value="support">Support</SelectItem>
+                  <SelectItem value="visualisateur">Visualisateur</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="langue">Langue préférée</Label>
+                <Select value={formData.languePreferee} onValueChange={(value) => setFormData({ ...formData, languePreferee: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fr">Français</SelectItem>
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="es">Español</SelectItem>
+                    <SelectItem value="de">Deutsch</SelectItem>
+                    <SelectItem value="it">Italiano</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="devise">Devise</Label>
+                <Select value={formData.devise} onValueChange={(value) => setFormData({ ...formData, devise: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="EUR">Euro (€)</SelectItem>
+                    <SelectItem value="USD">Dollar US ($)</SelectItem>
+                    <SelectItem value="GBP">Livre Sterling (£)</SelectItem>
+                    <SelectItem value="CHF">Franc Suisse (CHF)</SelectItem>
+                    <SelectItem value="CAD">Dollar Canadien (CAD)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+              <p className="text-sm text-blue-700">
+                <strong>Information :</strong> Un mot de passe temporaire sera généré automatiquement. L'utilisateur devra le modifier lors de sa première connexion.
+              </p>
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={handleClose}>
+                Annuler
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isLoading || !!emailError || isEmailChecking}
+              >
+                {isLoading ? "Création..." : "Créer l'utilisateur"}
+              </Button>
+            </div>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
