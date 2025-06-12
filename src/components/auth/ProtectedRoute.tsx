@@ -3,10 +3,13 @@ import { ReactNode } from 'react';
 import { usePermissions } from '../../hooks/usePermissions';
 import { AlertTriangle, Lock } from 'lucide-react';
 
+// Import the Permission type
+type Permission = typeof import('../../hooks/usePermissions').PERMISSIONS[keyof typeof import('../../hooks/usePermissions').PERMISSIONS];
+
 interface ProtectedRouteProps {
   children: ReactNode;
   requiredPage?: string;
-  requiredPermission?: string;
+  requiredPermission?: Permission;
   fallback?: ReactNode;
 }
 
