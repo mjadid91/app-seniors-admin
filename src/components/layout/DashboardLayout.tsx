@@ -7,6 +7,10 @@ import UserManagement from "../users/UserManagement";
 import PrestationTracking from "../prestations/PrestationTracking";
 import Moderation from "../moderation/Moderation";
 import Support from "../support/Support";
+import Documents from "../documents/Documents";
+import Partners from "../partners/Partners";
+import RGPD from "../rgpd/RGPD";
+import Finances from "../finances/Finances";
 
 const DashboardLayout = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -23,6 +27,14 @@ const DashboardLayout = () => {
         return <Moderation />;
       case "support":
         return <Support />;
+      case "documents":
+        return <Documents />;
+      case "partners":
+        return <Partners />;
+      case "rgpd":
+        return <RGPD />;
+      case "finances":
+        return <Finances />;
       default:
         return <Dashboard />;
     }

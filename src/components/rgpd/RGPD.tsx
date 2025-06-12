@@ -1,0 +1,377 @@
+
+import { useState } from "react";
+import { Shield, FileText, Users, AlertTriangle, CheckCircle, Clock, Search, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const RGPD = () => {
+  const [activeTab, setActiveTab] = useState("overview");
+
+  const dataRequests = [
+    {
+      id: 1,
+      type: "Accès aux données",
+      user: "Marie Dubois",
+      email: "marie.dubois@email.fr",
+      date: "2024-01-15",
+      status: "Traité",
+      deadline: "2024-02-14"
+    },
+    {
+      id: 2,
+      type: "Suppression de données",
+      user: "Jean Martin",
+      email: "jean.martin@email.fr",
+      date: "2024-01-12",
+      status: "En cours",
+      deadline: "2024-02-11"
+    },
+    {
+      id: 3,
+      type: "Rectification",
+      user: "Sophie Laurent",
+      email: "sophie.laurent@email.fr",
+      date: "2024-01-10",
+      status: "En attente",
+      deadline: "2024-02-09"
+    }
+  ];
+
+  const consentStats = {
+    total: 1234,
+    accepted: 987,
+    refused: 156,
+    pending: 91
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-slate-800">Conformité RGPD</h1>
+        <Button className="bg-blue-600 hover:bg-blue-700">
+          <Download className="h-4 w-4 mr-2" />
+          Rapport de conformité
+        </Button>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+        <div className="border-b border-slate-200">
+          <nav className="flex space-x-8 px-6">
+            <button
+              onClick={() => setActiveTab("overview")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "overview"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              Vue d'ensemble
+            </button>
+            <button
+              onClick={() => setActiveTab("requests")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "requests"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              Demandes d'accès
+            </button>
+            <button
+              onClick={() => setActiveTab("consent")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "consent"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              Gestion des consentements
+            </button>
+            <button
+              onClick={() => setActiveTab("policies")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "policies"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              Politiques
+            </button>
+          </nav>
+        </div>
+
+        <div className="p-6">
+          {activeTab === "overview" && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="bg-green-50 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-8 w-8 text-green-600" />
+                    <div>
+                      <p className="text-2xl font-bold text-green-600">98%</p>
+                      <p className="text-sm text-green-700">Conformité générale</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <Users className="h-8 w-8 text-blue-600" />
+                    <div>
+                      <p className="text-2xl font-bold text-blue-600">{consentStats.total}</p>
+                      <p className="text-sm text-blue-700">Consentements</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-yellow-50 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-8 w-8 text-yellow-600" />
+                    <div>
+                      <p className="text-2xl font-bold text-yellow-600">5</p>
+                      <p className="text-sm text-yellow-700">Demandes en cours</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-red-50 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <AlertTriangle className="h-8 w-8 text-red-600" />
+                    <div>
+                      <p className="text-2xl font-bold text-red-600">2</p>
+                      <p className="text-sm text-red-700">Alertes</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="border border-slate-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-slate-800 mb-4">Statut de conformité</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-600">Politique de confidentialité</span>
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-600">Cookies et traceurs</span>
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-600">Registre de traitement</span>
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-600">Analyse d'impact</span>
+                      <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border border-slate-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-slate-800 mb-4">Actions récentes</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Politique mise à jour</p>
+                        <p className="text-xs text-slate-500">Il y a 2 jours</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                      <Users className="h-5 w-5 text-green-600" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Consentement traité</p>
+                        <p className="text-xs text-slate-500">Il y a 3 jours</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                      <Shield className="h-5 w-5 text-purple-600" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Audit de sécurité</p>
+                        <p className="text-xs text-slate-500">Il y a 1 semaine</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "requests" && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    placeholder="Rechercher une demande..."
+                    className="pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
+                  />
+                </div>
+                <Button variant="outline">Filtrer</Button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="text-left py-3 px-4 font-medium text-slate-600">Utilisateur</th>
+                      <th className="text-left py-3 px-4 font-medium text-slate-600">Type de demande</th>
+                      <th className="text-left py-3 px-4 font-medium text-slate-600">Date de demande</th>
+                      <th className="text-left py-3 px-4 font-medium text-slate-600">Échéance</th>
+                      <th className="text-left py-3 px-4 font-medium text-slate-600">Statut</th>
+                      <th className="text-left py-3 px-4 font-medium text-slate-600">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dataRequests.map((request) => (
+                      <tr key={request.id} className="border-b border-slate-100 hover:bg-slate-50">
+                        <td className="py-4 px-4">
+                          <div>
+                            <p className="font-medium text-slate-800">{request.user}</p>
+                            <p className="text-sm text-slate-500">{request.email}</p>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4">{request.type}</td>
+                        <td className="py-4 px-4">{new Date(request.date).toLocaleDateString('fr-FR')}</td>
+                        <td className="py-4 px-4">{new Date(request.deadline).toLocaleDateString('fr-FR')}</td>
+                        <td className="py-4 px-4">
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            request.status === 'Traité' 
+                              ? 'bg-green-100 text-green-700' 
+                              : request.status === 'En cours'
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {request.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
+                          <Button size="sm" variant="outline">
+                            Traiter
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "consent" && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="bg-white border border-slate-200 rounded-lg p-6">
+                  <h3 className="font-semibold text-slate-800 mb-2">Total</h3>
+                  <p className="text-3xl font-bold text-slate-600">{consentStats.total}</p>
+                </div>
+                <div className="bg-white border border-slate-200 rounded-lg p-6">
+                  <h3 className="font-semibold text-slate-800 mb-2">Acceptés</h3>
+                  <p className="text-3xl font-bold text-green-600">{consentStats.accepted}</p>
+                  <p className="text-sm text-slate-500">{((consentStats.accepted / consentStats.total) * 100).toFixed(1)}%</p>
+                </div>
+                <div className="bg-white border border-slate-200 rounded-lg p-6">
+                  <h3 className="font-semibold text-slate-800 mb-2">Refusés</h3>
+                  <p className="text-3xl font-bold text-red-600">{consentStats.refused}</p>
+                  <p className="text-sm text-slate-500">{((consentStats.refused / consentStats.total) * 100).toFixed(1)}%</p>
+                </div>
+                <div className="bg-white border border-slate-200 rounded-lg p-6">
+                  <h3 className="font-semibold text-slate-800 mb-2">En attente</h3>
+                  <p className="text-3xl font-bold text-yellow-600">{consentStats.pending}</p>
+                  <p className="text-sm text-slate-500">{((consentStats.pending / consentStats.total) * 100).toFixed(1)}%</p>
+                </div>
+              </div>
+
+              <div className="bg-white border border-slate-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-slate-800 mb-4">Gestion des cookies</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                    <div>
+                      <h4 className="font-medium text-slate-800">Cookies essentiels</h4>
+                      <p className="text-sm text-slate-500">Nécessaires au fonctionnement du site</p>
+                    </div>
+                    <div className="text-green-600 font-medium">Toujours actifs</div>
+                  </div>
+                  <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                    <div>
+                      <h4 className="font-medium text-slate-800">Cookies analytiques</h4>
+                      <p className="text-sm text-slate-500">Aide à comprendre l'utilisation du site</p>
+                    </div>
+                    <div className="text-blue-600 font-medium">87% accepté</div>
+                  </div>
+                  <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
+                    <div>
+                      <h4 className="font-medium text-slate-800">Cookies publicitaires</h4>
+                      <p className="text-sm text-slate-500">Personnalisation des publicités</p>
+                    </div>
+                    <div className="text-yellow-600 font-medium">45% accepté</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "policies" && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white border border-slate-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-slate-800 mb-4">Documents légaux</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 border border-slate-200 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <span className="font-medium">Politique de confidentialité</span>
+                      </div>
+                      <Button size="sm" variant="outline">Modifier</Button>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border border-slate-200 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <span className="font-medium">Conditions d'utilisation</span>
+                      </div>
+                      <Button size="sm" variant="outline">Modifier</Button>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border border-slate-200 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <span className="font-medium">Politique de cookies</span>
+                      </div>
+                      <Button size="sm" variant="outline">Modifier</Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white border border-slate-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-slate-800 mb-4">Registre des activités</h3>
+                  <div className="space-y-3">
+                    <div className="p-3 bg-slate-50 rounded-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="font-medium text-slate-800">Gestion des utilisateurs</span>
+                        <span className="text-xs text-slate-500">Mise à jour: 12/01/2024</span>
+                      </div>
+                      <p className="text-sm text-slate-600">Traitement des données personnelles des utilisateurs</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="font-medium text-slate-800">Service de prestations</span>
+                        <span className="text-xs text-slate-500">Mise à jour: 10/01/2024</span>
+                      </div>
+                      <p className="text-sm text-slate-600">Données liées aux prestations et partenaires</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 rounded-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="font-medium text-slate-800">Support client</span>
+                        <span className="text-xs text-slate-500">Mise à jour: 08/01/2024</span>
+                      </div>
+                      <p className="text-sm text-slate-600">Communications et tickets de support</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default RGPD;

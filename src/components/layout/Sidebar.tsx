@@ -8,7 +8,10 @@ import {
   Shield, 
   Headphones,
   LogOut,
-  Settings
+  FileText,
+  Building2,
+  ShieldCheck,
+  DollarSign
 } from "lucide-react";
 
 interface SidebarProps {
@@ -22,6 +25,10 @@ const menuItems = [
   { id: "prestations", label: "Prestations", icon: Calendar },
   { id: "moderation", label: "Modération", icon: Shield },
   { id: "support", label: "Support", icon: Headphones },
+  { id: "documents", label: "Documents", icon: FileText },
+  { id: "partners", label: "Partenaires", icon: Building2 },
+  { id: "rgpd", label: "RGPD", icon: ShieldCheck },
+  { id: "finances", label: "Finances", icon: DollarSign },
 ];
 
 const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
@@ -41,7 +48,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
         </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
           return (

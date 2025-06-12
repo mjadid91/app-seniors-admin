@@ -1,54 +1,58 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Headphones, Calendar, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Users, Calendar, Shield, FileText, DollarSign, TrendingUp, Activity } from "lucide-react";
 import StatsCard from "./StatsCard";
 import ActivityChart from "./ActivityChart";
 
 const Dashboard = () => {
-  const stats = [
-    {
-      title: "Utilisateurs Actifs",
-      value: "2,847",
-      change: "+12%",
-      trend: "up" as const,
-      icon: Users,
-      color: "blue"
-    },
-    {
-      title: "Tickets Support",
-      value: "23",
-      change: "-8%",
-      trend: "down" as const,
-      icon: Headphones,
-      color: "green"
-    },
-    {
-      title: "Prestations ce mois",
-      value: "156",
-      change: "+24%",
-      trend: "up" as const,
-      icon: Calendar,
-      color: "purple"
-    },
-    {
-      title: "Nouveaux membres",
-      value: "89",
-      change: "+16%",
-      trend: "up" as const,
-      icon: User,
-      color: "orange"
-    }
-  ];
+  const [stats, setStats] = useState([]);
+
+  useEffect(() => {
+    // Simulation des statistiques
+    const mockStats = [
+      {
+        title: "Utilisateurs actifs",
+        value: "1,234",
+        change: "+12%",
+        trend: "up" as const,
+        icon: Users,
+        color: "blue" as const
+      },
+      {
+        title: "Prestations ce mois",
+        value: "456",
+        change: "+8%",
+        trend: "up" as const,
+        icon: Calendar,
+        color: "green" as const
+      },
+      {
+        title: "Signalements",
+        value: "23",
+        change: "-5%",
+        trend: "down" as const,
+        icon: Shield,
+        color: "orange" as const
+      },
+      {
+        title: "Revenus",
+        value: "€12,345",
+        change: "+15%",
+        trend: "up" as const,
+        icon: DollarSign,
+        color: "purple" as const
+      }
+    ];
+    setStats(mockStats);
+  }, []);
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-800">Tableau de bord</h2>
-          <p className="text-slate-600 mt-1">Vue d'ensemble de la plateforme AppSeniors</p>
-        </div>
-        <div className="text-sm text-slate-500">
-          Dernière mise à jour: {new Date().toLocaleString('fr-FR')}
+        <h1 className="text-3xl font-bold text-slate-800">Tableau de bord</h1>
+        <div className="flex items-center gap-2 text-sm text-slate-500">
+          <Activity className="h-4 w-4" />
+          <span>Dernière mise à jour: {new Date().toLocaleString('fr-FR')}</span>
         </div>
       </div>
 
@@ -56,53 +60,54 @@ const Dashboard = () => {
         {stats.map((stat, index) => (
           <StatsCard
             key={stat.title}
-            {...stat}
-            className={`animate-scale-in`}
+            className="animate-fade-in-up"
             style={{ animationDelay: `${index * 100}ms` }}
+            {...stat}
           />
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="animate-scale-in" style={{ animationDelay: '400ms' }}>
-          <CardHeader>
-            <CardTitle className="text-slate-800">Activité des 7 derniers jours</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ActivityChart />
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp className="h-5 w-5 text-blue-600" />
+            <h2 className="text-lg font-semibold text-slate-800">Activité récente</h2>
+          </div>
+          <ActivityChart />
+        </div>
 
-        <Card className="animate-scale-in" style={{ animationDelay: '500ms' }}>
-          <CardHeader>
-            <CardTitle className="text-slate-800">Tickets récents</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[
-                { id: "#2847", subject: "Problème de connexion", status: "En cours", priority: "Haute" },
-                { id: "#2846", subject: "Question sur les prestations", status: "Résolu", priority: "Normale" },
-                { id: "#2845", subject: "Demande de modification profil", status: "En attente", priority: "Basse" }
-              ].map((ticket, index) => (
-                <div key={ticket.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors">
-                  <div>
-                    <p className="font-medium text-slate-800">{ticket.subject}</p>
-                    <p className="text-sm text-slate-500">{ticket.id}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                      ticket.status === 'Résolu' ? 'bg-green-100 text-green-700' :
-                      ticket.status === 'En cours' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-gray-100 text-gray-700'
-                    }`}>
-                      {ticket.status}
-                    </span>
-                  </div>
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <h2 className="text-lg font-semibold text-slate-800 mb-4">Actions rapides</h2>
+          <div className="space-y-3">
+            <button className="w-full text-left p-3 rounded-lg hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-3">
+                <Users className="h-5 w-5 text-blue-600" />
+                <div>
+                  <p className="font-medium text-slate-800">Gérer les utilisateurs</p>
+                  <p className="text-sm text-slate-500">Ajouter, modifier ou supprimer des comptes</p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </button>
+            <button className="w-full text-left p-3 rounded-lg hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-3">
+                <Calendar className="h-5 w-5 text-green-600" />
+                <div>
+                  <p className="font-medium text-slate-800">Suivre les prestations</p>
+                  <p className="text-sm text-slate-500">Consulter et valider les services</p>
+                </div>
+              </div>
+            </button>
+            <button className="w-full text-left p-3 rounded-lg hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-3">
+                <Shield className="h-5 w-5 text-orange-600" />
+                <div>
+                  <p className="font-medium text-slate-800">Modération</p>
+                  <p className="text-sm text-slate-500">Examiner les signalements</p>
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
