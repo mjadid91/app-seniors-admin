@@ -54,6 +54,30 @@ const mockUsers: User[] = [
     email: 'viewer@appseniors.fr',
     role: 'visualisateur',
     dateInscription: '2024-03-20'
+  },
+  {
+    id: '5',
+    nom: 'Bernard',
+    prenom: 'Alice',
+    email: 'admin2@appseniors.fr',
+    role: 'administrateur',
+    dateInscription: '2024-01-20'
+  },
+  {
+    id: '6',
+    nom: 'Rousseau',
+    prenom: 'Marc',
+    email: 'support2@appseniors.fr',
+    role: 'support',
+    dateInscription: '2024-02-15'
+  },
+  {
+    id: '7',
+    nom: 'Leroy',
+    prenom: 'Emma',
+    email: 'moderateur2@appseniors.fr',
+    role: 'moderateur',
+    dateInscription: '2024-03-10'
   }
 ];
 
@@ -68,7 +92,7 @@ export const useAuthStore = create<AuthState>()(
         // Mock authentication - replace with real API call
         const user = mockUsers.find(u => u.email === email);
         
-        if (user && password === 'admin123') {
+        if (user && password === 'demo123') {
           const token = 'mock-jwt-token';
           set({ 
             user, 
