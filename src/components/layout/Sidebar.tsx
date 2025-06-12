@@ -1,6 +1,7 @@
 
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "../../stores/authStore";
+import { usePermissions } from "../../hooks/usePermissions";
 import { 
   LayoutDashboard, 
   Users, 
@@ -28,11 +29,28 @@ const menuItems = [
   { id: "documents", label: "Documents", icon: FileText },
   { id: "partners", label: "Partenaires", icon: Building2 },
   { id: "rgpd", label: "RGPD", icon: ShieldCheck },
-  { id: "finances", label: "Finances", icon: DollarSign },
+  { id: "finances", label: "Finances", icon: D ollarSign },
 ];
 
 const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
   const { user, logout } = useAuthStore();
+  const { canAccessPage } = usePermissions();
+
+  const handleTabChange = (tabId: string) => {
+    if (canAccessPage(tabId)) {
+      setActiveTab(tabId);
+    }
+  };
+
+  const getItemStyle = (itemId: string) => {
+    if (!canAccessPage(itemId)) {
+      return "text-slate-400 cursor-not-allowed opacity-50";
+    }
+    
+    return activeTab === itemId
+      ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-sm"
+      : "text-slate-600 hover:bg-slate-50 hover:text-slate-800 cursor-pointer";
+  };
 
   return (
     <div className="w-64 bg-white shadow-lg border-r border-slate-200 flex flex-col">
@@ -51,19 +69,25 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
+          const isAccessible = canAccessPage(item.id);
+          
           return (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id)}
+              onClick={() => handleTabChange(item.id)}
+              disabled={!isAccessible}
               className={cn(
                 "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200",
-                activeTab === item.id
-                  ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-sm"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+                getItemStyle(item.id)
               )}
             >
               <Icon className="h-5 w-5 flex-shrink-0" />
               <span className="font-medium">{item.label}</span>
+              {!isAccessible && (
+                <div className="ml-auto">
+                  <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                </div>
+              )}
             </button>
           );
         })}
@@ -80,7 +104,16 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
             <p className="font-medium text-slate-800 text-sm truncate">
               {user?.prenom} {user?.nom}
             </p>
-            <p className="text-xs text-slate-500 capitalize">{user?.role}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-slate-500 capitalize">{user?.role}</p>
+              <div className={cn(
+                "w-2 h-2 rounded-full",
+                user?.role === 'administrateur' && "bg-blue-500",
+                user?.role === 'moderateur' && "bg-orange-500",
+                user?.role === 'support' && "bg-purple-500",
+                user?.role === 'visualisateur' && "bg-gray-500"
+              )}></div>
+            </div>
           </div>
         </div>
         

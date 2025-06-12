@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -20,7 +21,7 @@ interface AuthState {
   checkAuth: () => Promise<void>;
 }
 
-// Mock users for demonstration
+// Mock users for demonstration avec différents rôles
 const mockUsers: User[] = [
   {
     id: '1',
@@ -37,6 +38,22 @@ const mockUsers: User[] = [
     email: 'support@appseniors.fr',
     role: 'support',
     dateInscription: '2024-02-10'
+  },
+  {
+    id: '3',
+    nom: 'Durand',
+    prenom: 'Sophie',
+    email: 'moderateur@appseniors.fr',
+    role: 'moderateur',
+    dateInscription: '2024-03-05'
+  },
+  {
+    id: '4',
+    nom: 'Leclerc',
+    prenom: 'Jean',
+    email: 'viewer@appseniors.fr',
+    role: 'visualisateur',
+    dateInscription: '2024-03-20'
   }
 ];
 

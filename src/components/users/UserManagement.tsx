@@ -1,150 +1,227 @@
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Eye, Edit, UserX } from "lucide-react";
-
-interface User {
-  id: string;
-  nom: string;
-  prenom: string;
-  email: string;
-  role: 'senior' | 'aidant' | 'administrateur' | 'moderateur' | 'support';
-  statut: 'actif' | 'inactif' | 'suspendu';
-  dateInscription: string;
-  photo?: string;
-}
-
-const mockUsers: User[] = [
-  {
-    id: '1',
-    nom: 'Dupont',
-    prenom: 'Marie',
-    email: 'marie.dupont@email.com',
-    role: 'senior',
-    statut: 'actif',
-    dateInscription: '2024-01-15'
-  },
-  {
-    id: '2',
-    nom: 'Martin',
-    prenom: 'Jean',
-    email: 'jean.martin@email.com',
-    role: 'aidant',
-    statut: 'actif',
-    dateInscription: '2024-02-10'
-  },
-  {
-    id: '3',
-    nom: 'Bernard',
-    prenom: 'Sophie',
-    email: 'sophie.bernard@email.com',
-    role: 'senior',
-    statut: 'inactif',
-    dateInscription: '2024-01-28'
-  }
-];
+import { User, useAuthStore } from "../../stores/authStore";
+import { Search, Plus, Download, Users, UserCheck, UserX, Eye } from "lucide-react";
+import { usePermissions, PERMISSIONS } from "../../hooks/usePermissions";
+import { RoleBadge } from "../ui/role-badge";
+import RoleManager from "./RoleManager";
+import ProtectedRoute from "../auth/ProtectedRoute";
+import { useToast } from "@/hooks/use-toast";
 
 const UserManagement = () => {
-  const [users] = useState<User[]>(mockUsers);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedRole, setSelectedRole] = useState<string>("tous");
-
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = selectedRole === "tous" || user.role === selectedRole;
-    return matchesSearch && matchesRole;
+  const [users, setUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    inactive: 0,
+    admins: 0
   });
+  
+  const { hasPermission, isViewer } = usePermissions();
+  const { toast } = useToast();
 
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case 'administrateur': return 'bg-red-100 text-red-700 border-red-200';
-      case 'moderateur': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'support': return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'senior': return 'bg-green-100 text-green-700 border-green-200';
-      case 'aidant': return 'bg-purple-100 text-purple-700 border-purple-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
-    }
+  const canManageUsers = hasPermission(PERMISSIONS.MANAGE_USERS);
+  const canExportData = hasPermission(PERMISSIONS.EXPORT_DATA);
+
+  useEffect(() => {
+    // Simulation des données utilisateurs avec différents rôles
+    const mockUsers: User[] = [
+      {
+        id: '1',
+        nom: 'Dubois',
+        prenom: 'Marie',
+        email: 'admin@appseniors.fr',
+        role: 'administrateur',
+        dateInscription: '2024-01-15'
+      },
+      {
+        id: '2',
+        nom: 'Martin',
+        prenom: 'Pierre',
+        email: 'support@appseniors.fr',
+        role: 'support',
+        dateInscription: '2024-02-10'
+      },
+      {
+        id: '3',
+        nom: 'Durand',
+        prenom: 'Sophie',
+        email: 'moderateur@appseniors.fr',
+        role: 'moderateur',
+        dateInscription: '2024-03-05'
+      },
+      {
+        id: '4',
+        nom: 'Leclerc',
+        prenom: 'Jean',
+        email: 'viewer@appseniors.fr',
+        role: 'visualisateur',
+        dateInscription: '2024-03-20'
+      },
+      {
+        id: '5',
+        nom: 'Moreau',
+        prenom: 'Claire',
+        email: 'claire.moreau@appseniors.fr',
+        role: 'support',
+        dateInscription: '2024-04-12'
+      }
+    ];
+    
+    setUsers(mockUsers);
+    setFilteredUsers(mockUsers);
+    
+    // Calcul des statistiques
+    const stats = {
+      total: mockUsers.length,
+      active: mockUsers.length - 1, // Simulation
+      inactive: 1,
+      admins: mockUsers.filter(u => u.role === 'administrateur').length
+    };
+    setStats(stats);
+  }, []);
+
+  useEffect(() => {
+    const filtered = users.filter(user =>
+      user.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.role.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredUsers(filtered);
+  }, [searchTerm, users]);
+
+  const handleRoleChange = (userId: string, newRole: User['role']) => {
+    setUsers(prevUsers => 
+      prevUsers.map(user => 
+        user.id === userId ? { ...user, role: newRole } : user
+      )
+    );
   };
 
-  const getStatutBadgeColor = (statut: string) => {
-    switch (statut) {
-      case 'actif': return 'bg-green-100 text-green-700 border-green-200';
-      case 'inactif': return 'bg-gray-100 text-gray-700 border-gray-200';
-      case 'suspendu': return 'bg-red-100 text-red-700 border-red-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+  const handleAddUser = () => {
+    if (!canManageUsers) {
+      toast({
+        title: "Accès refusé",
+        description: "Vous n'avez pas les droits pour ajouter des utilisateurs.",
+        variant: "destructive"
+      });
+      return;
     }
+    console.log("Ajouter un utilisateur");
+  };
+
+  const handleExport = () => {
+    if (!canExportData) {
+      toast({
+        title: "Accès refusé",
+        description: "Vous n'avez pas les droits pour exporter des données.",
+        variant: "destructive"
+      });
+      return;
+    }
+    console.log("Exporter les données");
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-800">Gestion des utilisateurs</h2>
-          <p className="text-slate-600 mt-1">Gérer tous les comptes utilisateurs de la plateforme</p>
+    <ProtectedRoute requiredPage="users">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-slate-800">Gestion des utilisateurs</h1>
+          <div className="flex items-center gap-3">
+            {canExportData && (
+              <Button variant="outline" onClick={handleExport} disabled={isViewer()}>
+                <Download className="h-4 w-4 mr-2" />
+                Exporter
+              </Button>
+            )}
+            {canManageUsers && (
+              <Button onClick={handleAddUser} disabled={isViewer()}>
+                <Plus className="h-4 w-4 mr-2" />
+                Ajouter un utilisateur
+              </Button>
+            )}
+          </div>
         </div>
-        <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800">
-          <Plus className="h-4 w-4 mr-2" />
-          Ajouter un utilisateur
-        </Button>
-      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Filtres et recherche</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
+        {/* Statistiques */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total utilisateurs</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.total}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Actifs</CardTitle>
+              <UserCheck className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{stats.active}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Inactifs</CardTitle>
+              <UserX className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{stats.inactive}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Administrateurs</CardTitle>
+              <Eye className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{stats.admins}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Recherche */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Liste des utilisateurs</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-2 mb-4">
+              <Search className="h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Rechercher par nom, prénom ou email..."
+                placeholder="Rechercher par nom, email ou rôle..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="max-w-sm"
               />
             </div>
-            <select
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-              className="px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="tous">Tous les rôles</option>
-              <option value="senior">Senior</option>
-              <option value="aidant">Aidant</option>
-              <option value="administrateur">Administrateur</option>
-              <option value="moderateur">Modérateur</option>
-              <option value="support">Support</option>
-            </select>
-          </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Liste des utilisateurs ({filteredUsers.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200">
-                  <th className="text-left py-3 px-4 font-medium text-slate-700">Utilisateur</th>
-                  <th className="text-left py-3 px-4 font-medium text-slate-700">Email</th>
-                  <th className="text-left py-3 px-4 font-medium text-slate-700">Rôle</th>
-                  <th className="text-left py-3 px-4 font-medium text-slate-700">Statut</th>
-                  <th className="text-left py-3 px-4 font-medium text-slate-700">Inscription</th>
-                  <th className="text-left py-3 px-4 font-medium text-slate-700">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Utilisateur</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Rôle</TableHead>
+                  <TableHead>Date d'inscription</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {filteredUsers.map((user) => (
-                  <tr key={user.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                    <td className="py-4 px-4">
+                  <TableRow key={user.id}>
+                    <TableCell>
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-slate-400 to-slate-500 rounded-full flex items-center justify-center">
                           <span className="text-white font-medium text-sm">
@@ -152,46 +229,45 @@ const UserManagement = () => {
                           </span>
                         </div>
                         <div>
-                          <p className="font-medium text-slate-800">{user.prenom} {user.nom}</p>
-                          <p className="text-sm text-slate-500">ID: {user.id}</p>
+                          <p className="font-medium">{user.prenom} {user.nom}</p>
                         </div>
                       </div>
-                    </td>
-                    <td className="py-4 px-4 text-slate-600">{user.email}</td>
-                    <td className="py-4 px-4">
-                      <Badge className={getRoleBadgeColor(user.role)}>
-                        {user.role}
-                      </Badge>
-                    </td>
-                    <td className="py-4 px-4">
-                      <Badge className={getStatutBadgeColor(user.statut)}>
-                        {user.statut}
-                      </Badge>
-                    </td>
-                    <td className="py-4 px-4 text-slate-600">
+                    </TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <RoleManager 
+                        user={user}
+                        onRoleChange={handleRoleChange}
+                      />
+                    </TableCell>
+                    <TableCell>
                       {new Date(user.dateInscription).toLocaleDateString('fr-FR')}
-                    </td>
-                    <td className="py-4 px-4">
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="bg-green-50 text-green-700">
+                        Actif
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
+                        <Button variant="ghost" size="sm" disabled={isViewer()}>
+                          Modifier
                         </Button>
-                        <Button variant="ghost" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
-                          <UserX className="h-4 w-4" />
-                        </Button>
+                        {canManageUsers && !isViewer() && (
+                          <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                            Supprimer
+                          </Button>
+                        )}
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+    </ProtectedRoute>
   );
 };
 

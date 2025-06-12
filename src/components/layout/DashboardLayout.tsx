@@ -11,30 +11,65 @@ import Documents from "../documents/Documents";
 import Partners from "../partners/Partners";
 import RGPD from "../rgpd/RGPD";
 import Finances from "../finances/Finances";
+import ProtectedRoute from "../auth/ProtectedRoute";
+import { usePermissions } from "../../hooks/usePermissions";
 
 const DashboardLayout = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const { canAccessPage } = usePermissions();
 
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
         return <Dashboard />;
       case "users":
-        return <UserManagement />;
+        return (
+          <ProtectedRoute requiredPage="users">
+            <UserManagement />
+          </ProtectedRoute>
+        );
       case "prestations":
-        return <PrestationTracking />;
+        return (
+          <ProtectedRoute requiredPage="prestations">
+            <PrestationTracking />
+          </ProtectedRoute>
+        );
       case "moderation":
-        return <Moderation />;
+        return (
+          <ProtectedRoute requiredPage="moderation">
+            <Moderation />
+          </ProtectedRoute>
+        );
       case "support":
-        return <Support />;
+        return (
+          <ProtectedRoute requiredPage="support">
+            <Support />
+          </ProtectedRoute>
+        );
       case "documents":
-        return <Documents />;
+        return (
+          <ProtectedRoute requiredPage="documents">
+            <Documents />
+          </ProtectedRoute>
+        );
       case "partners":
-        return <Partners />;
+        return (
+          <ProtectedRoute requiredPage="partners">
+            <Partners />
+          </ProtectedRoute>
+        );
       case "rgpd":
-        return <RGPD />;
+        return (
+          <ProtectedRoute requiredPage="rgpd">
+            <RGPD />
+          </ProtectedRoute>
+        );
       case "finances":
-        return <Finances />;
+        return (
+          <ProtectedRoute requiredPage="finances">
+            <Finances />
+          </ProtectedRoute>
+        );
       default:
         return <Dashboard />;
     }
