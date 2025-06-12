@@ -29,7 +29,7 @@ const menuItems = [
   { id: "documents", label: "Documents", icon: FileText },
   { id: "partners", label: "Partenaires", icon: Building2 },
   { id: "rgpd", label: "RGPD", icon: ShieldCheck },
-  { id: "finances", label: "Finances", icon: D ollarSign },
+  { id: "finances", label: "Finances", icon: DollarSign },
 ];
 
 const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
