@@ -29,6 +29,9 @@ export const PERMISSIONS = {
   HIDE_CONTENT: 'hide_content',
 } as const;
 
+// Type pour les permissions
+type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];
+
 // Mapping des permissions par rôle
 const ROLE_PERMISSIONS = {
   administrateur: [
@@ -90,13 +93,13 @@ export const ACCESSIBLE_PAGES = {
 export const usePermissions = () => {
   const { user } = useAuthStore();
 
-  const hasPermission = (permission: string): boolean => {
+  const hasPermission = (permission: Permission): boolean => {
     if (!user) return false;
     const userPermissions = ROLE_PERMISSIONS[user.role] || [];
     return userPermissions.includes(permission);
   };
 
-  const hasAnyPermission = (permissions: string[]): boolean => {
+  const hasAnyPermission = (permissions: Permission[]): boolean => {
     return permissions.some(permission => hasPermission(permission));
   };
 
