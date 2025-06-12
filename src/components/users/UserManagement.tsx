@@ -1,17 +1,16 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { User, useAuthStore } from "../../stores/authStore";
-import { Search, Plus, Download, Users, UserCheck, UserX, Eye } from "lucide-react";
+import { User } from "../../stores/authStore";
+import { Download, Plus } from "lucide-react";
 import { usePermissions, PERMISSIONS } from "../../hooks/usePermissions";
-import { RoleBadge } from "../ui/role-badge";
-import RoleManager from "./RoleManager";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import { useToast } from "@/hooks/use-toast";
 import AddUserModal from "./AddUserModal";
+import UserStats from "./UserStats";
+import UserSearch from "./UserSearch";
+import UserTable from "./UserTable";
 
 const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -182,119 +181,21 @@ const UserManagement = () => {
           </div>
         </div>
 
-        {/* Statistiques */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total utilisateurs</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Actifs</CardTitle>
-              <UserCheck className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Inactifs</CardTitle>
-              <UserX className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">{stats.inactive}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Administrateurs</CardTitle>
-              <Eye className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{stats.admins}</div>
-            </CardContent>
-          </Card>
-        </div>
+        <UserStats stats={stats} />
 
-        {/* Recherche */}
         <Card>
           <CardHeader>
             <CardTitle>Liste des utilisateurs</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center space-x-2 mb-4">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Rechercher par nom, email ou rôle..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm"
-              />
-            </div>
-
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Utilisateur</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Rôle</TableHead>
-                  <TableHead>Date d'inscription</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-slate-400 to-slate-500 rounded-full flex items-center justify-center">
-                          <span className="text-white font-medium text-sm">
-                            {user.prenom[0]}{user.nom[0]}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-medium">{user.prenom} {user.nom}</p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <RoleManager 
-                        user={user}
-                        onRoleChange={handleRoleChange}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {new Date(user.dateInscription).toLocaleDateString('fr-FR')}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="bg-green-50 text-green-700">
-                        Actif
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm" disabled={isViewer()}>
-                          Modifier
-                        </Button>
-                        {canManageUsers && !isViewer() && (
-                          <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
-                            Supprimer
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <UserSearch 
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+            />
+            <UserTable 
+              users={filteredUsers}
+              onRoleChange={handleRoleChange}
+            />
           </CardContent>
         </Card>
 
