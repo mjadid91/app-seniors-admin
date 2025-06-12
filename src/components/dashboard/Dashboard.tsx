@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from "react";
-import { Users, Calendar, Shield, FileText, DollarSign, TrendingUp, Activity } from "lucide-react";
+import { Users, Calendar, Shield, FileText, DollarSign, MessageSquare, Activity } from "lucide-react";
 import StatsCard from "./StatsCard";
-import ActivityChart from "./ActivityChart";
+import RecentActivity from "./RecentActivity";
 
 const Dashboard = () => {
   const [stats, setStats] = useState([]);
@@ -27,6 +27,14 @@ const Dashboard = () => {
         color: "green" as const
       },
       {
+        title: "Messages actifs",
+        value: "789",
+        change: "+22%",
+        trend: "up" as const,
+        icon: MessageSquare,
+        color: "purple" as const
+      },
+      {
         title: "Signalements",
         value: "23",
         change: "-5%",
@@ -40,7 +48,7 @@ const Dashboard = () => {
         change: "+15%",
         trend: "up" as const,
         icon: DollarSign,
-        color: "purple" as const
+        color: "green" as const
       }
     ];
     setStats(mockStats);
@@ -56,7 +64,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         {stats.map((stat, index) => (
           <StatsCard
             key={stat.title}
@@ -70,10 +78,10 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="h-5 w-5 text-blue-600" />
+            <Activity className="h-5 w-5 text-blue-600" />
             <h2 className="text-lg font-semibold text-slate-800">Activité récente</h2>
           </div>
-          <ActivityChart />
+          <RecentActivity />
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">

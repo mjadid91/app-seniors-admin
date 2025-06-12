@@ -99,12 +99,6 @@ const Header = () => {
             <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center">
               <User className="h-4 w-4 text-white" />
             </div>
-            <div className="hidden sm:block">
-              <p className="text-sm font-medium text-slate-800">
-                {user?.prenom} {user?.nom}
-              </p>
-              <p className="text-xs text-slate-500 capitalize">{user?.role}</p>
-            </div>
           </div>
         </div>
       </div>
