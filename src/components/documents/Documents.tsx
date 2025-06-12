@@ -1,13 +1,24 @@
-
 import { useState } from "react";
-import { FileText, Upload, Download, Eye, Trash2, Search, Filter, Plus } from "lucide-react";
+import { FileText, Upload, Download, Eye, Trash2, Search, Filter, Plus, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import AddDocumentModal from "./AddDocumentModal";
+
+interface Document {
+  id: number;
+  name: string;
+  type: string;
+  size: string;
+  uploadDate: string;
+  category: string;
+  status: string;
+}
 
 const Documents = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
-
-  const documents = [
+  const [isAddDocumentModalOpen, setIsAddDocumentModalOpen] = useState(false);
+  const [documents, setDocuments] = useState<Document[]>([
     {
       id: 1,
       name: "Conditions générales d'utilisation",
@@ -35,15 +46,62 @@ const Documents = () => {
       category: "Qualité",
       status: "Publié"
     }
-  ];
+  ]);
 
+  const { toast } = useToast();
   const categories = ["Légal", "Documentation", "Qualité", "Formation", "Procédures"];
+
+  const handleAddDocument = (newDocData: Omit<Document, 'id'>) => {
+    const newDocument: Document = {
+      ...newDocData,
+      id: documents.length + 1
+    };
+    setDocuments(prev => [...prev, newDocument]);
+  };
+
+  const handleViewDocument = (doc: Document) => {
+    toast({
+      title: "Aperçu du document",
+      description: `Ouverture de ${doc.name}`,
+    });
+    console.log("Visualiser le document:", doc);
+  };
+
+  const handleEditDocument = (doc: Document) => {
+    toast({
+      title: "Modification du document",
+      description: `Édition de ${doc.name}`,
+    });
+    console.log("Modifier le document:", doc);
+  };
+
+  const handleDownloadDocument = (doc: Document) => {
+    toast({
+      title: "Téléchargement",
+      description: `Téléchargement de ${doc.name} en cours...`,
+    });
+    console.log("Télécharger le document:", doc);
+  };
+
+  const handleDeleteDocument = (docId: number) => {
+    const doc = documents.find(d => d.id === docId);
+    if (doc) {
+      setDocuments(prev => prev.filter(d => d.id !== docId));
+      toast({
+        title: "Document supprimé",
+        description: `${doc.name} a été supprimé avec succès.`,
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-slate-800">Gestion des Documents</h1>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700"
+          onClick={() => setIsAddDocumentModalOpen(true)}
+        >
           <Plus className="h-4 w-4 mr-2" />
           Nouveau document
         </Button>
@@ -121,13 +179,37 @@ const Documents = () => {
                   </td>
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleViewDocument(doc)}
+                        title="Visualiser"
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleEditDocument(doc)}
+                        title="Modifier"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleDownloadDocument(doc)}
+                        title="Télécharger"
+                      >
                         <Download className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => handleDeleteDocument(doc.id)}
+                        title="Supprimer"
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -159,15 +241,15 @@ const Documents = () => {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-slate-600">Total documents:</span>
-              <span className="font-medium">127</span>
+              <span className="font-medium">{documents.length}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-600">Publiés:</span>
-              <span className="font-medium text-green-600">89</span>
+              <span className="font-medium text-green-600">{documents.filter(d => d.status === 'Publié').length}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-600">Brouillons:</span>
-              <span className="font-medium text-yellow-600">38</span>
+              <span className="font-medium text-yellow-600">{documents.filter(d => d.status === 'Brouillon').length}</span>
             </div>
           </div>
         </div>
@@ -190,6 +272,12 @@ const Documents = () => {
           </div>
         </div>
       </div>
+
+      <AddDocumentModal 
+        isOpen={isAddDocumentModalOpen}
+        onClose={() => setIsAddDocumentModalOpen(false)}
+        onAddDocument={handleAddDocument}
+      />
     </div>
   );
 };

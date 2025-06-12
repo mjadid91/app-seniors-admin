@@ -1,13 +1,27 @@
-
 import { useState } from "react";
 import { Building2, Mail, Phone, MapPin, Star, Plus, Search, Filter, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import AddPartnerModal from "./AddPartnerModal";
+
+interface Partner {
+  id: number;
+  name: string;
+  type: string;
+  email: string;
+  phone: string;
+  address: string;
+  status: string;
+  rating: number;
+  services: string[];
+  joinDate: string;
+}
 
 const Partners = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-
-  const partners = [
+  const [isAddPartnerModalOpen, setIsAddPartnerModalOpen] = useState(false);
+  const [partners, setPartners] = useState<Partner[]>([
     {
       id: 1,
       name: "Services Plus",
@@ -44,15 +58,44 @@ const Partners = () => {
       services: ["Support informatique", "Installation", "Formation"],
       joinDate: "2024-01-10"
     }
-  ];
+  ]);
 
+  const { toast } = useToast();
   const partnerTypes = ["Prestataire de services", "Aide à domicile", "Support technique", "Santé", "Transport"];
+
+  const handleAddPartner = (newPartnerData: Omit<Partner, 'id'>) => {
+    const newPartner: Partner = {
+      ...newPartnerData,
+      id: partners.length + 1
+    };
+    setPartners(prev => [...prev, newPartner]);
+  };
+
+  const handleContactPartner = (partner: Partner) => {
+    toast({
+      title: "Contact partenaire",
+      description: `Ouverture du contact avec ${partner.name}`,
+    });
+    // Simuler l'ouverture d'un client email
+    window.location.href = `mailto:${partner.email}?subject=Contact depuis AppSeniors Admin`;
+  };
+
+  const handleViewPartnerDetails = (partner: Partner) => {
+    toast({
+      title: "Détails du partenaire",
+      description: `Affichage des détails de ${partner.name}`,
+    });
+    console.log("Voir détails du partenaire:", partner);
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-slate-800">Gestion des Partenaires</h1>
-        <Button className="bg-blue-600 hover:bg-blue-700">
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700"
+          onClick={() => setIsAddPartnerModalOpen(true)}
+        >
           <Plus className="h-4 w-4 mr-2" />
           Nouveau partenaire
         </Button>
@@ -148,10 +191,19 @@ const Partners = () => {
               </div>
 
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" className="flex-1">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => handleContactPartner(partner)}
+                >
                   Contacter
                 </Button>
-                <Button size="sm" className="flex-1">
+                <Button 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => handleViewPartnerDetails(partner)}
+                >
                   Voir détails
                 </Button>
               </div>
@@ -163,25 +215,31 @@ const Partners = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <h3 className="font-semibold text-slate-800 mb-2">Total partenaires</h3>
-          <p className="text-3xl font-bold text-blue-600">128</p>
-          <p className="text-sm text-slate-500">+12 ce mois</p>
+          <p className="text-3xl font-bold text-blue-600">{partners.length}</p>
+          <p className="text-sm text-slate-500">+{partners.filter(p => new Date(p.joinDate) > new Date('2024-01-01')).length} ce mois</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <h3 className="font-semibold text-slate-800 mb-2">Partenaires actifs</h3>
-          <p className="text-3xl font-bold text-green-600">95</p>
-          <p className="text-sm text-slate-500">74% du total</p>
+          <p className="text-3xl font-bold text-green-600">{partners.filter(p => p.status === 'Actif').length}</p>
+          <p className="text-sm text-slate-500">{Math.round((partners.filter(p => p.status === 'Actif').length / partners.length) * 100)}% du total</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <h3 className="font-semibold text-slate-800 mb-2">En attente</h3>
-          <p className="text-3xl font-bold text-yellow-600">23</p>
+          <p className="text-3xl font-bold text-yellow-600">{partners.filter(p => p.status === 'En attente').length}</p>
           <p className="text-sm text-slate-500">À valider</p>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <h3 className="font-semibold text-slate-800 mb-2">Note moyenne</h3>
-          <p className="text-3xl font-bold text-purple-600">4.6</p>
+          <p className="text-3xl font-bold text-purple-600">{(partners.reduce((acc, p) => acc + p.rating, 0) / partners.length).toFixed(1)}</p>
           <p className="text-sm text-slate-500">Sur 5 étoiles</p>
         </div>
       </div>
+
+      <AddPartnerModal 
+        isOpen={isAddPartnerModalOpen}
+        onClose={() => setIsAddPartnerModalOpen(false)}
+        onAddPartner={handleAddPartner}
+      />
     </div>
   );
 };

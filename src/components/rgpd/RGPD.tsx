@@ -1,12 +1,24 @@
-
 import { useState } from "react";
 import { Shield, FileText, Users, AlertTriangle, CheckCircle, Clock, Search, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import ProcessRequestModal from "./ProcessRequestModal";
+
+interface DataRequest {
+  id: number;
+  type: string;
+  user: string;
+  email: string;
+  date: string;
+  status: string;
+  deadline: string;
+}
 
 const RGPD = () => {
   const [activeTab, setActiveTab] = useState("overview");
-
-  const dataRequests = [
+  const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<DataRequest | null>(null);
+  const [dataRequests, setDataRequests] = useState<DataRequest[]>([
     {
       id: 1,
       type: "Accès aux données",
@@ -34,13 +46,28 @@ const RGPD = () => {
       status: "En attente",
       deadline: "2024-02-09"
     }
-  ];
+  ]);
+
+  const { toast } = useToast();
 
   const consentStats = {
     total: 1234,
     accepted: 987,
     refused: 156,
     pending: 91
+  };
+
+  const handleProcessRequest = (request: DataRequest) => {
+    setSelectedRequest(request);
+    setIsProcessModalOpen(true);
+  };
+
+  const handleRequestProcess = (requestId: number, status: string, response: string) => {
+    setDataRequests(prev => 
+      prev.map(req => 
+        req.id === requestId ? { ...req, status } : req
+      )
+    );
   };
 
   return (
@@ -125,7 +152,7 @@ const RGPD = () => {
                   <div className="flex items-center gap-3">
                     <Clock className="h-8 w-8 text-yellow-600" />
                     <div>
-                      <p className="text-2xl font-bold text-yellow-600">5</p>
+                      <p className="text-2xl font-bold text-yellow-600">{dataRequests.filter(r => r.status === 'En cours').length}</p>
                       <p className="text-sm text-yellow-700">Demandes en cours</p>
                     </div>
                   </div>
@@ -244,8 +271,13 @@ const RGPD = () => {
                           </span>
                         </td>
                         <td className="py-4 px-4">
-                          <Button size="sm" variant="outline">
-                            Traiter
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleProcessRequest(request)}
+                            disabled={request.status === 'Traité'}
+                          >
+                            {request.status === 'Traité' ? 'Traité' : 'Traiter'}
                           </Button>
                         </td>
                       </tr>
@@ -370,6 +402,13 @@ const RGPD = () => {
           )}
         </div>
       </div>
+
+      <ProcessRequestModal 
+        isOpen={isProcessModalOpen}
+        onClose={() => setIsProcessModalOpen(false)}
+        request={selectedRequest}
+        onProcessRequest={handleRequestProcess}
+      />
     </div>
   );
 };

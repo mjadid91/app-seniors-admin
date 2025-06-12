@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,11 +11,13 @@ import { RoleBadge } from "../ui/role-badge";
 import RoleManager from "./RoleManager";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import { useToast } from "@/hooks/use-toast";
+import AddUserModal from "./AddUserModal";
 
 const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
@@ -115,7 +116,21 @@ const UserManagement = () => {
       });
       return;
     }
-    console.log("Ajouter un utilisateur");
+    setIsAddUserModalOpen(true);
+  };
+
+  const handleUserAdded = (newUserData: Omit<User, 'id'>) => {
+    const newUser: User = {
+      ...newUserData,
+      id: (users.length + 1).toString()
+    };
+    setUsers(prevUsers => [...prevUsers, newUser]);
+    setStats(prevStats => ({
+      ...prevStats,
+      total: prevStats.total + 1,
+      active: prevStats.active + 1,
+      admins: newUser.role === 'administrateur' ? prevStats.admins + 1 : prevStats.admins
+    }));
   };
 
   const handleExport = () => {
@@ -127,7 +142,23 @@ const UserManagement = () => {
       });
       return;
     }
-    console.log("Exporter les données");
+    
+    const csvContent = "data:text/csv;charset=utf-8," + 
+      "Nom,Prénom,Email,Rôle,Date d'inscription\n" +
+      users.map(user => `${user.nom},${user.prenom},${user.email},${user.role},${user.dateInscription}`).join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "utilisateurs_export.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Export réussi",
+      description: "La liste des utilisateurs a été exportée.",
+    });
   };
 
   return (
@@ -266,6 +297,12 @@ const UserManagement = () => {
             </Table>
           </CardContent>
         </Card>
+
+        <AddUserModal 
+          isOpen={isAddUserModalOpen}
+          onClose={() => setIsAddUserModalOpen(false)}
+          onAddUser={handleUserAdded}
+        />
       </div>
     </ProtectedRoute>
   );
