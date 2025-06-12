@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { User, useAuthStore } from "../../stores/authStore";
-import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, RefreshCw } from "lucide-react";
 
 interface AddUserModalProps {
   isOpen: boolean;
@@ -24,10 +24,12 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
     languePreferee: "",
     devise: ""
   });
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [emailError, setEmailError] = useState("");
-  const [tempPassword, setTempPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [showCreatedPassword, setShowCreatedPassword] = useState(false);
+  const [createdPassword, setCreatedPassword] = useState("");
+  const [showPasswordField, setShowPasswordField] = useState(false);
   const [isEmailChecking, setIsEmailChecking] = useState(false);
   const { toast } = useToast();
 
@@ -63,13 +65,13 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
   }, [formData.email]);
 
   // Génération d'un mot de passe temporaire
-  const generateTempPassword = () => {
+  const generatePassword = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-    let password = '';
+    let newPassword = '';
     for (let i = 0; i < 12; i++) {
-      password += chars.charAt(Math.floor(Math.random() * chars.length));
+      newPassword += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    return password;
+    setPassword(newPassword);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,12 +86,18 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
       return;
     }
 
+    if (!password.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez saisir ou générer un mot de passe.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const tempPass = generateTempPassword();
-      setTempPassword(tempPass);
-
       const newUser: Omit<User, 'id'> = {
         nom: formData.nom,
         prenom: formData.prenom,
@@ -99,10 +107,12 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
       };
 
       onAddUser(newUser);
+      setCreatedPassword(password);
+      setShowCreatedPassword(true);
       
       toast({
         title: "Utilisateur créé avec succès",
-        description: `${formData.prenom} ${formData.nom} a été ajouté. Un mot de passe temporaire a été généré.`,
+        description: `${formData.prenom} ${formData.nom} a été ajouté avec un mot de passe temporaire.`,
       });
 
       // Réinitialiser le formulaire
@@ -114,7 +124,7 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
         languePreferee: "",
         devise: ""
       });
-      setShowPassword(true); // Afficher le mot de passe temporaire
+      setPassword("");
     } catch (error) {
       toast({
         title: "Erreur",
@@ -127,16 +137,25 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
   };
 
   const handleClose = () => {
-    setTempPassword("");
-    setShowPassword(false);
+    setShowCreatedPassword(false);
+    setCreatedPassword("");
+    setPassword("");
+    setFormData({
+      nom: "",
+      prenom: "",
+      email: "",
+      role: "visualisateur",
+      languePreferee: "",
+      devise: ""
+    });
     onClose();
   };
 
   const copyPassword = () => {
-    navigator.clipboard.writeText(tempPassword);
+    navigator.clipboard.writeText(createdPassword);
     toast({
       title: "Copié",
-      description: "Le mot de passe temporaire a été copié dans le presse-papier.",
+      description: "Le mot de passe a été copié dans le presse-papier.",
     });
   };
 
@@ -150,19 +169,26 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        {tempPassword && showPassword ? (
+        {showCreatedPassword ? (
           <div className="space-y-4">
-            <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
-              <h3 className="font-medium text-amber-800 mb-2">Mot de passe temporaire généré</h3>
-              <div className="flex items-center gap-2 bg-white p-3 rounded border">
-                <code className="flex-1 font-mono text-sm">{tempPassword}</code>
-                <Button size="sm" variant="outline" onClick={copyPassword}>
-                  Copier
-                </Button>
+            <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+              <h3 className="font-medium text-green-800 mb-3">✅ Utilisateur créé avec succès</h3>
+              <div className="space-y-3">
+                <div>
+                  <Label className="text-sm font-medium text-green-700">Mot de passe temporaire :</Label>
+                  <div className="flex items-center gap-2 bg-white p-3 rounded border mt-1">
+                    <code className="flex-1 font-mono text-sm break-all">{createdPassword}</code>
+                    <Button size="sm" variant="outline" onClick={copyPassword}>
+                      Copier
+                    </Button>
+                  </div>
+                </div>
+                <div className="bg-amber-50 border border-amber-200 p-3 rounded">
+                  <p className="text-sm text-amber-800">
+                    <strong>Important :</strong> Communiquez ce mot de passe à l'utilisateur par email ou messagerie sécurisée. Il pourra le modifier à sa première connexion.
+                  </p>
+                </div>
               </div>
-              <p className="text-sm text-amber-700 mt-2">
-                ⚠️ Ce mot de passe ne sera affiché qu'une seule fois. L'utilisateur devra le modifier lors de sa première connexion.
-              </p>
             </div>
             <div className="flex justify-end">
               <Button onClick={handleClose}>
@@ -232,6 +258,43 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
               </Select>
             </div>
 
+            <div className="space-y-2">
+              <Label>Mot de passe temporaire *</Label>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Input
+                      type={showPasswordField ? "text" : "password"}
+                      placeholder="Saisir ou générer automatiquement"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3"
+                      onClick={() => setShowPasswordField(!showPasswordField)}
+                    >
+                      {showPasswordField ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={generatePassword}
+                  className="px-3"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Cliquez sur l'icône de rechargement pour générer un mot de passe automatiquement
+              </p>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="langue">Langue préférée</Label>
@@ -267,7 +330,7 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
 
             <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
               <p className="text-sm text-blue-700">
-                <strong>Information :</strong> Un mot de passe temporaire sera généré automatiquement. L'utilisateur devra le modifier lors de sa première connexion.
+                <strong>Information :</strong> Le mot de passe sera affiché une seule fois après la création du compte. L'utilisateur devra le modifier lors de sa première connexion.
               </p>
             </div>
 
