@@ -62,12 +62,10 @@ export const useDocuments = () => {
     console.log("Visualiser le document:", doc);
   };
 
-  const handleEditDocument = (doc: Document) => {
-    toast({
-      title: "Modification du document",
-      description: `Édition de ${doc.name} en cours...`,
-    });
-    console.log("Modifier le document:", doc);
+  const handleEditDocument = (id: number, updatedDoc: Partial<Document>) => {
+    setDocuments(prev => prev.map(doc => 
+      doc.id === id ? { ...doc, ...updatedDoc } : doc
+    ));
   };
 
   const handleDownloadDocument = (doc: Document) => {
