@@ -14,11 +14,15 @@ interface BonPlan {
   partenaire: string;
   description: string;
   typeReduction: string;
-  pourcentageReduction: number;
+  valeurReduction: number; // Renommé pour cohérence
   dateDebutReduction: string;
   dateFinReduction: string;
   codePromo: string;
   statut: string;
+  // Champs système cohérents
+  dateCreation?: string;
+  dateMiseAJour?: string;
+  creePar?: string;
 }
 
 interface AddBonPlanModalProps {
@@ -34,7 +38,7 @@ const AddBonPlanModal = ({ isOpen, onClose, onAddBonPlan, partenaires }: AddBonP
     partenaire: "",
     description: "",
     typeReduction: "pourcentage",
-    pourcentageReduction: 0,
+    valeurReduction: 0,
     dateDebutReduction: "",
     dateFinReduction: "",
     codePromo: "",
@@ -66,7 +70,7 @@ const AddBonPlanModal = ({ isOpen, onClose, onAddBonPlan, partenaires }: AddBonP
       partenaire: "",
       description: "",
       typeReduction: "pourcentage",
-      pourcentageReduction: 0,
+      valeurReduction: 0,
       dateDebutReduction: "",
       dateFinReduction: "",
       codePromo: "",
@@ -145,14 +149,14 @@ const AddBonPlanModal = ({ isOpen, onClose, onAddBonPlan, partenaires }: AddBonP
             </div>
 
             <div>
-              <Label htmlFor="pourcentageReduction">
+              <Label htmlFor="valeurReduction">
                 {formData.typeReduction === 'pourcentage' ? 'Pourcentage (%)' : 'Montant (€)'}
               </Label>
               <Input
-                id="pourcentageReduction"
+                id="valeurReduction"
                 type="number"
-                value={formData.pourcentageReduction}
-                onChange={(e) => setFormData(prev => ({ ...prev, pourcentageReduction: Number(e.target.value) }))}
+                value={formData.valeurReduction}
+                onChange={(e) => setFormData(prev => ({ ...prev, valeurReduction: Number(e.target.value) }))}
                 min="0"
                 max={formData.typeReduction === 'pourcentage' ? "100" : undefined}
               />

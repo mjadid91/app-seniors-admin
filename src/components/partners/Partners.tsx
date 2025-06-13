@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,15 +12,19 @@ import BonPlansSection from "./BonPlansSection";
 
 interface Partner {
   id: number;
-  name: string;
+  nom: string; // Renommé pour cohérence
   type: string;
   email: string;
-  phone: string;
-  address: string;
-  status: string;
-  rating: number;
+  telephone: string; // Renommé pour cohérence
+  adresse: string; // Renommé pour cohérence
+  statut: string;
+  evaluation: number; // Renommé pour cohérence
   services: string[];
-  joinDate: string;
+  dateInscription: string; // Renommé pour cohérence
+  // Champs système cohérents
+  dateCreation?: string;
+  dateMiseAJour?: string;
+  creePar?: string;
 }
 
 interface BonPlan {
@@ -28,11 +33,15 @@ interface BonPlan {
   partenaire: string;
   description: string;
   typeReduction: string;
-  pourcentageReduction: number;
+  valeurReduction: number; // Renommé pour cohérence
   dateDebutReduction: string;
   dateFinReduction: string;
   codePromo: string;
   statut: string;
+  // Champs système cohérents
+  dateCreation?: string;
+  dateMiseAJour?: string;
+  creePar?: string;
 }
 
 const Partners = () => {
@@ -45,39 +54,39 @@ const Partners = () => {
   const [partners, setPartners] = useState<Partner[]>([
     {
       id: 1,
-      name: "Services Plus",
+      nom: "Services Plus",
       type: "Prestataire de services",
       email: "contact@servicesplus.fr",
-      phone: "01 23 45 67 89",
-      address: "15 rue de la République, 75001 Paris",
-      status: "Actif",
-      rating: 4.8,
+      telephone: "01 23 45 67 89",
+      adresse: "15 rue de la République, 75001 Paris",
+      statut: "Actif",
+      evaluation: 4.8,
       services: ["Ménage", "Jardinage", "Bricolage"],
-      joinDate: "2023-01-15"
+      dateInscription: "2023-01-15"
     },
     {
       id: 2,
-      name: "Aide à Domicile Pro",
+      nom: "Aide à Domicile Pro",
       type: "Aide à domicile",
       email: "info@aidedomicilepro.fr",
-      phone: "01 34 56 78 90",
-      address: "8 avenue des Champs, 69001 Lyon",
-      status: "Actif",
-      rating: 4.6,
+      telephone: "01 34 56 78 90",
+      adresse: "8 avenue des Champs, 69001 Lyon",
+      statut: "Actif",
+      evaluation: 4.6,
       services: ["Aide à domicile", "Courses", "Compagnie"],
-      joinDate: "2023-03-22"
+      dateInscription: "2023-03-22"
     },
     {
       id: 3,
-      name: "Tech Senior",
+      nom: "Tech Senior",
       type: "Support technique",
       email: "support@techsenior.fr",
-      phone: "01 45 67 89 01",
-      address: "22 rue du Commerce, 33000 Bordeaux",
-      status: "En attente",
-      rating: 4.2,
+      telephone: "01 45 67 89 01",
+      adresse: "22 rue du Commerce, 33000 Bordeaux",
+      statut: "En attente",
+      evaluation: 4.2,
       services: ["Support informatique", "Installation", "Formation"],
-      joinDate: "2024-01-10"
+      dateInscription: "2024-01-10"
     }
   ]);
 
@@ -88,7 +97,7 @@ const Partners = () => {
       partenaire: "Services Plus",
       description: "Bénéficiez de 20% de réduction sur tous les services de ménage pour les nouveaux clients seniors",
       typeReduction: "pourcentage",
-      pourcentageReduction: 20,
+      valeurReduction: 20,
       dateDebutReduction: "2024-06-01",
       dateFinReduction: "2024-12-31",
       codePromo: "SENIOR20",
@@ -100,7 +109,7 @@ const Partners = () => {
       partenaire: "Tech Senior",
       description: "Première consultation informatique offerte pour tout nouveau client senior, incluant diagnostic et conseils personnalisés",
       typeReduction: "gratuit",
-      pourcentageReduction: 0,
+      valeurReduction: 0,
       dateDebutReduction: "2024-05-15",
       dateFinReduction: "2024-08-31",
       codePromo: "WELCOME",
@@ -112,7 +121,7 @@ const Partners = () => {
       partenaire: "Aide à Domicile Pro",
       description: "Réduction de 15€ sur votre première prestation d'aide à domicile d'une durée minimum de 3 heures",
       typeReduction: "montant",
-      pourcentageReduction: 15,
+      valeurReduction: 15,
       dateDebutReduction: "2024-06-10",
       dateFinReduction: "2024-09-30",
       codePromo: "AIDE15",
@@ -130,14 +139,14 @@ const Partners = () => {
     setPartners(prev => [...prev, newPartner]);
     toast({
       title: "Partenaire ajouté",
-      description: `${newPartnerData.name} a été ajouté avec succès.`,
+      description: `${newPartnerData.nom} a été ajouté avec succès.`,
     });
   };
 
   const handleContactPartner = (partner: Partner) => {
     toast({
       title: "Contact partenaire",
-      description: `Ouverture du contact avec ${partner.name}`,
+      description: `Ouverture du contact avec ${partner.nom}`,
     });
     window.location.href = `mailto:${partner.email}?subject=Contact depuis AppSeniors Admin`;
   };
@@ -168,17 +177,17 @@ const Partners = () => {
   };
 
   const filteredPartners = partners.filter(partner => {
-    const matchesSearch = partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = partner.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          partner.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          partner.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === "all" || partner.status === filterStatus;
+    const matchesStatus = filterStatus === "all" || partner.statut === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
   const getPartenairesForSelect = () => {
     return partners.map(partner => ({
       id: partner.id,
-      name: partner.name
+      name: partner.nom
     }));
   };
 

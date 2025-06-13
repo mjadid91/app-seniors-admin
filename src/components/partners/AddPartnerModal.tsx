@@ -10,15 +10,19 @@ import { useToast } from "@/hooks/use-toast";
 
 interface Partner {
   id: number;
-  name: string;
+  nom: string; // Renommé pour cohérence
   type: string;
   email: string;
-  phone: string;
-  address: string;
-  status: string;
-  rating: number;
+  telephone: string; // Renommé pour cohérence
+  adresse: string; // Renommé pour cohérence
+  statut: string;
+  evaluation: number; // Renommé pour cohérence
   services: string[];
-  joinDate: string;
+  dateInscription: string; // Renommé pour cohérence
+  // Champs système cohérents
+  dateCreation?: string;
+  dateMiseAJour?: string;
+  creePar?: string;
 }
 
 interface AddPartnerModalProps {
@@ -29,12 +33,12 @@ interface AddPartnerModalProps {
 
 const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps) => {
   const [formData, setFormData] = useState({
-    name: "",
+    nom: "",
     type: "",
     email: "",
-    phone: "",
-    address: "",
-    status: "En attente",
+    telephone: "",
+    adresse: "",
+    statut: "En attente",
     services: ""
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -49,25 +53,25 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
     try {
       const newPartner: Omit<Partner, 'id'> = {
         ...formData,
-        rating: 0,
+        evaluation: 0,
         services: formData.services.split(',').map(s => s.trim()).filter(s => s.length > 0),
-        joinDate: new Date().toISOString().split('T')[0]
+        dateInscription: new Date().toISOString().split('T')[0]
       };
 
       onAddPartner(newPartner);
       
       toast({
         title: "Partenaire ajouté",
-        description: `${formData.name} a été ajouté avec succès.`,
+        description: `${formData.nom} a été ajouté avec succès.`,
       });
 
       setFormData({
-        name: "",
+        nom: "",
         type: "",
         email: "",
-        phone: "",
-        address: "",
-        status: "En attente",
+        telephone: "",
+        adresse: "",
+        statut: "En attente",
         services: ""
       });
       onClose();
@@ -93,11 +97,11 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Nom du partenaire</Label>
+            <Label htmlFor="nom">Nom du partenaire</Label>
             <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              id="nom"
+              value={formData.nom}
+              onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
               required
             />
           </div>
@@ -126,21 +130,21 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Téléphone</Label>
+              <Label htmlFor="telephone">Téléphone</Label>
               <Input
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                id="telephone"
+                value={formData.telephone}
+                onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
                 required
               />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="address">Adresse</Label>
+            <Label htmlFor="adresse">Adresse</Label>
             <Input
-              id="address"
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              id="adresse"
+              value={formData.adresse}
+              onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
               required
             />
           </div>
@@ -155,8 +159,8 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="status">Statut</Label>
-            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+            <Label htmlFor="statut">Statut</Label>
+            <Select value={formData.statut} onValueChange={(value) => setFormData({ ...formData, statut: value })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>

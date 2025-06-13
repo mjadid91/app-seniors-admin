@@ -9,11 +9,15 @@ interface BonPlan {
   partenaire: string;
   description: string;
   typeReduction: string;
-  pourcentageReduction: number;
+  valeurReduction: number; // Renommé pour cohérence
   dateDebutReduction: string;
   dateFinReduction: string;
   codePromo: string;
   statut: string;
+  // Champs système cohérents
+  dateCreation?: string;
+  dateMiseAJour?: string;
+  creePar?: string;
 }
 
 interface ViewBonPlanModalProps {
@@ -28,13 +32,13 @@ const ViewBonPlanModal = ({ isOpen, onClose, bonPlan }: ViewBonPlanModalProps) =
   const formatReduction = () => {
     switch (bonPlan.typeReduction) {
       case 'pourcentage':
-        return `${bonPlan.pourcentageReduction}%`;
+        return `${bonPlan.valeurReduction}%`;
       case 'montant':
-        return `${bonPlan.pourcentageReduction}€`;
+        return `${bonPlan.valeurReduction}€`;
       case 'gratuit':
         return 'Gratuit';
       default:
-        return `${bonPlan.pourcentageReduction}%`;
+        return `${bonPlan.valeurReduction}%`;
     }
   };
 
