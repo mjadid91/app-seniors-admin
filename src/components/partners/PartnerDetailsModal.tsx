@@ -3,23 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Mail, Phone, MapPin, Star, Calendar, Users } from "lucide-react";
-
-interface Partner {
-  id: number;
-  nom: string; // Renommé pour cohérence
-  type: string;
-  email: string;
-  telephone: string; // Renommé pour cohérence
-  adresse: string; // Renommé pour cohérence
-  statut: string;
-  evaluation: number; // Renommé pour cohérence
-  services: string[];
-  dateInscription: string; // Renommé pour cohérence
-  // Champs système cohérents
-  dateCreation?: string;
-  dateMiseAJour?: string;
-  creePar?: string;
-}
+import { Partner } from "./types";
 
 interface PartnerDetailsModalProps {
   isOpen: boolean;

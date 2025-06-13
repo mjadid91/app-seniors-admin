@@ -1,22 +1,7 @@
+
 import { Tag, Edit, Trash2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-interface BonPlan {
-  id: number;
-  titre: string;
-  partenaire: string;
-  description: string;
-  typeReduction: string;
-  valeurReduction: number; // Renommé pour cohérence
-  dateDebutReduction: string;
-  dateFinReduction: string;
-  codePromo: string;
-  statut: string;
-  // Champs système cohérents
-  dateCreation?: string;
-  dateMiseAJour?: string;
-  creePar?: string;
-}
+import { BonPlan } from "./types";
 
 interface BonPlanCardProps {
   bonPlan: BonPlan;

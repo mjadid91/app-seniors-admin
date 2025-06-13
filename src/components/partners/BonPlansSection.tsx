@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Gift, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,29 +7,7 @@ import AddBonPlanModal from "./AddBonPlanModal";
 import ViewBonPlanModal from "./ViewBonPlanModal";
 import EditBonPlanModal from "./EditBonPlanModal";
 import DeleteBonPlanModal from "./DeleteBonPlanModal";
-
-interface BonPlan {
-  id: number;
-  titre: string;
-  partenaire: string;
-  description: string;
-  typeReduction: string;
-  valeurReduction: number; // Renommé pour cohérence
-  dateDebutReduction: string;
-  dateFinReduction: string;
-  codePromo: string;
-  statut: string;
-  // Champs système cohérents
-  dateCreation?: string;
-  dateMiseAJour?: string;
-  creePar?: string;
-}
-
-// Use the correct interface for partner selection
-interface PartnerForSelect {
-  id: number;
-  name: string;
-}
+import { BonPlan, PartnerForSelect } from "./types";
 
 interface BonPlansSectionProps {
   bonsPlans: BonPlan[];

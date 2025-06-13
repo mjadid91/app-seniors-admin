@@ -7,29 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-
-interface BonPlan {
-  id: number;
-  titre: string;
-  partenaire: string;
-  description: string;
-  typeReduction: string;
-  valeurReduction: number; // Renommé pour cohérence
-  dateDebutReduction: string;
-  dateFinReduction: string;
-  codePromo: string;
-  statut: string;
-  // Champs système cohérents
-  dateCreation?: string;
-  dateMiseAJour?: string;
-  creePar?: string;
-}
+import { BonPlan, PartnerForSelect } from "./types";
 
 interface AddBonPlanModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddBonPlan: (bonPlan: Omit<BonPlan, 'id'>) => void;
-  partenaires: { id: number; name: string }[];
+  partenaires: PartnerForSelect[];
 }
 
 const AddBonPlanModal = ({ isOpen, onClose, onAddBonPlan, partenaires }: AddBonPlanModalProps) => {

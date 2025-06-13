@@ -1,15 +1,20 @@
 
+// Use the same Partner interface as other components for consistency
 interface Partner {
   id: number;
-  name: string;
+  nom: string; // Renommé pour cohérence
   type: string;
   email: string;
-  phone: string;
-  address: string;
-  status: string;
-  rating: number;
+  telephone: string; // Renommé pour cohérence
+  adresse: string; // Renommé pour cohérence
+  statut: string;
+  evaluation: number; // Renommé pour cohérence
   services: string[];
-  joinDate: string;
+  dateInscription: string; // Renommé pour cohérence
+  // Champs système cohérents
+  dateCreation?: string;
+  dateMiseAJour?: string;
+  creePar?: string;
 }
 
 interface PartnerStatsProps {
@@ -17,13 +22,13 @@ interface PartnerStatsProps {
 }
 
 const PartnerStats = ({ partners }: PartnerStatsProps) => {
-  const activePartners = partners.filter(p => p.status === 'Actif').length;
-  const pendingPartners = partners.filter(p => p.status === 'En attente').length;
+  const activePartners = partners.filter(p => p.statut === 'Actif').length;
+  const pendingPartners = partners.filter(p => p.statut === 'En attente').length;
   const newPartnersThisMonth = partners.filter(p => 
-    new Date(p.joinDate) > new Date('2024-01-01')
+    new Date(p.dateInscription) > new Date('2024-01-01')
   ).length;
   const averageRating = partners.length > 0 
-    ? (partners.reduce((acc, p) => acc + p.rating, 0) / partners.length).toFixed(1)
+    ? (partners.reduce((acc, p) => acc + p.evaluation, 0) / partners.length).toFixed(1)
     : '0.0';
 
   return (

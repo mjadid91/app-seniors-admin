@@ -2,23 +2,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Tag, User, Percent, Clock, Code } from "lucide-react";
-
-interface BonPlan {
-  id: number;
-  titre: string;
-  partenaire: string;
-  description: string;
-  typeReduction: string;
-  valeurReduction: number; // Renommé pour cohérence
-  dateDebutReduction: string;
-  dateFinReduction: string;
-  codePromo: string;
-  statut: string;
-  // Champs système cohérents
-  dateCreation?: string;
-  dateMiseAJour?: string;
-  creePar?: string;
-}
+import { BonPlan } from "./types";
 
 interface ViewBonPlanModalProps {
   isOpen: boolean;
