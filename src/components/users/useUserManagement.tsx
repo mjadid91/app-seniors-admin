@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { User } from "../../stores/authStore";
 import { usePermissions, PERMISSIONS } from "../../hooks/usePermissions";
 import { useToast } from "@/hooks/use-toast";
-import { UserStats, UserManagementState, UserManagementActions } from "./userTypes";
+import { UserStats, UserManagementState, UserManagementActions, CreateUserData } from "./userTypes";
 import { useSupabaseUsers } from "../../hooks/useSupabaseUsers";
 import { 
   calculateUserStats, 
@@ -73,7 +73,7 @@ export const useUserManagement = (): UserManagementState & UserManagementActions
     setIsAddUserModalOpen(true);
   };
 
-  const handleUserAdded = async (newUserData: Omit<User, 'id'>) => {
+  const handleUserAdded = async (newUserData: CreateUserData) => {
     try {
       await addUser(newUserData);
       toast({

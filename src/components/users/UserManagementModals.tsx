@@ -1,5 +1,6 @@
 
 import { User } from "../../stores/authStore";
+import { CreateUserData } from "./userTypes";
 import AddUserModal from "./AddUserModal";
 import EditUserModal from "./EditUserModal";
 import DeleteUserConfirm from "./DeleteUserConfirm";
@@ -12,7 +13,7 @@ interface UserManagementModalsProps {
   onCloseAddModal: () => void;
   onCloseEditModal: () => void;
   onCloseDeleteModal: () => void;
-  onUserAdded: (newUserData: Omit<User, 'id'>) => void;
+  onUserAdded: (newUserData: CreateUserData) => void;
   onUserEdited: (userId: string, updatedData: Partial<User>) => void;
   onUserDeleted: (userId: string) => void;
 }

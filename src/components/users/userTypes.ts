@@ -32,3 +32,17 @@ export interface UserManagementActions {
   setIsEditUserModalOpen: (open: boolean) => void;
   setIsDeleteConfirmOpen: (open: boolean) => void;
 }
+
+// Extension for the new user data structure that includes category ID
+export interface UserWithCategory extends Omit<User, 'role'> {
+  categoryId: number;
+  categoryLabel: string;
+}
+
+export interface CreateUserData {
+  nom: string;
+  prenom: string;
+  email: string;
+  categoryId: number;
+  dateInscription: string;
+}

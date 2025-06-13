@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '../stores/authStore';
+import { useUserCategories } from './useUserCategories';
+import { CreateUserData } from '../components/users/userTypes';
 
 export interface SupabaseUser {
   IDUtilisateurs: number;
@@ -27,16 +29,23 @@ export const useSupabaseUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { getCategoryLabel } = useUserCategories();
 
   // Fonction pour convertir un utilisateur Supabase vers le format de l'application
   const convertSupabaseUserToAppUser = (supabaseUser: SupabaseUser): User => {
-    // Mapping des catégories vers les rôles basé sur les IDs insérés
+    // Mapping des catégories vers les rôles de l'application pour compatibilité
     const getRoleFromCategory = (categoryId: number): User['role'] => {
-      switch (categoryId) {
-        case 5: return 'administrateur';    // ID 5 = Administrateur
-        case 6: return 'moderateur';        // ID 6 = Modérateur  
-        case 4: return 'support';           // ID 4 = Aidant (comme support)
-        case 7: return 'visualisateur';     // ID 7 = Visualisateur
+      const categoryLabel = getCategoryLabel(categoryId).toLowerCase();
+      
+      switch (categoryLabel) {
+        case 'administrateur': return 'administrateur';
+        case 'modérateur': return 'moderateur';
+        case 'aidant': return 'support';
+        case 'visualisateur': return 'visualisateur';
+        // Pour les nouveaux rôles, on utilise 'visualisateur' par défaut
+        case 'senior':
+        case 'tuteur':
+        case 'organisme':
         default: return 'visualisateur';
       }
     };
@@ -76,20 +85,9 @@ export const useSupabaseUsers = () => {
     }
   };
 
-  // Fonction pour ajouter un utilisateur
-  const addUser = async (userData: Omit<User, 'id'>) => {
+  // Fonction pour ajouter un utilisateur avec le nouveau système de catégories
+  const addUser = async (userData: CreateUserData) => {
     try {
-      // Mapping du rôle vers la catégorie basé sur les IDs insérés
-      const getCategoryFromRole = (role: User['role']): number => {
-        switch (role) {
-          case 'administrateur': return 5;    // ID 5 = Administrateur
-          case 'moderateur': return 6;        // ID 6 = Modérateur
-          case 'support': return 4;           // ID 4 = Aidant (comme support)
-          case 'visualisateur': return 7;     // ID 7 = Visualisateur
-          default: return 7;
-        }
-      };
-
       const currentDate = new Date().toISOString();
 
       const supabaseUserData = {
@@ -101,7 +99,7 @@ export const useSupabaseUsers = () => {
         Adresse: 'Adresse non renseignée', // Valeur par défaut
         Genre: 'Non précisé', // Valeur par défaut
         MotDePasse: 'temp_password', // Mot de passe temporaire
-        IDCatUtilisateurs: getCategoryFromRole(userData.role),
+        IDCatUtilisateurs: userData.categoryId,
         DateInscription: userData.dateInscription,
         Commentaire: '', // Champ requis - valeur par défaut vide
         DateModification: currentDate, // Champ requis - date actuelle
@@ -133,24 +131,27 @@ export const useSupabaseUsers = () => {
   // Fonction pour mettre à jour un utilisateur
   const updateUser = async (userId: string, updates: Partial<User>) => {
     try {
-      const getCategoryFromRole = (role: User['role']): number => {
-        switch (role) {
-          case 'administrateur': return 5;    // ID 5 = Administrateur
-          case 'moderateur': return 6;        // ID 6 = Modérateur
-          case 'support': return 4;           // ID 4 = Aidant (comme support)
-          case 'visualisateur': return 7;     // ID 7 = Visualisateur
-          default: return 7;
-        }
-      };
-
       const supabaseUpdates: any = {
-        DateModification: new Date().toISOString() // Toujours mettre à jour la date de modification
+        DateModification: new Date().toISOString()
       };
       
       if (updates.nom) supabaseUpdates.Nom = updates.nom;
       if (updates.prenom) supabaseUpdates.Prenom = updates.prenom;
       if (updates.email) supabaseUpdates.Email = updates.email;
-      if (updates.role) supabaseUpdates.IDCatUtilisateurs = getCategoryFromRole(updates.role);
+      
+      // Pour la mise à jour du rôle, on garde l'ancien système pour compatibilité
+      if (updates.role) {
+        const getCategoryFromRole = (role: User['role']): number => {
+          switch (role) {
+            case 'administrateur': return 5;
+            case 'moderateur': return 6;
+            case 'support': return 4;
+            case 'visualisateur': return 7;
+            default: return 7;
+          }
+        };
+        supabaseUpdates.IDCatUtilisateurs = getCategoryFromRole(updates.role);
+      }
 
       const { data, error: updateError } = await supabase
         .from('Utilisateurs')

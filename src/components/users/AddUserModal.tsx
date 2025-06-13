@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,13 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { User, useAuthStore } from "../../stores/authStore";
 import { AlertCircle, Eye, EyeOff, RefreshCw } from "lucide-react";
+import { useUserCategories } from "../../hooks/useUserCategories";
+import { CreateUserData } from "./userTypes";
 
 interface AddUserModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddUser: (user: Omit<User, 'id'>) => void;
+  onAddUser: (user: CreateUserData) => void;
 }
 
 const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
@@ -20,7 +20,7 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
     nom: "",
     prenom: "",
     email: "",
-    role: "visualisateur" as User['role'],
+    categoryId: 0,
     languePreferee: "",
     devise: ""
   });
@@ -32,6 +32,7 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
   const [showPasswordField, setShowPasswordField] = useState(false);
   const [isEmailChecking, setIsEmailChecking] = useState(false);
   const { toast } = useToast();
+  const { categories, loading: categoriesLoading } = useUserCategories();
 
   // Mock existing users for email validation
   const existingEmails = [
@@ -95,14 +96,23 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
       return;
     }
 
+    if (formData.categoryId === 0) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un rôle.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const newUser: Omit<User, 'id'> = {
+      const newUser: CreateUserData = {
         nom: formData.nom,
         prenom: formData.prenom,
         email: formData.email,
-        role: formData.role,
+        categoryId: formData.categoryId,
         dateInscription: new Date().toISOString().split('T')[0]
       };
 
@@ -110,9 +120,10 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
       setCreatedPassword(password);
       setShowCreatedPassword(true);
       
+      const selectedCategory = categories.find(cat => cat.IDCatUtilisateurs === formData.categoryId);
       toast({
         title: "Utilisateur créé avec succès",
-        description: `${formData.prenom} ${formData.nom} a été ajouté avec un mot de passe temporaire.`,
+        description: `${formData.prenom} ${formData.nom} a été ajouté avec le rôle ${selectedCategory?.LibelleCategorie}.`,
       });
 
       // Réinitialiser le formulaire
@@ -120,7 +131,7 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
         nom: "",
         prenom: "",
         email: "",
-        role: "visualisateur",
+        categoryId: 0,
         languePreferee: "",
         devise: ""
       });
@@ -144,7 +155,7 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
       nom: "",
       prenom: "",
       email: "",
-      role: "visualisateur",
+      categoryId: 0,
       languePreferee: "",
       devise: ""
     });
@@ -245,17 +256,31 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
 
             <div className="space-y-2">
               <Label htmlFor="role">Rôle *</Label>
-              <Select value={formData.role} onValueChange={(value: User['role']) => setFormData({ ...formData, role: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="administrateur">Administrateur</SelectItem>
-                  <SelectItem value="moderateur">Modérateur</SelectItem>
-                  <SelectItem value="support">Support</SelectItem>
-                  <SelectItem value="visualisateur">Visualisateur</SelectItem>
-                </SelectContent>
-              </Select>
+              {categoriesLoading ? (
+                <div className="flex items-center gap-2 p-2 border rounded">
+                  <div className="w-4 h-4 border border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-sm text-gray-600">Chargement des rôles...</span>
+                </div>
+              ) : (
+                <Select 
+                  value={formData.categoryId.toString()} 
+                  onValueChange={(value) => setFormData({ ...formData, categoryId: parseInt(value) })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un rôle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem 
+                        key={category.IDCatUtilisateurs} 
+                        value={category.IDCatUtilisateurs.toString()}
+                      >
+                        {category.LibelleCategorie}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -340,7 +365,7 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
               </Button>
               <Button 
                 type="submit" 
-                disabled={isLoading || !!emailError || isEmailChecking}
+                disabled={isLoading || !!emailError || isEmailChecking || categoriesLoading}
               >
                 {isLoading ? "Création..." : "Créer l'utilisateur"}
               </Button>
