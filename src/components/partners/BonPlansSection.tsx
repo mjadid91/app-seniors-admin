@@ -24,12 +24,18 @@ interface BonPlan {
   creePar?: string;
 }
 
+// Use the correct interface for partner selection
+interface PartnerForSelect {
+  id: number;
+  name: string;
+}
+
 interface BonPlansSectionProps {
   bonsPlans: BonPlan[];
   onAddBonPlan: (bonPlan: Omit<BonPlan, 'id'>) => void;
   onEditBonPlan: (bonPlan: BonPlan) => void;
   onDeleteBonPlan: (id: number) => void;
-  partenaires: { id: number; name: string }[];
+  partenaires: PartnerForSelect[];
 }
 
 const BonPlansSection = ({ 
