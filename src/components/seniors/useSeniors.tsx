@@ -1,15 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Senior, Aidant } from "../../types/seniors";
-
-interface SeniorsStats {
-  totalSeniors: number;
-  seniorsActifs: number;
-  totalAidants: number;
-  aidantsActifs: number;
-  humeurPositive: number;
-  humeurNegative: number;
-}
+import { Senior, Aidant, SeniorsStats } from "../../types/seniors";
 
 export const useSeniors = () => {
   const [seniors, setSeniors] = useState<Senior[]>([]);
@@ -23,11 +14,11 @@ export const useSeniors = () => {
     humeurNegative: 0
   });
 
-  // Données de démonstration
+  // Données de démonstration cohérentes avec la base de données
   useEffect(() => {
     const mockSeniors: Senior[] = [
       {
-        id: '1',
+        id: 'senior-1',
         nom: 'Martin',
         prenom: 'Claire',
         email: 'claire.martin@email.com',
@@ -40,18 +31,20 @@ export const useSeniors = () => {
         handicap: false,
         pathologies: ['Diabète', 'Hypertension'],
         niveauAutonomie: 'moyen',
-        dateInscription: '2024-01-15',
+        dateInscription: '2024-01-15T10:00:00Z',
         statut: 'actif',
-        derniereConnexion: '2024-06-12',
+        derniereConnexion: '2024-06-12T14:30:00Z',
         humeurJour: {
           date: '2024-06-12',
           humeur: 'content',
           commentaire: 'Belle journée ensoleillée'
         },
-        aidants: ['1', '2']
+        aidantsAssignes: ['aidant-1', 'aidant-2'],
+        dateCreation: '2024-01-15T10:00:00Z',
+        dateMiseAJour: '2024-06-12T14:30:00Z'
       },
       {
-        id: '2',
+        id: 'senior-2',
         nom: 'Dubois',
         prenom: 'Jean',
         email: 'jean.dubois@email.com',
@@ -64,18 +57,20 @@ export const useSeniors = () => {
         handicap: true,
         pathologies: ['Arthrose'],
         niveauAutonomie: 'faible',
-        dateInscription: '2024-02-20',
+        dateInscription: '2024-02-20T09:15:00Z',
         statut: 'actif',
-        derniereConnexion: '2024-06-11',
+        derniereConnexion: '2024-06-11T16:45:00Z',
         humeurJour: {
           date: '2024-06-11',
           humeur: 'neutre',
           commentaire: 'Journée calme'
         },
-        aidants: ['1']
+        aidantsAssignes: ['aidant-1'],
+        dateCreation: '2024-02-20T09:15:00Z',
+        dateMiseAJour: '2024-06-11T16:45:00Z'
       },
       {
-        id: '3',
+        id: 'senior-3',
         nom: 'Leroy',
         prenom: 'Marguerite',
         email: 'marguerite.leroy@email.com',
@@ -88,21 +83,23 @@ export const useSeniors = () => {
         handicap: false,
         pathologies: [],
         niveauAutonomie: 'eleve',
-        dateInscription: '2024-03-10',
+        dateInscription: '2024-03-10T11:30:00Z',
         statut: 'actif',
-        derniereConnexion: '2024-06-12',
+        derniereConnexion: '2024-06-12T08:20:00Z',
         humeurJour: {
           date: '2024-06-12',
           humeur: 'tres_content',
           commentaire: 'Visite de mes petits-enfants !'
         },
-        aidants: ['2']
+        aidantsAssignes: ['aidant-2'],
+        dateCreation: '2024-03-10T11:30:00Z',
+        dateMiseAJour: '2024-06-12T08:20:00Z'
       }
     ];
 
     const mockAidants: Aidant[] = [
       {
-        id: '1',
+        id: 'aidant-1',
         nom: 'Moreau',
         prenom: 'Sophie',
         email: 'sophie.moreau@aidant.com',
@@ -117,21 +114,28 @@ export const useSeniors = () => {
         certifications: ['Certificat d\'aide-soignante'],
         disponibilites: {
           jours: ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi'],
-          heures: '8h-18h'
+          heures: '8h-18h',
+          zoneCouverture: ['Paris', 'Boulogne-Billancourt']
         },
-        dateInscription: '2024-01-05',
+        dateInscription: '2024-01-05T09:00:00Z',
         statut: 'actif',
-        seniorsAssignes: ['1', '2'],
+        seniorsAssignes: ['senior-1', 'senior-2'],
         evaluations: [
           {
+            id: 'eval-1',
             note: 4.8,
             commentaire: 'Très professionnelle et bienveillante',
-            date: '2024-05-15'
+            date: '2024-05-15T10:00:00Z',
+            seniorId: 'senior-1'
           }
-        ]
+        ],
+        dateCreation: '2024-01-05T09:00:00Z',
+        dateMiseAJour: '2024-05-15T10:00:00Z',
+        tarifHoraire: 25,
+        specialites: ['Gérontologie', 'Soins palliatifs']
       },
       {
-        id: '2',
+        id: 'aidant-2',
         nom: 'Petit',
         prenom: 'Marc',
         email: 'marc.petit@aidant.com',
@@ -146,18 +150,25 @@ export const useSeniors = () => {
         certifications: ['Certificat auxiliaire de vie sociale'],
         disponibilites: {
           jours: ['lundi', 'mardi', 'jeudi', 'vendredi', 'samedi'],
-          heures: '9h-17h'
+          heures: '9h-17h',
+          zoneCouverture: ['Lyon', 'Villeurbanne']
         },
-        dateInscription: '2024-02-01',
+        dateInscription: '2024-02-01T10:30:00Z',
         statut: 'actif',
-        seniorsAssignes: ['1', '3'],
+        seniorsAssignes: ['senior-1', 'senior-3'],
         evaluations: [
           {
+            id: 'eval-2',
             note: 4.6,
             commentaire: 'Très à l\'écoute et patient',
-            date: '2024-04-20'
+            date: '2024-04-20T15:30:00Z',
+            seniorId: 'senior-3'
           }
-        ]
+        ],
+        dateCreation: '2024-02-01T10:30:00Z',
+        dateMiseAJour: '2024-04-20T15:30:00Z',
+        tarifHoraire: 22,
+        specialites: ['Handicap', 'Aide à domicile']
       }
     ];
 
@@ -165,7 +176,7 @@ export const useSeniors = () => {
     setAidants(mockAidants);
 
     // Calcul des statistiques
-    const newStats = {
+    const newStats: SeniorsStats = {
       totalSeniors: mockSeniors.length,
       seniorsActifs: mockSeniors.filter(s => s.statut === 'actif').length,
       totalAidants: mockAidants.length,
@@ -175,7 +186,18 @@ export const useSeniors = () => {
       ).length,
       humeurNegative: mockSeniors.filter(s => 
         s.humeurJour && ['triste', 'tres_triste'].includes(s.humeurJour.humeur)
-      ).length
+      ).length,
+      moyenneAge: Math.round(
+        mockSeniors.reduce((acc, s) => {
+          const age = new Date().getFullYear() - new Date(s.dateNaissance).getFullYear();
+          return acc + age;
+        }, 0) / mockSeniors.length
+      ),
+      repartitionAutonomie: {
+        faible: mockSeniors.filter(s => s.niveauAutonomie === 'faible').length,
+        moyen: mockSeniors.filter(s => s.niveauAutonomie === 'moyen').length,
+        eleve: mockSeniors.filter(s => s.niveauAutonomie === 'eleve').length
+      }
     };
 
     setStats(newStats);
