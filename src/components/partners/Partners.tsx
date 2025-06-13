@@ -43,6 +43,12 @@ interface BonPlan {
   creePar?: string;
 }
 
+// Separate interface for partner selection in BonPlansSection
+interface PartnerForSelect {
+  id: number;
+  name: string;
+}
+
 const Partners = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -183,7 +189,7 @@ const Partners = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const getPartenairesForSelect = () => {
+  const getPartenairesForSelect = (): PartnerForSelect[] => {
     return partners.map(partner => ({
       id: partner.id,
       name: partner.nom // Map French 'nom' to English 'name'
