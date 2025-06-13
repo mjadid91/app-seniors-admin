@@ -30,13 +30,13 @@ export const useSupabaseUsers = () => {
 
   // Fonction pour convertir un utilisateur Supabase vers le format de l'application
   const convertSupabaseUserToAppUser = (supabaseUser: SupabaseUser): User => {
-    // Mapping des catégories vers les rôles
+    // Mapping des catégories vers les rôles basé sur les IDs insérés
     const getRoleFromCategory = (categoryId: number): User['role'] => {
       switch (categoryId) {
-        case 1: return 'administrateur';
-        case 2: return 'moderateur';
-        case 3: return 'support';
-        case 4: return 'visualisateur';
+        case 5: return 'administrateur';    // ID 5 = Administrateur
+        case 6: return 'moderateur';        // ID 6 = Modérateur  
+        case 4: return 'support';           // ID 4 = Aidant (comme support)
+        case 7: return 'visualisateur';     // ID 7 = Visualisateur
         default: return 'visualisateur';
       }
     };
@@ -79,14 +79,14 @@ export const useSupabaseUsers = () => {
   // Fonction pour ajouter un utilisateur
   const addUser = async (userData: Omit<User, 'id'>) => {
     try {
-      // Mapping du rôle vers la catégorie
+      // Mapping du rôle vers la catégorie basé sur les IDs insérés
       const getCategoryFromRole = (role: User['role']): number => {
         switch (role) {
-          case 'administrateur': return 1;
-          case 'moderateur': return 2;
-          case 'support': return 3;
-          case 'visualisateur': return 4;
-          default: return 4;
+          case 'administrateur': return 5;    // ID 5 = Administrateur
+          case 'moderateur': return 6;        // ID 6 = Modérateur
+          case 'support': return 4;           // ID 4 = Aidant (comme support)
+          case 'visualisateur': return 7;     // ID 7 = Visualisateur
+          default: return 7;
         }
       };
 
@@ -135,11 +135,11 @@ export const useSupabaseUsers = () => {
     try {
       const getCategoryFromRole = (role: User['role']): number => {
         switch (role) {
-          case 'administrateur': return 1;
-          case 'moderateur': return 2;
-          case 'support': return 3;
-          case 'visualisateur': return 4;
-          default: return 4;
+          case 'administrateur': return 5;    // ID 5 = Administrateur
+          case 'moderateur': return 6;        // ID 6 = Modérateur
+          case 'support': return 4;           // ID 4 = Aidant (comme support)
+          case 'visualisateur': return 7;     // ID 7 = Visualisateur
+          default: return 7;
         }
       };
 
