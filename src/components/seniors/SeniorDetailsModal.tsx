@@ -191,7 +191,7 @@ const SeniorDetailsModal = ({ isOpen, onClose, senior }: SeniorDetailsModalProps
                 </div>
                 <div>
                   <p className="text-slate-600">Aidants assignés</p>
-                  <p className="font-medium">{senior.aidants?.length || 0}</p>
+                  <p className="font-medium">{senior.aidantsAssignes?.length || 0}</p>
                 </div>
               </div>
             </CardContent>
