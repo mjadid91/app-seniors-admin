@@ -15,6 +15,12 @@ export interface SupabaseUser {
   MotDePasse: string;
   IDCatUtilisateurs: number;
   DateInscription: string;
+  Commentaire: string;
+  DateModification: string;
+  LangueSite: string;
+  Photo: string;
+  EstDesactive?: boolean;
+  EstRGPD?: boolean;
 }
 
 export const useSupabaseUsers = () => {
@@ -84,6 +90,8 @@ export const useSupabaseUsers = () => {
         }
       };
 
+      const currentDate = new Date().toISOString();
+
       const supabaseUserData = {
         Nom: userData.nom,
         Prenom: userData.prenom,
@@ -94,7 +102,13 @@ export const useSupabaseUsers = () => {
         Genre: 'Non précisé', // Valeur par défaut
         MotDePasse: 'temp_password', // Mot de passe temporaire
         IDCatUtilisateurs: getCategoryFromRole(userData.role),
-        DateInscription: userData.dateInscription
+        DateInscription: userData.dateInscription,
+        Commentaire: '', // Champ requis - valeur par défaut vide
+        DateModification: currentDate, // Champ requis - date actuelle
+        LangueSite: 'fr', // Champ requis - valeur par défaut français
+        Photo: '', // Champ requis - valeur par défaut vide
+        EstDesactive: false, // Champ optionnel - par défaut actif
+        EstRGPD: false // Champ optionnel - par défaut non RGPD
       };
 
       const { data, error: insertError } = await supabase
@@ -129,7 +143,10 @@ export const useSupabaseUsers = () => {
         }
       };
 
-      const supabaseUpdates: any = {};
+      const supabaseUpdates: any = {
+        DateModification: new Date().toISOString() // Toujours mettre à jour la date de modification
+      };
+      
       if (updates.nom) supabaseUpdates.Nom = updates.nom;
       if (updates.prenom) supabaseUpdates.Prenom = updates.prenom;
       if (updates.email) supabaseUpdates.Email = updates.email;
