@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye, EyeOff, Trash2, Archive } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface ForumPost {
   id: string;
@@ -60,8 +60,9 @@ const mockGroupMessages: GroupMessage[] = [
 ];
 
 const Moderation = () => {
-  const [forumPosts] = useState<ForumPost[]>(mockForumPosts);
-  const [groupMessages] = useState<GroupMessage[]>(mockGroupMessages);
+  const [forumPosts, setForumPosts] = useState<ForumPost[]>(mockForumPosts);
+  const [groupMessages, setGroupMessages] = useState<GroupMessage[]>(mockGroupMessages);
+  const { toast } = useToast();
 
   const getStatutBadgeColor = (statut: string) => {
     switch (statut) {
@@ -71,6 +72,70 @@ const Moderation = () => {
       case 'supprime': return 'bg-red-100 text-red-700 border-red-200';
       default: return 'bg-gray-100 text-gray-700 border-gray-200';
     }
+  };
+
+  const handleVoirPost = (post: ForumPost) => {
+    toast({
+      title: "Voir le sujet",
+      description: `Ouverture du sujet "${post.titre}"`,
+    });
+    console.log("Voir sujet:", post);
+  };
+
+  const handleMasquerPost = (post: ForumPost) => {
+    setForumPosts(prev => prev.map(p => 
+      p.id === post.id ? { ...p, statut: 'masque' as const } : p
+    ));
+    toast({
+      title: "Sujet masqué",
+      description: `Le sujet "${post.titre}" a été masqué`,
+    });
+  };
+
+  const handleArchiverPost = (post: ForumPost) => {
+    setForumPosts(prev => prev.map(p => 
+      p.id === post.id ? { ...p, statut: 'archive' as const } : p
+    ));
+    toast({
+      title: "Sujet archivé",
+      description: `Le sujet "${post.titre}" a été archivé`,
+    });
+  };
+
+  const handleSupprimerPost = (post: ForumPost) => {
+    setForumPosts(prev => prev.filter(p => p.id !== post.id));
+    toast({
+      title: "Sujet supprimé",
+      description: `Le sujet "${post.titre}" a été supprimé définitivement`,
+      variant: "destructive"
+    });
+  };
+
+  const handleVoirMessage = (message: GroupMessage) => {
+    toast({
+      title: "Voir le message",
+      description: `Ouverture du message de ${message.auteur}`,
+    });
+    console.log("Voir message:", message);
+  };
+
+  const handleMasquerMessage = (message: GroupMessage) => {
+    setGroupMessages(prev => prev.map(m => 
+      m.id === message.id ? { ...m, statut: 'masque' as const } : m
+    ));
+    toast({
+      title: "Message masqué",
+      description: `Le message de ${message.auteur} a été masqué`,
+    });
+  };
+
+  const handleSupprimerMessage = (message: GroupMessage) => {
+    setGroupMessages(prev => prev.filter(m => m.id !== message.id));
+    toast({
+      title: "Message supprimé",
+      description: `Le message de ${message.auteur} a été supprimé`,
+      variant: "destructive"
+    });
   };
 
   return (
@@ -179,16 +244,37 @@ const Moderation = () => {
                         </td>
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" title="Voir">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              title="Voir"
+                              onClick={() => handleVoirPost(post)}
+                            >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" title="Masquer">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              title="Masquer"
+                              onClick={() => handleMasquerPost(post)}
+                            >
                               <EyeOff className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" title="Archiver">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              title="Archiver"
+                              onClick={() => handleArchiverPost(post)}
+                            >
                               <Archive className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50" title="Supprimer">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50" 
+                              title="Supprimer"
+                              onClick={() => handleSupprimerPost(post)}
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
@@ -249,13 +335,29 @@ const Moderation = () => {
                         </td>
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" title="Voir">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              title="Voir"
+                              onClick={() => handleVoirMessage(message)}
+                            >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" title="Masquer">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              title="Masquer"
+                              onClick={() => handleMasquerMessage(message)}
+                            >
                               <EyeOff className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50" title="Supprimer">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50" 
+                              title="Supprimer"
+                              onClick={() => handleSupprimerMessage(message)}
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>

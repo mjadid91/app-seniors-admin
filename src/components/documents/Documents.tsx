@@ -70,9 +70,10 @@ const Documents = () => {
   const handleEditDocument = (doc: Document) => {
     toast({
       title: "Modification du document",
-      description: `Édition de ${doc.name}`,
+      description: `Édition de ${doc.name} en cours...`,
     });
     console.log("Modifier le document:", doc);
+    // Ici vous pourriez ouvrir un modal d'édition ou rediriger vers une page d'édition
   };
 
   const handleDownloadDocument = (doc: Document) => {

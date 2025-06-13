@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Calendar, DollarSign } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Prestation {
   id: string;
@@ -51,6 +51,7 @@ const mockPrestations: Prestation[] = [
 const PrestationTracking = () => {
   const [prestations] = useState<Prestation[]>(mockPrestations);
   const [selectedStatut, setSelectedStatut] = useState<string>("tous");
+  const { toast } = useToast();
 
   const filteredPrestations = prestations.filter(prestation => 
     selectedStatut === "tous" || prestation.statut === selectedStatut
@@ -84,6 +85,14 @@ const PrestationTracking = () => {
         ★
       </span>
     ));
+  };
+
+  const handleVoirPrestation = (prestation: Prestation) => {
+    toast({
+      title: "Détails de la prestation",
+      description: `Ouverture de la prestation ${prestation.id} : ${prestation.typePrestation}`,
+    });
+    console.log("Voir prestation:", prestation);
   };
 
   return (
@@ -232,7 +241,12 @@ const PrestationTracking = () => {
                       )}
                     </td>
                     <td className="py-4 px-4">
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleVoirPrestation(prestation)}
+                        title="Voir détails"
+                      >
                         <Eye className="h-4 w-4" />
                       </Button>
                     </td>

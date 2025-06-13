@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Building2, Mail, Phone, MapPin, Star, Plus, Search, Filter, Edit, Trash2 } from "lucide-react";
+import { Building2, Mail, Phone, MapPin, Star, Plus, Search, Filter, Edit, Trash2, Tag, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import AddPartnerModal from "./AddPartnerModal";
+import PartnerDetailsModal from "./PartnerDetailsModal";
 
 interface Partner {
   id: number;
@@ -17,10 +18,23 @@ interface Partner {
   joinDate: string;
 }
 
+interface BonPlan {
+  id: number;
+  titre: string;
+  partenaire: string;
+  description: string;
+  reduction: string;
+  dateExpiration: string;
+  statut: string;
+}
+
 const Partners = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [isAddPartnerModalOpen, setIsAddPartnerModalOpen] = useState(false);
+  const [isPartnerDetailsModalOpen, setIsPartnerDetailsModalOpen] = useState(false);
+  const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
+  
   const [partners, setPartners] = useState<Partner[]>([
     {
       id: 1,
@@ -60,6 +74,27 @@ const Partners = () => {
     }
   ]);
 
+  const [bonsPlans] = useState<BonPlan[]>([
+    {
+      id: 1,
+      titre: "Réduction ménage 20%",
+      partenaire: "Services Plus",
+      description: "Bénéficiez de 20% de réduction sur tous les services de ménage",
+      reduction: "20%",
+      dateExpiration: "2024-07-31",
+      statut: "Actif"
+    },
+    {
+      id: 2,
+      titre: "Première consultation gratuite",
+      partenaire: "Tech Senior",
+      description: "Première consultation informatique offerte pour tout nouveau client",
+      reduction: "Gratuit",
+      dateExpiration: "2024-06-30",
+      statut: "Actif"
+    }
+  ]);
+
   const { toast } = useToast();
   const partnerTypes = ["Prestataire de services", "Aide à domicile", "Support technique", "Santé", "Transport"];
 
@@ -69,6 +104,10 @@ const Partners = () => {
       id: partners.length + 1
     };
     setPartners(prev => [...prev, newPartner]);
+    toast({
+      title: "Partenaire ajouté",
+      description: `${newPartnerData.name} a été ajouté avec succès.`,
+    });
   };
 
   const handleContactPartner = (partner: Partner) => {
@@ -76,16 +115,12 @@ const Partners = () => {
       title: "Contact partenaire",
       description: `Ouverture du contact avec ${partner.name}`,
     });
-    // Simuler l'ouverture d'un client email
     window.location.href = `mailto:${partner.email}?subject=Contact depuis AppSeniors Admin`;
   };
 
   const handleViewPartnerDetails = (partner: Partner) => {
-    toast({
-      title: "Détails du partenaire",
-      description: `Affichage des détails de ${partner.name}`,
-    });
-    console.log("Voir détails du partenaire:", partner);
+    setSelectedPartner(partner);
+    setIsPartnerDetailsModalOpen(true);
   };
 
   return (
@@ -212,6 +247,71 @@ const Partners = () => {
         </div>
       </div>
 
+      {/* Section Bons Plans */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <Gift className="h-6 w-6 text-purple-600" />
+            <h2 className="text-xl font-semibold text-slate-800">Bons Plans Partenaires</h2>
+          </div>
+          <Button className="bg-purple-600 hover:bg-purple-700">
+            <Plus className="h-4 w-4 mr-2" />
+            Nouveau bon plan
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {bonsPlans.map((bonPlan) => (
+            <div key={bonPlan.id} className="border border-slate-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg flex items-center justify-center">
+                    <Tag className="h-5 w-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-800">{bonPlan.titre}</h3>
+                    <p className="text-sm text-slate-500">{bonPlan.partenaire}</p>
+                  </div>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs ${
+                  bonPlan.statut === 'Actif' 
+                    ? 'bg-green-100 text-green-700' 
+                    : 'bg-gray-100 text-gray-700'
+                }`}>
+                  {bonPlan.statut}
+                </span>
+              </div>
+
+              <p className="text-slate-600 mb-4">{bonPlan.description}</p>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-purple-600">{bonPlan.reduction}</p>
+                    <p className="text-xs text-slate-500">Réduction</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-slate-700">
+                      {new Date(bonPlan.dateExpiration).toLocaleDateString('fr-FR')}
+                    </p>
+                    <p className="text-xs text-slate-500">Expire le</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline">
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button size="sm" variant="outline">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ... keep existing code (statistics section) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <h3 className="font-semibold text-slate-800 mb-2">Total partenaires</h3>
@@ -239,6 +339,12 @@ const Partners = () => {
         isOpen={isAddPartnerModalOpen}
         onClose={() => setIsAddPartnerModalOpen(false)}
         onAddPartner={handleAddPartner}
+      />
+
+      <PartnerDetailsModal 
+        isOpen={isPartnerDetailsModalOpen}
+        onClose={() => setIsPartnerDetailsModalOpen(false)}
+        partner={selectedPartner}
       />
     </div>
   );
