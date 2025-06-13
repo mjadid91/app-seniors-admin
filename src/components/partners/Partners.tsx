@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -187,7 +186,7 @@ const Partners = () => {
   const getPartenairesForSelect = () => {
     return partners.map(partner => ({
       id: partner.id,
-      name: partner.nom
+      name: partner.nom // Map French 'nom' to English 'name'
     }));
   };
 
