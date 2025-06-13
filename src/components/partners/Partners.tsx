@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,8 +27,11 @@ interface BonPlan {
   titre: string;
   partenaire: string;
   description: string;
-  reduction: string;
-  dateExpiration: string;
+  typeReduction: string;
+  pourcentageReduction: number;
+  dateDebutReduction: string;
+  dateFinReduction: string;
+  codePromo: string;
   statut: string;
 }
 
@@ -79,23 +81,41 @@ const Partners = () => {
     }
   ]);
 
-  const [bonsPlans] = useState<BonPlan[]>([
+  const [bonsPlans, setBonsPlans] = useState<BonPlan[]>([
     {
       id: 1,
       titre: "Réduction ménage 20%",
       partenaire: "Services Plus",
-      description: "Bénéficiez de 20% de réduction sur tous les services de ménage",
-      reduction: "20%",
-      dateExpiration: "2024-07-31",
+      description: "Bénéficiez de 20% de réduction sur tous les services de ménage pour les nouveaux clients seniors",
+      typeReduction: "pourcentage",
+      pourcentageReduction: 20,
+      dateDebutReduction: "2024-06-01",
+      dateFinReduction: "2024-12-31",
+      codePromo: "SENIOR20",
       statut: "Actif"
     },
     {
       id: 2,
       titre: "Première consultation gratuite",
       partenaire: "Tech Senior",
-      description: "Première consultation informatique offerte pour tout nouveau client",
-      reduction: "Gratuit",
-      dateExpiration: "2024-06-30",
+      description: "Première consultation informatique offerte pour tout nouveau client senior, incluant diagnostic et conseils personnalisés",
+      typeReduction: "gratuit",
+      pourcentageReduction: 0,
+      dateDebutReduction: "2024-05-15",
+      dateFinReduction: "2024-08-31",
+      codePromo: "WELCOME",
+      statut: "Actif"
+    },
+    {
+      id: 3,
+      titre: "Aide à domicile -15€",
+      partenaire: "Aide à Domicile Pro",
+      description: "Réduction de 15€ sur votre première prestation d'aide à domicile d'une durée minimum de 3 heures",
+      typeReduction: "montant",
+      pourcentageReduction: 15,
+      dateDebutReduction: "2024-06-10",
+      dateFinReduction: "2024-09-30",
+      codePromo: "AIDE15",
       statut: "Actif"
     }
   ]);
@@ -127,6 +147,41 @@ const Partners = () => {
     setIsPartnerDetailsModalOpen(true);
   };
 
+  const handleAddBonPlan = (newBonPlanData: Omit<BonPlan, 'id'>) => {
+    const newBonPlan: BonPlan = {
+      ...newBonPlanData,
+      id: bonsPlans.length + 1
+    };
+    setBonsPlans(prev => [...prev, newBonPlan]);
+  };
+
+  const handleEditBonPlan = (updatedBonPlan: BonPlan) => {
+    setBonsPlans(prev => 
+      prev.map(bonPlan => 
+        bonPlan.id === updatedBonPlan.id ? updatedBonPlan : bonPlan
+      )
+    );
+  };
+
+  const handleDeleteBonPlan = (id: number) => {
+    setBonsPlans(prev => prev.filter(bonPlan => bonPlan.id !== id));
+  };
+
+  const filteredPartners = partners.filter(partner => {
+    const matchesSearch = partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         partner.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         partner.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === "all" || partner.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  const getPartenairesForSelect = () => {
+    return partners.map(partner => ({
+      id: partner.id,
+      name: partner.name
+    }));
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -149,7 +204,7 @@ const Partners = () => {
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {partners.map((partner) => (
+          {filteredPartners.map((partner) => (
             <PartnerCard
               key={partner.id}
               partner={partner}
@@ -160,7 +215,13 @@ const Partners = () => {
         </div>
       </div>
 
-      <BonPlansSection bonsPlans={bonsPlans} />
+      <BonPlansSection 
+        bonsPlans={bonsPlans}
+        onAddBonPlan={handleAddBonPlan}
+        onEditBonPlan={handleEditBonPlan}
+        onDeleteBonPlan={handleDeleteBonPlan}
+        partenaires={getPartenairesForSelect()}
+      />
 
       <PartnerStats partners={partners} />
 
