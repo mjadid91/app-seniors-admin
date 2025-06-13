@@ -21,14 +21,38 @@ export const useUserCategories = () => {
       const { data, error: fetchError } = await supabase
         .from('CatUtilisateurs')
         .select('*')
-        .eq('Actif', true)
-        .order('LibelleCategorie', { ascending: true });
+        .order('IDCatUtilisateurs', { ascending: true });
 
       if (fetchError) {
         throw fetchError;
       }
 
-      setCategories(data || []);
+      // Transform the database data to match our expected interface
+      const transformedCategories: UserCategory[] = (data || []).map(cat => {
+        let libelle = 'Utilisateur';
+        
+        if (cat.EstAdministrateur) {
+          libelle = 'Administrateur';
+        } else if (cat.EstModerateur) {
+          libelle = 'Modérateur';
+        } else if (cat.EstAidant) {
+          libelle = 'Aidant';
+        } else if (cat.EstSenior) {
+          libelle = 'Senior';
+        } else if (cat.EstTuteur) {
+          libelle = 'Tuteur';
+        } else if (cat.EstOrganisme) {
+          libelle = 'Organisme';
+        }
+
+        return {
+          IDCatUtilisateurs: cat.IDCatUtilisateurs,
+          LibelleCategorie: libelle,
+          Actif: true // Assuming all categories are active
+        };
+      });
+
+      setCategories(transformedCategories);
     } catch (err) {
       console.error('Erreur lors de la récupération des catégories:', err);
       setError(err instanceof Error ? err.message : 'Erreur inconnue');

@@ -23,7 +23,7 @@ export interface UserManagementActions {
   setSearchTerm: (term: string) => void;
   handleRoleChange: (userId: string, newRole: User['role']) => void;
   handleAddUser: () => void;
-  handleUserAdded: (newUserData: Omit<User, 'id'>) => void;
+  handleUserAdded: (newUserData: CreateUserData) => void;
   handleEditUser: (user: User) => void;
   handleUserEdited: (userId: string, updatedData: Partial<User>) => void;
   handleDeleteUser: (user: User) => void;
