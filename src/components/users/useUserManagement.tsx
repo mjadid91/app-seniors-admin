@@ -4,7 +4,7 @@ import { User } from "../../stores/authStore";
 import { usePermissions, PERMISSIONS } from "../../hooks/usePermissions";
 import { useToast } from "@/hooks/use-toast";
 import { UserStats, UserManagementState, UserManagementActions } from "./userTypes";
-import { mockUsers } from "./userMockData";
+import { useSupabaseUsers } from "../../hooks/useSupabaseUsers";
 import { 
   calculateUserStats, 
   updateStatsAfterUserAdded, 
@@ -15,7 +15,6 @@ import { filterUsers } from "./userFilterUtils";
 
 export const useUserManagement = (): UserManagementState & UserManagementActions => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
@@ -30,14 +29,15 @@ export const useUserManagement = (): UserManagementState & UserManagementActions
   
   const { hasPermission } = usePermissions();
   const { toast } = useToast();
+  const { users, loading, error, addUser, updateUser, deleteUser } = useSupabaseUsers();
   const canManageUsers = hasPermission(PERMISSIONS.MANAGE_USERS);
 
-  // Initialize users
+  // Calculate stats when users change
   useEffect(() => {
-    setUsers(mockUsers);
-    setFilteredUsers(mockUsers);
-    setStats(calculateUserStats(mockUsers));
-  }, []);
+    if (users.length > 0) {
+      setStats(calculateUserStats(users));
+    }
+  }, [users]);
 
   // Filter users based on search term
   useEffect(() => {
@@ -45,14 +45,20 @@ export const useUserManagement = (): UserManagementState & UserManagementActions
     setFilteredUsers(filtered);
   }, [searchTerm, users]);
 
-  const handleRoleChange = (userId: string, newRole: User['role']) => {
-    setUsers(prevUsers => {
-      const updatedUsers = prevUsers.map(user => 
-        user.id === userId ? { ...user, role: newRole } : user
-      );
-      setStats(updateStatsAfterRoleChange(updatedUsers));
-      return updatedUsers;
-    });
+  const handleRoleChange = async (userId: string, newRole: User['role']) => {
+    try {
+      await updateUser(userId, { role: newRole });
+      toast({
+        title: "Rôle modifié",
+        description: "Le rôle de l'utilisateur a été mis à jour avec succès.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier le rôle de l'utilisateur.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleAddUser = () => {
@@ -67,13 +73,20 @@ export const useUserManagement = (): UserManagementState & UserManagementActions
     setIsAddUserModalOpen(true);
   };
 
-  const handleUserAdded = (newUserData: Omit<User, 'id'>) => {
-    const newUser: User = {
-      ...newUserData,
-      id: (users.length + 1).toString()
-    };
-    setUsers(prevUsers => [...prevUsers, newUser]);
-    setStats(prevStats => updateStatsAfterUserAdded(prevStats, newUser));
+  const handleUserAdded = async (newUserData: Omit<User, 'id'>) => {
+    try {
+      await addUser(newUserData);
+      toast({
+        title: "Utilisateur créé",
+        description: "L'utilisateur a été créé avec succès.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer l'utilisateur.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleEditUser = (user: User) => {
@@ -89,14 +102,20 @@ export const useUserManagement = (): UserManagementState & UserManagementActions
     setIsEditUserModalOpen(true);
   };
 
-  const handleUserEdited = (userId: string, updatedData: Partial<User>) => {
-    setUsers(prevUsers => {
-      const updatedUsers = prevUsers.map(user => 
-        user.id === userId ? { ...user, ...updatedData } : user
-      );
-      setStats(updateStatsAfterRoleChange(updatedUsers));
-      return updatedUsers;
-    });
+  const handleUserEdited = async (userId: string, updatedData: Partial<User>) => {
+    try {
+      await updateUser(userId, updatedData);
+      toast({
+        title: "Utilisateur modifié",
+        description: "L'utilisateur a été modifié avec succès.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier l'utilisateur.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleDeleteUser = (user: User) => {
@@ -112,15 +131,22 @@ export const useUserManagement = (): UserManagementState & UserManagementActions
     setIsDeleteConfirmOpen(true);
   };
 
-  const handleUserDeleted = (userId: string) => {
-    const userToDelete = users.find(u => u.id === userId);
-    if (userToDelete) {
-      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
-      setStats(prevStats => updateStatsAfterUserDeleted(prevStats, userToDelete));
+  const handleUserDeleted = async (userId: string) => {
+    try {
+      const userToDelete = users.find(u => u.id === userId);
+      await deleteUser(userId);
       
+      if (userToDelete) {
+        toast({
+          title: "Utilisateur supprimé",
+          description: `L'utilisateur ${userToDelete.prenom} ${userToDelete.nom} a été supprimé avec succès.`,
+        });
+      }
+    } catch (error) {
       toast({
-        title: "Utilisateur supprimé",
-        description: `L'utilisateur ${userToDelete.prenom} ${userToDelete.nom} a été supprimé avec succès.`,
+        title: "Erreur",
+        description: "Impossible de supprimer l'utilisateur.",
+        variant: "destructive"
       });
     }
   };

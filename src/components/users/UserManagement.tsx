@@ -11,6 +11,7 @@ import SeniorsTable from "./SeniorsTable";
 import AidantsTable from "./AidantsTable";
 import { useUserManagement } from "./useUserManagement";
 import { useSeniors } from "../seniors/useSeniors";
+import { useSupabaseUsers } from "../../hooks/useSupabaseUsers";
 
 const UserManagement = () => {
   const {
@@ -36,6 +37,42 @@ const UserManagement = () => {
   } = useUserManagement();
 
   const { seniors, aidants } = useSeniors();
+  const { loading, error } = useSupabaseUsers();
+
+  if (loading) {
+    return (
+      <ProtectedRoute requiredPage="users">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-slate-600">Chargement des utilisateurs...</p>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
+  if (error) {
+    return (
+      <ProtectedRoute requiredPage="users">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-red-600 text-xl">⚠</span>
+            </div>
+            <h3 className="text-lg font-medium text-slate-800 mb-2">Erreur de chargement</h3>
+            <p className="text-slate-600 mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Réessayer
+            </button>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
 
   return (
     <ProtectedRoute requiredPage="users">
