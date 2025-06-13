@@ -3,7 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { User, Calendar, AlertCircle, Clock, MessageSquare } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { User, Calendar, AlertCircle, MessageSquare } from "lucide-react";
+import TicketReplyForm from "./TicketReplyForm";
+import TicketAssignmentForm from "./TicketAssignmentForm";
 
 interface Ticket {
   id: string;
@@ -19,9 +22,10 @@ interface SupportTicketModalProps {
   isOpen: boolean;
   onClose: () => void;
   ticket: Ticket | null;
+  onTicketUpdated?: (updatedTicket: Ticket) => void;
 }
 
-const SupportTicketModal = ({ isOpen, onClose, ticket }: SupportTicketModalProps) => {
+const SupportTicketModal = ({ isOpen, onClose, ticket, onTicketUpdated }: SupportTicketModalProps) => {
   if (!ticket) return null;
 
   const getStatutBadgeColor = (statut: string) => {
@@ -51,9 +55,24 @@ const SupportTicketModal = ({ isOpen, onClose, ticket }: SupportTicketModalProps
     }
   };
 
+  const handleAssignmentChanged = (assignee: string) => {
+    if (onTicketUpdated) {
+      onTicketUpdated({
+        ...ticket,
+        assigneA: assignee,
+        statut: 'en_cours'
+      });
+    }
+  };
+
+  const handleReplySubmitted = () => {
+    // Logic pour mettre à jour le statut du ticket si nécessaire
+    console.log("Réponse soumise pour le ticket", ticket.id);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageSquare className="h-5 w-5 text-blue-600" />
@@ -120,12 +139,31 @@ const SupportTicketModal = ({ isOpen, onClose, ticket }: SupportTicketModalProps
             </CardContent>
           </Card>
 
-          <div className="flex justify-end gap-3 pt-4">
+          <Tabs defaultValue="reply" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="reply">Répondre au ticket</TabsTrigger>
+              <TabsTrigger value="assign">Assignation</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="reply" className="space-y-4">
+              <TicketReplyForm 
+                ticketId={ticket.id}
+                onReplySubmitted={handleReplySubmitted}
+              />
+            </TabsContent>
+            
+            <TabsContent value="assign" className="space-y-4">
+              <TicketAssignmentForm
+                ticketId={ticket.id}
+                currentAssignee={ticket.assigneA}
+                onAssignmentChanged={handleAssignmentChanged}
+              />
+            </TabsContent>
+          </Tabs>
+
+          <div className="flex justify-end gap-3 pt-4 border-t">
             <Button variant="outline" onClick={onClose}>
               Fermer
-            </Button>
-            <Button>
-              Répondre au ticket
             </Button>
           </div>
         </div>
