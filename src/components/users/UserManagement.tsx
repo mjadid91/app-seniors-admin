@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +7,8 @@ import { usePermissions, PERMISSIONS } from "../../hooks/usePermissions";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import { useToast } from "@/hooks/use-toast";
 import AddUserModal from "./AddUserModal";
+import EditUserModal from "./EditUserModal";
+import DeleteUserConfirm from "./DeleteUserConfirm";
 import UserStats from "./UserStats";
 import UserSearch from "./UserSearch";
 import UserTable from "./UserTable";
@@ -17,6 +18,9 @@ const UserManagement = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+  const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
@@ -132,6 +136,65 @@ const UserManagement = () => {
     }));
   };
 
+  const handleEditUser = (user: User) => {
+    if (!canManageUsers) {
+      toast({
+        title: "Accès refusé",
+        description: "Vous n'avez pas les droits pour modifier des utilisateurs.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setSelectedUser(user);
+    setIsEditUserModalOpen(true);
+  };
+
+  const handleUserEdited = (userId: string, updatedData: Partial<User>) => {
+    setUsers(prevUsers => 
+      prevUsers.map(user => 
+        user.id === userId ? { ...user, ...updatedData } : user
+      )
+    );
+    setStats(prevStats => {
+      const updatedUsers = users.map(user => 
+        user.id === userId ? { ...user, ...updatedData } : user
+      );
+      return {
+        ...prevStats,
+        admins: updatedUsers.filter(u => u.role === 'administrateur').length
+      };
+    });
+  };
+
+  const handleDeleteUser = (user: User) => {
+    if (!canManageUsers) {
+      toast({
+        title: "Accès refusé",
+        description: "Vous n'avez pas les droits pour supprimer des utilisateurs.",
+        variant: "destructive"
+      });
+      return;
+    }
+    setSelectedUser(user);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const handleUserDeleted = (userId: string) => {
+    const userToDelete = users.find(u => u.id === userId);
+    setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+    setStats(prevStats => ({
+      ...prevStats,
+      total: prevStats.total - 1,
+      active: prevStats.active - 1,
+      admins: userToDelete?.role === 'administrateur' ? prevStats.admins - 1 : prevStats.admins
+    }));
+    
+    toast({
+      title: "Utilisateur supprimé",
+      description: `L'utilisateur ${userToDelete?.prenom} ${userToDelete?.nom} a été supprimé avec succès.`,
+    });
+  };
+
   const handleExport = () => {
     if (!canExportData) {
       toast({
@@ -195,6 +258,8 @@ const UserManagement = () => {
             <UserTable 
               users={filteredUsers}
               onRoleChange={handleRoleChange}
+              onEditUser={handleEditUser}
+              onDeleteUser={handleDeleteUser}
             />
           </CardContent>
         </Card>
@@ -203,6 +268,20 @@ const UserManagement = () => {
           isOpen={isAddUserModalOpen}
           onClose={() => setIsAddUserModalOpen(false)}
           onAddUser={handleUserAdded}
+        />
+
+        <EditUserModal 
+          isOpen={isEditUserModalOpen}
+          onClose={() => setIsEditUserModalOpen(false)}
+          user={selectedUser}
+          onEditUser={handleUserEdited}
+        />
+
+        <DeleteUserConfirm 
+          isOpen={isDeleteConfirmOpen}
+          onClose={() => setIsDeleteConfirmOpen(false)}
+          user={selectedUser}
+          onConfirmDelete={handleUserDeleted}
         />
       </div>
     </ProtectedRoute>

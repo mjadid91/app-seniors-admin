@@ -9,9 +9,11 @@ import { usePermissions, PERMISSIONS } from "../../hooks/usePermissions";
 interface UserTableProps {
   users: User[];
   onRoleChange: (userId: string, newRole: User['role']) => void;
+  onEditUser: (user: User) => void;
+  onDeleteUser: (user: User) => void;
 }
 
-const UserTable = ({ users, onRoleChange }: UserTableProps) => {
+const UserTable = ({ users, onRoleChange, onEditUser, onDeleteUser }: UserTableProps) => {
   const { hasPermission, isViewer } = usePermissions();
   const canManageUsers = hasPermission(PERMISSIONS.MANAGE_USERS);
 
@@ -59,11 +61,21 @@ const UserTable = ({ users, onRoleChange }: UserTableProps) => {
             </TableCell>
             <TableCell>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" disabled={isViewer()}>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  disabled={isViewer()}
+                  onClick={() => onEditUser(user)}
+                >
                   Modifier
                 </Button>
                 {canManageUsers && !isViewer() && (
-                  <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-red-600 hover:text-red-700"
+                    onClick={() => onDeleteUser(user)}
+                  >
                     Supprimer
                   </Button>
                 )}
