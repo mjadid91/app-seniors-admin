@@ -1,12 +1,16 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import UserStats from "./UserStats";
 import UserSearch from "./UserSearch";
 import UserTable from "./UserTable";
 import UserManagementActions from "./UserManagementActions";
 import UserManagementModals from "./UserManagementModals";
+import SeniorsTable from "./SeniorsTable";
+import AidantsTable from "./AidantsTable";
 import { useUserManagement } from "./useUserManagement";
+import { useSeniors } from "../seniors/useSeniors";
 
 const UserManagement = () => {
   const {
@@ -31,6 +35,8 @@ const UserManagement = () => {
     setIsDeleteConfirmOpen
   } = useUserManagement();
 
+  const { seniors, aidants } = useSeniors();
+
   return (
     <ProtectedRoute requiredPage="users">
       <div className="space-y-6">
@@ -44,23 +50,61 @@ const UserManagement = () => {
 
         <UserStats stats={stats} />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Liste des utilisateurs</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <UserSearch 
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-            />
-            <UserTable 
-              users={filteredUsers}
-              onRoleChange={handleRoleChange}
-              onEditUser={handleEditUser}
-              onDeleteUser={handleDeleteUser}
-            />
-          </CardContent>
-        </Card>
+        <Accordion type="multiple" defaultValue={["utilisateurs"]} className="space-y-4">
+          <AccordionItem value="utilisateurs">
+            <Card>
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <CardTitle className="text-left">
+                  Utilisateurs ({users.length})
+                </CardTitle>
+              </AccordionTrigger>
+              <AccordionContent>
+                <CardContent className="pt-0">
+                  <UserSearch 
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                  />
+                  <UserTable 
+                    users={filteredUsers}
+                    onRoleChange={handleRoleChange}
+                    onEditUser={handleEditUser}
+                    onDeleteUser={handleDeleteUser}
+                  />
+                </CardContent>
+              </AccordionContent>
+            </Card>
+          </AccordionItem>
+
+          <AccordionItem value="seniors">
+            <Card>
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <CardTitle className="text-left">
+                  Seniors ({seniors.length})
+                </CardTitle>
+              </AccordionTrigger>
+              <AccordionContent>
+                <CardContent className="pt-0">
+                  <SeniorsTable seniors={seniors} />
+                </CardContent>
+              </AccordionContent>
+            </Card>
+          </AccordionItem>
+
+          <AccordionItem value="aidants">
+            <Card>
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <CardTitle className="text-left">
+                  Aidants ({aidants.length})
+                </CardTitle>
+              </AccordionTrigger>
+              <AccordionContent>
+                <CardContent className="pt-0">
+                  <AidantsTable aidants={aidants} />
+                </CardContent>
+              </AccordionContent>
+            </Card>
+          </AccordionItem>
+        </Accordion>
 
         <UserManagementModals 
           isAddUserModalOpen={isAddUserModalOpen}
