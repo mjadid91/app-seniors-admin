@@ -6,15 +6,19 @@ import { Building2, Mail, Phone, MapPin, Star, Calendar, Users } from "lucide-re
 
 interface Partner {
   id: number;
-  name: string;
+  nom: string; // Renommé pour cohérence
   type: string;
   email: string;
-  phone: string;
-  address: string;
-  status: string;
-  rating: number;
+  telephone: string; // Renommé pour cohérence
+  adresse: string; // Renommé pour cohérence
+  statut: string;
+  evaluation: number; // Renommé pour cohérence
   services: string[];
-  joinDate: string;
+  dateInscription: string; // Renommé pour cohérence
+  // Champs système cohérents
+  dateCreation?: string;
+  dateMiseAJour?: string;
+  creePar?: string;
 }
 
 interface PartnerDetailsModalProps {
@@ -43,7 +47,7 @@ const PartnerDetailsModal = ({ isOpen, onClose, partner }: PartnerDetailsModalPr
             <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
               <Building2 className="h-5 w-5 text-white" />
             </div>
-            {partner.name}
+            {partner.nom}
           </DialogTitle>
           <DialogDescription>
             Détails complets du partenaire
@@ -62,20 +66,20 @@ const PartnerDetailsModal = ({ isOpen, onClose, partner }: PartnerDetailsModalPr
                 <label className="text-sm font-medium text-slate-700">Date d'inscription</label>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-slate-500" />
-                  <p className="text-slate-900">{new Date(partner.joinDate).toLocaleDateString('fr-FR')}</p>
+                  <p className="text-slate-900">{new Date(partner.dateInscription).toLocaleDateString('fr-FR')}</p>
                 </div>
               </div>
               <div>
                 <label className="text-sm font-medium text-slate-700">Statut</label>
                 <div className="mt-1">
                   <Badge className={`${
-                    partner.status === 'Actif' 
+                    partner.statut === 'Actif' 
                       ? 'bg-green-100 text-green-700' 
-                      : partner.status === 'En attente'
+                      : partner.statut === 'En attente'
                       ? 'bg-yellow-100 text-yellow-700'
                       : 'bg-red-100 text-red-700'
                   }`}>
-                    {partner.status}
+                    {partner.statut}
                   </Badge>
                 </div>
               </div>
@@ -86,9 +90,9 @@ const PartnerDetailsModal = ({ isOpen, onClose, partner }: PartnerDetailsModalPr
                 <label className="text-sm font-medium text-slate-700">Note moyenne</label>
                 <div className="flex items-center gap-2 mt-1">
                   <div className="flex items-center gap-1">
-                    {renderStars(partner.rating)}
+                    {renderStars(partner.evaluation)}
                   </div>
-                  <span className="text-sm font-medium text-slate-700">{partner.rating}/5</span>
+                  <span className="text-sm font-medium text-slate-700">{partner.evaluation}/5</span>
                 </div>
               </div>
               <div>
@@ -111,11 +115,11 @@ const PartnerDetailsModal = ({ isOpen, onClose, partner }: PartnerDetailsModalPr
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-slate-500" />
-                <span className="text-slate-700">{partner.phone}</span>
+                <span className="text-slate-700">{partner.telephone}</span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-slate-500" />
-                <span className="text-slate-700">{partner.address}</span>
+                <span className="text-slate-700">{partner.adresse}</span>
               </div>
             </div>
           </div>
