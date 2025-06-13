@@ -163,19 +163,19 @@ const AidantDetailsModal = ({ isOpen, onClose, aidant }: AidantDetailsModalProps
                   Évaluations
                 </h4>
                 <div className="space-y-3">
-                  {aidant.evaluations.map((eval, index) => (
+                  {aidant.evaluations.map((evaluation, index) => (
                     <div key={index} className="bg-slate-50 p-3 rounded-lg">
                       <div className="flex items-center gap-2 mb-2">
                         <div className="flex items-center gap-1">
                           <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                          <span className="font-medium">{eval.note}/5</span>
+                          <span className="font-medium">{evaluation.note}/5</span>
                         </div>
                         <span className="text-sm text-slate-500">
-                          {new Date(eval.date).toLocaleDateString('fr-FR')}
+                          {new Date(evaluation.date).toLocaleDateString('fr-FR')}
                         </span>
                       </div>
-                      {eval.commentaire && (
-                        <p className="text-sm text-slate-700">{eval.commentaire}</p>
+                      {evaluation.commentaire && (
+                        <p className="text-sm text-slate-700">{evaluation.commentaire}</p>
                       )}
                     </div>
                   ))}
