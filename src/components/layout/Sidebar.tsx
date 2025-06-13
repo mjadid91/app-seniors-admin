@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "../../stores/authStore";
 import { usePermissions } from "../../hooks/usePermissions";
@@ -12,8 +11,7 @@ import {
   FileText,
   Building2,
   ShieldCheck,
-  DollarSign,
-  Heart
+  DollarSign
 } from "lucide-react";
 
 interface SidebarProps {
@@ -24,7 +22,6 @@ interface SidebarProps {
 const menuItems = [
   { id: "dashboard", label: "Tableau de bord", icon: LayoutDashboard },
   { id: "users", label: "Utilisateurs", icon: Users },
-  { id: "seniors", label: "Seniors & Aidants", icon: Heart },
   { id: "prestations", label: "Prestations", icon: Calendar },
   { id: "moderation", label: "Modération", icon: Shield },
   { id: "support", label: "Support", icon: Headphones },

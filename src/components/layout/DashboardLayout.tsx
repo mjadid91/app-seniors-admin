@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
@@ -11,7 +10,6 @@ import Documents from "../documents/Documents";
 import Partners from "../partners/Partners";
 import RGPD from "../rgpd/RGPD";
 import Finances from "../finances/Finances";
-import Seniors from "../seniors/Seniors";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import { usePermissions } from "../../hooks/usePermissions";
 
@@ -27,12 +25,6 @@ const DashboardLayout = () => {
         return (
           <ProtectedRoute requiredPage="users">
             <UserManagement />
-          </ProtectedRoute>
-        );
-      case "seniors":
-        return (
-          <ProtectedRoute requiredPage="seniors">
-            <Seniors />
           </ProtectedRoute>
         );
       case "prestations":
