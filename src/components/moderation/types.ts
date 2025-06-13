@@ -7,6 +7,9 @@ export interface ForumPost {
   nbReponses: number;
   signalements: number;
   statut: 'visible' | 'masque' | 'archive';
+  // Champs système cohérents
+  dateMiseAJour?: string;
+  creePar?: string;
 }
 
 export interface GroupMessage {
@@ -17,4 +20,8 @@ export interface GroupMessage {
   dateEnvoi: string;
   signalements: number;
   statut: 'visible' | 'masque' | 'supprime';
+  // Champs système cohérents
+  dateCreation?: string;
+  dateMiseAJour?: string;
+  creePar?: string;
 }

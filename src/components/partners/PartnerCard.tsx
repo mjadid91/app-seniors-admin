@@ -4,15 +4,19 @@ import { Button } from "@/components/ui/button";
 
 interface Partner {
   id: number;
-  name: string;
+  nom: string; // Renommé pour cohérence
   type: string;
   email: string;
-  phone: string;
-  address: string;
-  status: string;
-  rating: number;
+  telephone: string; // Renommé pour cohérence
+  adresse: string; // Renommé pour cohérence
+  statut: string;
+  evaluation: number; // Renommé pour cohérence
   services: string[];
-  joinDate: string;
+  dateInscription: string; // Renommé pour cohérence
+  // Champs système cohérents
+  dateCreation?: string;
+  dateMiseAJour?: string;
+  creePar?: string;
 }
 
 interface PartnerCardProps {
@@ -30,7 +34,7 @@ const PartnerCard = ({ partner, onContact, onViewDetails }: PartnerCardProps) =>
             <Building2 className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h3 className="font-semibold text-slate-800">{partner.name}</h3>
+            <h3 className="font-semibold text-slate-800">{partner.nom}</h3>
             <p className="text-sm text-slate-500">{partner.type}</p>
           </div>
         </div>
@@ -47,25 +51,25 @@ const PartnerCard = ({ partner, onContact, onViewDetails }: PartnerCardProps) =>
         </div>
         <div className="flex items-center gap-2 text-sm text-slate-600">
           <Phone className="h-4 w-4" />
-          <span>{partner.phone}</span>
+          <span>{partner.telephone}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-slate-600">
           <MapPin className="h-4 w-4" />
-          <span>{partner.address}</span>
+          <span>{partner.adresse}</span>
         </div>
       </div>
 
       <div className="flex items-center gap-2 mb-3">
         <Star className="h-4 w-4 text-yellow-500 fill-current" />
-        <span className="text-sm font-medium">{partner.rating}</span>
+        <span className="text-sm font-medium">{partner.evaluation}</span>
         <span className={`px-2 py-1 rounded-full text-xs ${
-          partner.status === 'Actif' 
+          partner.statut === 'Actif' 
             ? 'bg-green-100 text-green-700' 
-            : partner.status === 'En attente'
+            : partner.statut === 'En attente'
             ? 'bg-yellow-100 text-yellow-700'
             : 'bg-red-100 text-red-700'
         }`}>
-          {partner.status}
+          {partner.statut}
         </span>
       </div>
 

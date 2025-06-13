@@ -1,4 +1,3 @@
-
 import { Tag, Edit, Trash2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -8,11 +7,15 @@ interface BonPlan {
   partenaire: string;
   description: string;
   typeReduction: string;
-  pourcentageReduction: number;
+  valeurReduction: number; // Renommé pour cohérence
   dateDebutReduction: string;
   dateFinReduction: string;
   codePromo: string;
   statut: string;
+  // Champs système cohérents
+  dateCreation?: string;
+  dateMiseAJour?: string;
+  creePar?: string;
 }
 
 interface BonPlanCardProps {
@@ -26,13 +29,13 @@ const BonPlanCard = ({ bonPlan, onView, onEdit, onDelete }: BonPlanCardProps) =>
   const formatReduction = () => {
     switch (bonPlan.typeReduction) {
       case 'pourcentage':
-        return `${bonPlan.pourcentageReduction}%`;
+        return `${bonPlan.valeurReduction}%`;
       case 'montant':
-        return `${bonPlan.pourcentageReduction}€`;
+        return `${bonPlan.valeurReduction}€`;
       case 'gratuit':
         return 'Gratuit';
       default:
-        return `${bonPlan.pourcentageReduction}%`;
+        return `${bonPlan.valeurReduction}%`;
     }
   };
 
@@ -97,7 +100,7 @@ const BonPlanCard = ({ bonPlan, onView, onEdit, onDelete }: BonPlanCardProps) =>
             size="sm" 
             variant="outline"
             onClick={() => onEdit(bonPlan)}
-            title="Modifier"
+            title="modifier"
           >
             <Edit className="h-4 w-4" />
           </Button>

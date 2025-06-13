@@ -10,11 +10,15 @@ interface BonPlan {
   partenaire: string;
   description: string;
   typeReduction: string;
-  pourcentageReduction: number;
+  valeurReduction: number; // Renommé pour cohérence
   dateDebutReduction: string;
   dateFinReduction: string;
   codePromo: string;
   statut: string;
+  // Champs système cohérents
+  dateCreation?: string;
+  dateMiseAJour?: string;
+  creePar?: string;
 }
 
 interface DeleteBonPlanModalProps {
