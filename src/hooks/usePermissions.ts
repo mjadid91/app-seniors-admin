@@ -1,4 +1,3 @@
-
 import { useAuthStore } from '../stores/authStore';
 
 // Définition des permissions par rôle
@@ -7,6 +6,8 @@ export const PERMISSIONS = {
   VIEW_DASHBOARD: 'view_dashboard',
   VIEW_USERS: 'view_users',
   MANAGE_USERS: 'manage_users',
+  VIEW_SENIORS: 'view_seniors',
+  MANAGE_SENIORS: 'manage_seniors',
   VIEW_PRESTATIONS: 'view_prestations',
   MANAGE_PRESTATIONS: 'manage_prestations',
   VIEW_MODERATION: 'view_moderation',
@@ -38,6 +39,8 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.VIEW_DASHBOARD,
     PERMISSIONS.VIEW_USERS,
     PERMISSIONS.MANAGE_USERS,
+    PERMISSIONS.VIEW_SENIORS,
+    PERMISSIONS.MANAGE_SENIORS,
     PERMISSIONS.VIEW_PRESTATIONS,
     PERMISSIONS.MANAGE_PRESTATIONS,
     PERMISSIONS.VIEW_MODERATION,
@@ -68,10 +71,12 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.VIEW_DASHBOARD,
     PERMISSIONS.VIEW_SUPPORT,
     PERMISSIONS.MANAGE_SUPPORT,
+    PERMISSIONS.VIEW_SENIORS,
   ],
   visualisateur: [
     PERMISSIONS.VIEW_DASHBOARD,
     PERMISSIONS.VIEW_USERS,
+    PERMISSIONS.VIEW_SENIORS,
     PERMISSIONS.VIEW_PRESTATIONS,
     PERMISSIONS.VIEW_MODERATION,
     PERMISSIONS.VIEW_SUPPORT,
@@ -84,10 +89,10 @@ const ROLE_PERMISSIONS = {
 
 // Pages accessibles par rôle
 export const ACCESSIBLE_PAGES = {
-  administrateur: ['dashboard', 'users', 'prestations', 'moderation', 'support', 'documents', 'partners', 'rgpd', 'finances'],
+  administrateur: ['dashboard', 'users', 'seniors', 'prestations', 'moderation', 'support', 'documents', 'partners', 'rgpd', 'finances'],
   moderateur: ['dashboard', 'moderation'],
-  support: ['dashboard', 'support'],
-  visualisateur: ['dashboard', 'users', 'prestations', 'moderation', 'support', 'documents', 'partners', 'rgpd', 'finances'],
+  support: ['dashboard', 'support', 'seniors'],
+  visualisateur: ['dashboard', 'users', 'seniors', 'prestations', 'moderation', 'support', 'documents', 'partners', 'rgpd', 'finances'],
 };
 
 export const usePermissions = () => {

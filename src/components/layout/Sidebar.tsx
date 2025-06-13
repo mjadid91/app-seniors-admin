@@ -12,7 +12,8 @@ import {
   FileText,
   Building2,
   ShieldCheck,
-  DollarSign
+  DollarSign,
+  Heart
 } from "lucide-react";
 
 interface SidebarProps {
@@ -23,6 +24,7 @@ interface SidebarProps {
 const menuItems = [
   { id: "dashboard", label: "Tableau de bord", icon: LayoutDashboard },
   { id: "users", label: "Utilisateurs", icon: Users },
+  { id: "seniors", label: "Seniors & Aidants", icon: Heart },
   { id: "prestations", label: "Prestations", icon: Calendar },
   { id: "moderation", label: "Modération", icon: Shield },
   { id: "support", label: "Support", icon: Headphones },
