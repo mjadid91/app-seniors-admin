@@ -7,12 +7,15 @@ import DocumentsUpload from "./DocumentsUpload";
 import DocumentsStats from "./DocumentsStats";
 import DocumentsQuickActions from "./DocumentsQuickActions";
 import AddDocumentModal from "./AddDocumentModal";
+import EditDocumentModal from "./EditDocumentModal";
 import { useDocuments } from "./useDocuments";
 
 const Documents = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [isAddDocumentModalOpen, setIsAddDocumentModalOpen] = useState(false);
+  const [isEditDocumentModalOpen, setIsEditDocumentModalOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState(null);
   
   const {
     documents,
@@ -23,6 +26,11 @@ const Documents = () => {
     handleDownloadDocument,
     handleDeleteDocument
   } = useDocuments();
+
+  const handleEditClick = (doc) => {
+    setSelectedDocument(doc);
+    setIsEditDocumentModalOpen(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -40,7 +48,7 @@ const Documents = () => {
         <DocumentsTable
           documents={documents}
           onView={handleViewDocument}
-          onEdit={handleEditDocument}
+          onEdit={handleEditClick}
           onDownload={handleDownloadDocument}
           onDelete={handleDeleteDocument}
         />
@@ -56,6 +64,14 @@ const Documents = () => {
         isOpen={isAddDocumentModalOpen}
         onClose={() => setIsAddDocumentModalOpen(false)}
         onAddDocument={handleAddDocument}
+      />
+
+      <EditDocumentModal
+        isOpen={isEditDocumentModalOpen}
+        onClose={() => setIsEditDocumentModalOpen(false)}
+        document={selectedDocument}
+        onEditDocument={handleEditDocument}
+        categories={categories}
       />
     </div>
   );

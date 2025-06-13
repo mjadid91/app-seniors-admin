@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eye, UserPlus, MessageCircle, Clock, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import SupportTicketModal from "./SupportTicketModal";
 
 interface Ticket {
   id: string;
@@ -48,6 +49,8 @@ const mockTickets: Ticket[] = [
 const Support = () => {
   const [tickets, setTickets] = useState<Ticket[]>(mockTickets);
   const [selectedStatut, setSelectedStatut] = useState<string>("tous");
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const { toast } = useToast();
 
   const filteredTickets = tickets.filter(ticket => 
@@ -82,6 +85,8 @@ const Support = () => {
   };
 
   const handleVoirTicket = (ticket: Ticket) => {
+    setSelectedTicket(ticket);
+    setIsTicketModalOpen(true);
     toast({
       title: "Détails du ticket",
       description: `Ouverture du ticket ${ticket.id} : ${ticket.sujet}`,
@@ -260,6 +265,12 @@ const Support = () => {
           </div>
         </CardContent>
       </Card>
+
+      <SupportTicketModal
+        isOpen={isTicketModalOpen}
+        onClose={() => setIsTicketModalOpen(false)}
+        ticket={selectedTicket}
+      />
     </div>
   );
 };

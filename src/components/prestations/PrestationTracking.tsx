@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import PrestationStatsCards from "./PrestationStatsCards";
 import PrestationFilters from "./PrestationFilters";
 import PrestationTable from "./PrestationTable";
+import PrestationDetailsModal from "./PrestationDetailsModal";
 
 interface Prestation {
   id: string;
@@ -53,6 +54,8 @@ const mockPrestations: Prestation[] = [
 const PrestationTracking = () => {
   const [prestations] = useState<Prestation[]>(mockPrestations);
   const [selectedStatut, setSelectedStatut] = useState<string>("tous");
+  const [selectedPrestation, setSelectedPrestation] = useState<Prestation | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const { toast } = useToast();
 
   const filteredPrestations = prestations.filter(prestation => 
@@ -60,6 +63,8 @@ const PrestationTracking = () => {
   );
 
   const handleVoirPrestation = (prestation: Prestation) => {
+    setSelectedPrestation(prestation);
+    setIsDetailsModalOpen(true);
     toast({
       title: "Détails de la prestation",
       description: `Ouverture de la prestation ${prestation.id} : ${prestation.typePrestation}`,
@@ -101,6 +106,12 @@ const PrestationTracking = () => {
           />
         </CardContent>
       </Card>
+
+      <PrestationDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={() => setIsDetailsModalOpen(false)}
+        prestation={selectedPrestation}
+      />
     </div>
   );
 };
