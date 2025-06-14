@@ -10,7 +10,7 @@ import PasswordConfirmation from "./PasswordConfirmation";
 interface AddUserModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddUser: (user: CreateUserData) => void;
+  onAddUser: (user: CreateUserData, password: string) => void;
 }
 
 const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
@@ -33,7 +33,8 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
     setIsLoading(true);
 
     try {
-      onAddUser(newUser);
+      console.log('Mot de passe envoyé depuis AddUserModal:', userPassword);
+      onAddUser(newUser, userPassword);
       setCreatedPassword(userPassword);
       setShowCreatedPassword(true);
       
@@ -54,6 +55,7 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
       });
       setPassword("");
     } catch (error) {
+      console.error('Erreur dans handleSubmit:', error);
       toast({
         title: "Erreur",
         description: "Impossible de créer l'utilisateur.",

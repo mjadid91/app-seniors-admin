@@ -73,14 +73,16 @@ export const useUserManagement = (): UserManagementState & UserManagementActions
     setIsAddUserModalOpen(true);
   };
 
-  const handleUserAdded = async (newUserData: CreateUserData) => {
+  const handleUserAdded = async (newUserData: CreateUserData, userPassword: string) => {
     try {
-      await addUser(newUserData);
+      console.log('Mot de passe reçu dans handleUserAdded:', userPassword);
+      await addUser(newUserData, userPassword);
       toast({
         title: "Utilisateur créé",
         description: "L'utilisateur a été créé avec succès.",
       });
     } catch (error) {
+      console.error('Erreur dans handleUserAdded:', error);
       toast({
         title: "Erreur",
         description: "Impossible de créer l'utilisateur.",

@@ -85,8 +85,8 @@ export const useSupabaseUsers = () => {
     }
   };
 
-  // Fonction pour ajouter un utilisateur avec le nouveau système de catégories
-  const addUser = async (userData: CreateUserData) => {
+  // Fonction pour ajouter un utilisateur avec le mot de passe fourni
+  const addUser = async (userData: CreateUserData, userPassword: string) => {
     try {
       const currentDate = new Date().toISOString();
 
@@ -98,7 +98,7 @@ export const useSupabaseUsers = () => {
         DateNaissance: '1970-01-01', // Valeur par défaut
         Adresse: 'Adresse non renseignée', // Valeur par défaut
         Genre: 'Non précisé', // Valeur par défaut
-        MotDePasse: 'temp_password', // Mot de passe temporaire
+        MotDePasse: userPassword, // Utiliser le mot de passe fourni
         IDCatUtilisateurs: userData.categoryId,
         DateInscription: userData.dateInscription,
         Commentaire: '', // Champ requis - valeur par défaut vide
@@ -109,6 +109,8 @@ export const useSupabaseUsers = () => {
         EstRGPD: false // Champ optionnel - par défaut non RGPD
       };
 
+      console.log('Données envoyées à Supabase:', supabaseUserData);
+
       const { data, error: insertError } = await supabase
         .from('Utilisateurs')
         .insert([supabaseUserData])
@@ -116,9 +118,11 @@ export const useSupabaseUsers = () => {
         .single();
 
       if (insertError) {
+        console.error('Erreur lors de l\'insertion:', insertError);
         throw insertError;
       }
 
+      console.log('Utilisateur créé avec succès:', data);
       const newUser = convertSupabaseUserToAppUser(data);
       setUsers(prevUsers => [...prevUsers, newUser]);
       return newUser;
