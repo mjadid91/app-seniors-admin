@@ -265,6 +265,7 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
                 <Select 
                   value={formData.categoryId.toString()} 
                   onValueChange={(value) => setFormData({ ...formData, categoryId: parseInt(value) })}
+                  required
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner un rôle" />
@@ -281,6 +282,9 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
                   </SelectContent>
                 </Select>
               )}
+              <p className="text-xs text-muted-foreground">
+                Seuls les rôles administratifs sont disponibles : Administrateur, Modérateur, Support, Visualisateur
+              </p>
             </div>
 
             <div className="space-y-2">

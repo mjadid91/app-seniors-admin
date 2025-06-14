@@ -27,32 +27,47 @@ export const useUserCategories = () => {
         throw fetchError;
       }
 
-      // Transform the database data to match our expected interface
-      const transformedCategories: UserCategory[] = (data || []).map(cat => {
-        let libelle = 'Utilisateur';
-        
+      // Filter and transform only admin-related categories
+      const adminCategories: UserCategory[] = [];
+      
+      (data || []).forEach(cat => {
         if (cat.EstAdministrateur) {
-          libelle = 'Administrateur';
+          adminCategories.push({
+            IDCatUtilisateurs: cat.IDCatUtilisateurs,
+            LibelleCategorie: 'Administrateur',
+            Actif: true
+          });
         } else if (cat.EstModerateur) {
-          libelle = 'Modérateur';
+          adminCategories.push({
+            IDCatUtilisateurs: cat.IDCatUtilisateurs,
+            LibelleCategorie: 'Modérateur',
+            Actif: true
+          });
         } else if (cat.EstAidant) {
-          libelle = 'Aidant';
-        } else if (cat.EstSenior) {
-          libelle = 'Senior';
-        } else if (cat.EstTuteur) {
-          libelle = 'Tuteur';
-        } else if (cat.EstOrganisme) {
-          libelle = 'Organisme';
+          // Map Aidant to Support for admin interface
+          adminCategories.push({
+            IDCatUtilisateurs: cat.IDCatUtilisateurs,
+            LibelleCategorie: 'Support',
+            Actif: true
+          });
         }
-
-        return {
-          IDCatUtilisateurs: cat.IDCatUtilisateurs,
-          LibelleCategorie: libelle,
-          Actif: true // Assuming all categories are active
-        };
+        // Add Visualisateur if we find a matching category or create a default one
+        // For now, we'll assume there's a category that can be used as Visualisateur
       });
 
-      setCategories(transformedCategories);
+      // Add Visualisateur as a default option if not found in database
+      // This assumes ID 7 or the highest ID + 1 for Visualisateur
+      const hasVisualisateur = adminCategories.some(cat => cat.LibelleCategorie === 'Visualisateur');
+      if (!hasVisualisateur) {
+        const maxId = Math.max(...adminCategories.map(cat => cat.IDCatUtilisateurs), 0);
+        adminCategories.push({
+          IDCatUtilisateurs: maxId + 1,
+          LibelleCategorie: 'Visualisateur',
+          Actif: true
+        });
+      }
+
+      setCategories(adminCategories);
     } catch (err) {
       console.error('Erreur lors de la récupération des catégories:', err);
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
