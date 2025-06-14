@@ -11,19 +11,29 @@ export const useSupabaseUsers = (): UserHookReturn => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { getRoleFromCategory } = useUserCategories();
+  const { getRoleFromCategory, loading: categoriesLoading, error: categoriesError } = useUserCategories();
 
   const { fetchUsers } = useUserFetch(setUsers, setLoading, setError, getRoleFromCategory);
   const { addUser, updateUser, deleteUser } = useUserCrud(users, setUsers, getRoleFromCategory);
 
   useEffect(() => {
-    fetchUsers();
-  }, [getRoleFromCategory]);
+    console.log('useSupabaseUsers useEffect triggered', { categoriesLoading, categoriesError });
+    
+    // Attendre que les catégories soient chargées avant de récupérer les utilisateurs
+    if (!categoriesLoading && !categoriesError && getRoleFromCategory) {
+      console.log('Fetching users...');
+      fetchUsers();
+    } else if (categoriesError) {
+      console.error('Error loading categories:', categoriesError);
+      setError(categoriesError);
+      setLoading(false);
+    }
+  }, [categoriesLoading, categoriesError, getRoleFromCategory]);
 
   return {
     users,
-    loading,
-    error,
+    loading: loading || categoriesLoading,
+    error: error || categoriesError,
     fetchUsers,
     addUser,
     updateUser,

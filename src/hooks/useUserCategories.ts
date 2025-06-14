@@ -22,6 +22,7 @@ export const useUserCategories = () => {
 
   const fetchCategories = async () => {
     try {
+      console.log('Fetching categories...');
       setLoading(true);
       setError(null);
 
@@ -30,7 +31,10 @@ export const useUserCategories = () => {
         .select('*')
         .order('IDCatUtilisateurs', { ascending: true });
 
+      console.log('Categories query result:', { data, error: fetchError });
+
       if (fetchError) {
+        console.error('Categories fetch error:', fetchError);
         throw fetchError;
       }
 
@@ -54,6 +58,7 @@ export const useUserCategories = () => {
         (!cat.EstAdministrateur && !cat.EstModerateur && !cat.EstSupport && !cat.EstSenior && !cat.EstAidant && !cat.EstTuteur && !cat.EstOrganisme)
       );
 
+      console.log('Transformed categories:', adminCategories);
       setCategories(adminCategories);
     } catch (err) {
       console.error('Erreur lors de la récupération des catégories:', err);
@@ -95,7 +100,10 @@ export const useUserCategories = () => {
   // Fonction pour déterminer le rôle basé sur les flags d'une catégorie
   const getRoleFromCategory = (categoryId: number): 'administrateur' | 'moderateur' | 'support' | 'visualisateur' => {
     const category = categories.find(cat => cat.IDCatUtilisateurs === categoryId);
-    if (!category) return 'visualisateur';
+    if (!category) {
+      console.warn('Category not found for ID:', categoryId, 'Available categories:', categories);
+      return 'visualisateur';
+    }
 
     if (category.EstAdministrateur) return 'administrateur';
     if (category.EstModerateur) return 'moderateur';
