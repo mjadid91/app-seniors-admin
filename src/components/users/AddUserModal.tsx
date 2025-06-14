@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useUserCategories } from "../../hooks/useUserCategories";
+import { useUserFormData } from "../../hooks/useUserFormData";
 import { CreateUserData } from "./userTypes";
 import UserCreationForm from "./UserCreationForm";
 import PasswordConfirmation from "./PasswordConfirmation";
@@ -14,14 +15,7 @@ interface AddUserModalProps {
 }
 
 const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
-  const [formData, setFormData] = useState({
-    nom: "",
-    prenom: "",
-    email: "",
-    categoryId: 0,
-    languePreferee: "",
-    devise: ""
-  });
+  const { formData, resetFormData } = useUserFormData();
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showCreatedPassword, setShowCreatedPassword] = useState(false);
@@ -45,14 +39,7 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
       });
 
       // Reset form
-      setFormData({
-        nom: "",
-        prenom: "",
-        email: "",
-        categoryId: 0,
-        languePreferee: "",
-        devise: ""
-      });
+      resetFormData();
       setPassword("");
     } catch (error) {
       console.error('Erreur dans handleSubmit:', error);
@@ -70,14 +57,7 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
     setShowCreatedPassword(false);
     setCreatedPassword("");
     setPassword("");
-    setFormData({
-      nom: "",
-      prenom: "",
-      email: "",
-      categoryId: 0,
-      languePreferee: "",
-      devise: ""
-    });
+    resetFormData();
     onClose();
   };
 
@@ -98,8 +78,6 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
           />
         ) : (
           <UserCreationForm
-            formData={formData}
-            setFormData={setFormData}
             password={password}
             setPassword={setPassword}
             isLoading={isLoading}
