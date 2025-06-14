@@ -52,7 +52,7 @@ const UserManagementModals = ({
           isOpen={isDeleteConfirmOpen}
           onClose={onCloseDeleteModal}
           user={selectedUser}
-          onConfirm={() => onUserDeleted(selectedUser.id)}
+          onConfirmDelete={() => onUserDeleted(selectedUser.id)}
         />
       )}
     </>
