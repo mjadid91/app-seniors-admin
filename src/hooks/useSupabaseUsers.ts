@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { User } from '../stores/authStore';
 import { useUserCategories } from './useUserCategories';
 import { CreateUserData } from '../components/users/userTypes';
@@ -11,30 +11,54 @@ export const useSupabaseUsers = (): UserHookReturn => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasFetched, setHasFetched] = useState(false);
+  
   const { getRoleFromCategory, loading: categoriesLoading, error: categoriesError } = useUserCategories();
 
   const { fetchUsers } = useUserFetch(setUsers, setLoading, setError, getRoleFromCategory);
   const { addUser, updateUser, deleteUser } = useUserCrud(users, setUsers, getRoleFromCategory);
 
+  // Utiliser useCallback pour éviter les re-créations de fonction
+  const fetchUsersOnce = useCallback(async () => {
+    if (!categoriesLoading && !categoriesError && getRoleFromCategory && !hasFetched) {
+      console.log('Fetching users once...');
+      setHasFetched(true);
+      await fetchUsers();
+    }
+  }, [categoriesLoading, categoriesError, getRoleFromCategory, hasFetched, fetchUsers]);
+
   useEffect(() => {
-    console.log('useSupabaseUsers useEffect triggered', { categoriesLoading, categoriesError });
+    console.log('useSupabaseUsers useEffect triggered', { 
+      categoriesLoading, 
+      categoriesError, 
+      hasFetched,
+      getRoleFromCategory: !!getRoleFromCategory 
+    });
     
-    // Attendre que les catégories soient chargées avant de récupérer les utilisateurs
-    if (!categoriesLoading && !categoriesError && getRoleFromCategory) {
-      console.log('Fetching users...');
-      fetchUsers();
-    } else if (categoriesError) {
+    if (categoriesError) {
       console.error('Error loading categories:', categoriesError);
       setError(categoriesError);
       setLoading(false);
+      return;
     }
-  }, [categoriesLoading, categoriesError, getRoleFromCategory]);
+
+    fetchUsersOnce();
+  }, [categoriesError, fetchUsersOnce]);
+
+  // Fonction pour refetch manuellement
+  const refetchUsers = useCallback(async () => {
+    if (!categoriesLoading && !categoriesError && getRoleFromCategory) {
+      setHasFetched(false);
+      await fetchUsers();
+      setHasFetched(true);
+    }
+  }, [categoriesLoading, categoriesError, getRoleFromCategory, fetchUsers]);
 
   return {
     users,
     loading: loading || categoriesLoading,
     error: error || categoriesError,
-    fetchUsers,
+    fetchUsers: refetchUsers,
     addUser,
     updateUser,
     deleteUser

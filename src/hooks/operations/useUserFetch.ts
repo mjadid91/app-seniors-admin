@@ -1,4 +1,5 @@
 
+import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '../../stores/authStore';
 import { convertSupabaseUserToAppUser } from '../utils/userConversion';
@@ -10,16 +11,23 @@ export const useUserFetch = (
   getRoleFromCategory: (categoryId: number) => User['role']
 ) => {
   // Fonction pour récupérer tous les utilisateurs
-  const fetchUsers = async (): Promise<void> => {
+  const fetchUsers = useCallback(async (): Promise<void> => {
     try {
       console.log('Starting fetchUsers...');
       setLoading(true);
       setError(null);
 
-      const { data, error: fetchError } = await supabase
+      // Ajouter un timeout pour éviter les requêtes qui traînent
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout: Requête trop longue')), 10000)
+      );
+
+      const queryPromise = supabase
         .from('Utilisateurs')
         .select('*')
         .order('DateInscription', { ascending: false });
+
+      const { data, error: fetchError } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
       console.log('Supabase query result:', { data, error: fetchError });
 
@@ -28,10 +36,29 @@ export const useUserFetch = (
         throw fetchError;
       }
 
-      const convertedUsers = data?.map(user => {
+      if (!data) {
+        console.log('No data returned from Supabase');
+        setUsers([]);
+        return;
+      }
+
+      const convertedUsers = data.map((user: any) => {
         console.log('Converting user:', user);
-        return convertSupabaseUserToAppUser(user, getRoleFromCategory);
-      }) || [];
+        try {
+          return convertSupabaseUserToAppUser(user, getRoleFromCategory);
+        } catch (conversionError) {
+          console.error('Error converting user:', user, conversionError);
+          // Retourner un utilisateur par défaut en cas d'erreur de conversion
+          return {
+            id: user.IDUtilisateurs?.toString() || 'unknown',
+            nom: user.Nom || 'Inconnu',
+            prenom: user.Prenom || 'Inconnu',
+            email: user.Email || 'email@inconnu.com',
+            role: 'visualisateur' as const,
+            dateInscription: user.DateInscription || new Date().toISOString()
+          };
+        }
+      });
       
       console.log('Converted users:', convertedUsers);
       setUsers(convertedUsers);
@@ -41,7 +68,7 @@ export const useUserFetch = (
     } finally {
       setLoading(false);
     }
-  };
+  }, [setUsers, setLoading, setError, getRoleFromCategory]);
 
   return {
     fetchUsers

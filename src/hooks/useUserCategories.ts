@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface UserCategory {
@@ -20,7 +20,7 @@ export const useUserCategories = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       console.log('Fetching categories...');
       setLoading(true);
@@ -52,53 +52,49 @@ export const useUserCategories = () => {
         EstOrganisme: cat.EstOrganisme || false
       }));
 
-      // Filtrer pour ne garder que les rôles administratifs
-      const adminCategories = transformedCategories.filter(cat => 
-        cat.EstAdministrateur || cat.EstModerateur || cat.EstSupport || 
-        (!cat.EstAdministrateur && !cat.EstModerateur && !cat.EstSupport && !cat.EstSenior && !cat.EstAidant && !cat.EstTuteur && !cat.EstOrganisme)
-      );
-
-      console.log('Transformed categories:', adminCategories);
-      setCategories(adminCategories);
+      console.log('All transformed categories:', transformedCategories);
+      
+      // Ne pas filtrer ici - garder toutes les catégories pour les conversions
+      setCategories(transformedCategories);
     } catch (err) {
       console.error('Erreur lors de la récupération des catégories:', err);
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Fonction pour déterminer le libellé du rôle basé sur les flags
   const getRoleLabel = (category: any): string => {
     if (category.EstAdministrateur) return 'Administrateur';
     if (category.EstModerateur) return 'Modérateur';
     if (category.EstSupport) return 'Support';
-    // Si tous les flags administratifs sont à false, c'est un Visualisateur
-    if (!category.EstAdministrateur && !category.EstModerateur && !category.EstSupport && 
-        !category.EstSenior && !category.EstAidant && !category.EstTuteur && !category.EstOrganisme) {
-      return 'Visualisateur';
-    }
-    return 'Inconnu';
+    if (category.EstSenior) return 'Senior';
+    if (category.EstAidant) return 'Aidant';
+    if (category.EstTuteur) return 'Tuteur';
+    if (category.EstOrganisme) return 'Organisme';
+    // Si tous les flags sont à false, c'est un Visualisateur
+    return 'Visualisateur';
   };
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   // Fonction utilitaire pour obtenir le libellé d'une catégorie par son ID
-  const getCategoryLabel = (categoryId: number): string => {
+  const getCategoryLabel = useCallback((categoryId: number): string => {
     const category = categories.find(cat => cat.IDCatUtilisateurs === categoryId);
     return category?.LibelleCategorie || 'Inconnu';
-  };
+  }, [categories]);
 
   // Fonction utilitaire pour obtenir l'ID d'une catégorie par son libellé
-  const getCategoryId = (label: string): number | null => {
+  const getCategoryId = useCallback((label: string): number | null => {
     const category = categories.find(cat => cat.LibelleCategorie.toLowerCase() === label.toLowerCase());
     return category?.IDCatUtilisateurs || null;
-  };
+  }, [categories]);
 
   // Fonction pour déterminer le rôle basé sur les flags d'une catégorie
-  const getRoleFromCategory = (categoryId: number): 'administrateur' | 'moderateur' | 'support' | 'visualisateur' => {
+  const getRoleFromCategory = useCallback((categoryId: number): 'administrateur' | 'moderateur' | 'support' | 'visualisateur' => {
     const category = categories.find(cat => cat.IDCatUtilisateurs === categoryId);
     if (!category) {
       console.warn('Category not found for ID:', categoryId, 'Available categories:', categories);
@@ -109,7 +105,7 @@ export const useUserCategories = () => {
     if (category.EstModerateur) return 'moderateur';
     if (category.EstSupport) return 'support';
     return 'visualisateur';
-  };
+  }, [categories]);
 
   return {
     categories,

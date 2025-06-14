@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import UserStats from "./UserStats";
 import UserSearch from "./UserSearch";
@@ -37,7 +38,7 @@ const UserManagement = () => {
   } = useUserManagement();
 
   const { seniors, aidants, loading: seniorsLoading, error: seniorsError } = useSupabaseSeniors();
-  const { loading, error } = useSupabaseUsers();
+  const { loading, error, fetchUsers } = useSupabaseUsers();
 
   console.log('UserManagement render:', { loading, seniorsLoading, error, seniorsError, users: users.length });
 
@@ -68,12 +69,21 @@ const UserManagement = () => {
             </div>
             <h3 className="text-lg font-medium text-slate-800 mb-2">Erreur de chargement</h3>
             <p className="text-slate-600 mb-4">{error || seniorsError}</p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Réessayer
-            </button>
+            <div className="space-y-2">
+              <Button 
+                onClick={() => fetchUsers()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Réessayer
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="px-4 py-2"
+              >
+                Recharger la page
+              </Button>
+            </div>
           </div>
         </div>
       </ProtectedRoute>
