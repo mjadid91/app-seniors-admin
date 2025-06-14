@@ -10,7 +10,7 @@ import UserManagementModals from "./UserManagementModals";
 import SeniorsTable from "./SeniorsTable";
 import AidantsTable from "./AidantsTable";
 import { useUserManagement } from "./useUserManagement";
-import { useSeniors } from "../seniors/useSeniors";
+import { useSupabaseSeniors } from "../../hooks/useSupabaseSeniors";
 import { useSupabaseUsers } from "../../hooks/useSupabaseUsers";
 
 const UserManagement = () => {
@@ -36,10 +36,10 @@ const UserManagement = () => {
     setIsDeleteConfirmOpen
   } = useUserManagement();
 
-  const { seniors, aidants } = useSeniors();
+  const { seniors, aidants, loading: seniorsLoading, error: seniorsError } = useSupabaseSeniors();
   const { loading, error } = useSupabaseUsers();
 
-  if (loading) {
+  if (loading || seniorsLoading) {
     return (
       <ProtectedRoute requiredPage="users">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -52,7 +52,7 @@ const UserManagement = () => {
     );
   }
 
-  if (error) {
+  if (error || seniorsError) {
     return (
       <ProtectedRoute requiredPage="users">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -61,7 +61,7 @@ const UserManagement = () => {
               <span className="text-red-600 text-xl">⚠</span>
             </div>
             <h3 className="text-lg font-medium text-slate-800 mb-2">Erreur de chargement</h3>
-            <p className="text-slate-600 mb-4">{error}</p>
+            <p className="text-slate-600 mb-4">{error || seniorsError}</p>
             <button 
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -121,7 +121,14 @@ const UserManagement = () => {
               </AccordionTrigger>
               <AccordionContent>
                 <CardContent className="pt-0">
-                  <SeniorsTable seniors={seniors} />
+                  {seniors.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-slate-500 text-lg">Aucun senior trouvé dans la base de données</p>
+                      <p className="text-slate-400 text-sm mt-2">Les seniors apparaîtront ici une fois qu'ils seront créés</p>
+                    </div>
+                  ) : (
+                    <SeniorsTable seniors={seniors} />
+                  )}
                 </CardContent>
               </AccordionContent>
             </Card>
@@ -136,7 +143,14 @@ const UserManagement = () => {
               </AccordionTrigger>
               <AccordionContent>
                 <CardContent className="pt-0">
-                  <AidantsTable aidants={aidants} />
+                  {aidants.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-slate-500 text-lg">Aucun aidant trouvé dans la base de données</p>
+                      <p className="text-slate-400 text-sm mt-2">Les aidants apparaîtront ici une fois qu'ils seront créés</p>
+                    </div>
+                  ) : (
+                    <AidantsTable aidants={aidants} />
+                  )}
                 </CardContent>
               </AccordionContent>
             </Card>
