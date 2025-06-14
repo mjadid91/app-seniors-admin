@@ -128,13 +128,14 @@ const UserCreationForm = ({
                   value={category.IDCatUtilisateurs.toString()}
                 >
                   {category.LibelleCategorie}
+                  {category.EstAdministrateur && " (Accès complet)"}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         )}
         <p className="text-xs text-muted-foreground">
-          Seuls les rôles administratifs sont disponibles : Administrateur, Modérateur, Support, Visualisateur
+          Les rôles sont basés sur les attributs de la table CatUtilisateurs : Administrateur, Modérateur, Support, Visualisateur
         </p>
       </div>
 

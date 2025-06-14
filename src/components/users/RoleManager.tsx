@@ -34,6 +34,21 @@ const RoleManager = ({ user, onRoleChange }: RoleManagerProps) => {
     setIsOpen(false);
   };
 
+  const getRoleDescription = (role: User['role']) => {
+    switch (role) {
+      case 'administrateur':
+        return "Accès complet à toutes les fonctionnalités (EstAdministrateur = true)";
+      case 'moderateur':
+        return "Modération uniquement - Lecture, suppression et masquage de contenus (EstModerateur = true)";
+      case 'support':
+        return "Support uniquement - Réponse aux tickets et mise à jour des statuts (EstSupport = true)";
+      case 'visualisateur':
+        return "Lecture seule sur toutes les pages (tous les flags à false)";
+      default:
+        return "";
+    }
+  };
+
   if (!canManageRoles) {
     return <RoleBadge role={user.role} />;
   }
@@ -110,10 +125,7 @@ const RoleManager = ({ user, onRoleChange }: RoleManagerProps) => {
             <div className="bg-blue-50 p-3 rounded-lg">
               <h4 className="font-medium text-blue-900 mb-2">Permissions du rôle {selectedRole}</h4>
               <div className="text-sm text-blue-700">
-                {selectedRole === 'administrateur' && "Accès complet à toutes les fonctionnalités"}
-                {selectedRole === 'moderateur' && "Modération uniquement - Lecture, suppression et masquage de contenus"}
-                {selectedRole === 'support' && "Support uniquement - Réponse aux tickets et mise à jour des statuts"}
-                {selectedRole === 'visualisateur' && "Lecture seule sur toutes les pages"}
+                {getRoleDescription(selectedRole)}
               </div>
             </div>
 

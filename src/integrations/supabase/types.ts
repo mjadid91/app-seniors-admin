@@ -453,6 +453,7 @@ export type Database = {
           EstModerateur: boolean
           EstOrganisme: boolean
           EstSenior: boolean
+          EstSupport: boolean
           EstTuteur: boolean
           IDCatUtilisateurs: number
         }
@@ -462,6 +463,7 @@ export type Database = {
           EstModerateur?: boolean
           EstOrganisme?: boolean
           EstSenior?: boolean
+          EstSupport?: boolean
           EstTuteur?: boolean
           IDCatUtilisateurs?: number
         }
@@ -471,6 +473,7 @@ export type Database = {
           EstModerateur?: boolean
           EstOrganisme?: boolean
           EstSenior?: boolean
+          EstSupport?: boolean
           EstTuteur?: boolean
           IDCatUtilisateurs?: number
         }

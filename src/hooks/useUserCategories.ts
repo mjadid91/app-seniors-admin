@@ -6,6 +6,13 @@ export interface UserCategory {
   IDCatUtilisateurs: number;
   LibelleCategorie: string;
   Actif: boolean;
+  EstAdministrateur: boolean;
+  EstModerateur: boolean;
+  EstSupport: boolean;
+  EstSenior: boolean;
+  EstAidant: boolean;
+  EstTuteur: boolean;
+  EstOrganisme: boolean;
 }
 
 export const useUserCategories = () => {
@@ -27,45 +34,25 @@ export const useUserCategories = () => {
         throw fetchError;
       }
 
-      // Filter and transform only admin-related categories
-      const adminCategories: UserCategory[] = [];
-      
-      (data || []).forEach(cat => {
-        if (cat.EstAdministrateur) {
-          adminCategories.push({
-            IDCatUtilisateurs: cat.IDCatUtilisateurs,
-            LibelleCategorie: 'Administrateur',
-            Actif: true
-          });
-        } else if (cat.EstModerateur) {
-          adminCategories.push({
-            IDCatUtilisateurs: cat.IDCatUtilisateurs,
-            LibelleCategorie: 'Modérateur',
-            Actif: true
-          });
-        } else if (cat.EstAidant) {
-          // Map Aidant to Support for admin interface
-          adminCategories.push({
-            IDCatUtilisateurs: cat.IDCatUtilisateurs,
-            LibelleCategorie: 'Support',
-            Actif: true
-          });
-        }
-        // Add Visualisateur if we find a matching category or create a default one
-        // For now, we'll assume there's a category that can be used as Visualisateur
-      });
+      // Transformer les données pour inclure tous les flags
+      const transformedCategories: UserCategory[] = (data || []).map(cat => ({
+        IDCatUtilisateurs: cat.IDCatUtilisateurs,
+        LibelleCategorie: getRoleLabel(cat),
+        Actif: true,
+        EstAdministrateur: cat.EstAdministrateur || false,
+        EstModerateur: cat.EstModerateur || false,
+        EstSupport: cat.EstSupport || false,
+        EstSenior: cat.EstSenior || false,
+        EstAidant: cat.EstAidant || false,
+        EstTuteur: cat.EstTuteur || false,
+        EstOrganisme: cat.EstOrganisme || false
+      }));
 
-      // Add Visualisateur as a default option if not found in database
-      // This assumes ID 7 or the highest ID + 1 for Visualisateur
-      const hasVisualisateur = adminCategories.some(cat => cat.LibelleCategorie === 'Visualisateur');
-      if (!hasVisualisateur) {
-        const maxId = Math.max(...adminCategories.map(cat => cat.IDCatUtilisateurs), 0);
-        adminCategories.push({
-          IDCatUtilisateurs: maxId + 1,
-          LibelleCategorie: 'Visualisateur',
-          Actif: true
-        });
-      }
+      // Filtrer pour ne garder que les rôles administratifs
+      const adminCategories = transformedCategories.filter(cat => 
+        cat.EstAdministrateur || cat.EstModerateur || cat.EstSupport || 
+        (!cat.EstAdministrateur && !cat.EstModerateur && !cat.EstSupport && !cat.EstSenior && !cat.EstAidant && !cat.EstTuteur && !cat.EstOrganisme)
+      );
 
       setCategories(adminCategories);
     } catch (err) {
@@ -74,6 +61,19 @@ export const useUserCategories = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Fonction pour déterminer le libellé du rôle basé sur les flags
+  const getRoleLabel = (category: any): string => {
+    if (category.EstAdministrateur) return 'Administrateur';
+    if (category.EstModerateur) return 'Modérateur';
+    if (category.EstSupport) return 'Support';
+    // Si tous les flags administratifs sont à false, c'est un Visualisateur
+    if (!category.EstAdministrateur && !category.EstModerateur && !category.EstSupport && 
+        !category.EstSenior && !category.EstAidant && !category.EstTuteur && !category.EstOrganisme) {
+      return 'Visualisateur';
+    }
+    return 'Inconnu';
   };
 
   useEffect(() => {
@@ -92,12 +92,24 @@ export const useUserCategories = () => {
     return category?.IDCatUtilisateurs || null;
   };
 
+  // Fonction pour déterminer le rôle basé sur les flags d'une catégorie
+  const getRoleFromCategory = (categoryId: number): 'administrateur' | 'moderateur' | 'support' | 'visualisateur' => {
+    const category = categories.find(cat => cat.IDCatUtilisateurs === categoryId);
+    if (!category) return 'visualisateur';
+
+    if (category.EstAdministrateur) return 'administrateur';
+    if (category.EstModerateur) return 'moderateur';
+    if (category.EstSupport) return 'support';
+    return 'visualisateur';
+  };
+
   return {
     categories,
     loading,
     error,
     fetchCategories,
     getCategoryLabel,
-    getCategoryId
+    getCategoryId,
+    getRoleFromCategory
   };
 };

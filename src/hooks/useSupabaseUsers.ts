@@ -29,27 +29,10 @@ export const useSupabaseUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { getCategoryLabel } = useUserCategories();
+  const { getRoleFromCategory } = useUserCategories();
 
   // Fonction pour convertir un utilisateur Supabase vers le format de l'application
   const convertSupabaseUserToAppUser = (supabaseUser: SupabaseUser): User => {
-    // Mapping des catégories vers les rôles de l'application pour compatibilité
-    const getRoleFromCategory = (categoryId: number): User['role'] => {
-      const categoryLabel = getCategoryLabel(categoryId).toLowerCase();
-      
-      switch (categoryLabel) {
-        case 'administrateur': return 'administrateur';
-        case 'modérateur': return 'moderateur';
-        case 'aidant': return 'support';
-        case 'visualisateur': return 'visualisateur';
-        // Pour les nouveaux rôles, on utilise 'visualisateur' par défaut
-        case 'senior':
-        case 'tuteur':
-        case 'organisme':
-        default: return 'visualisateur';
-      }
-    };
-
     return {
       id: supabaseUser.IDUtilisateurs.toString(),
       nom: supabaseUser.Nom,
@@ -94,19 +77,19 @@ export const useSupabaseUsers = () => {
         Nom: userData.nom,
         Prenom: userData.prenom,
         Email: userData.email,
-        Telephone: '0000000000', // Valeur par défaut
-        DateNaissance: '1970-01-01', // Valeur par défaut
-        Adresse: 'Adresse non renseignée', // Valeur par défaut
-        Genre: 'Non précisé', // Valeur par défaut
-        MotDePasse: userPassword, // Utiliser le mot de passe fourni
+        Telephone: '0000000000',
+        DateNaissance: '1970-01-01',
+        Adresse: 'Adresse non renseignée',
+        Genre: 'Non précisé',
+        MotDePasse: userPassword,
         IDCatUtilisateurs: userData.categoryId,
         DateInscription: userData.dateInscription,
-        Commentaire: '', // Champ requis - valeur par défaut vide
-        DateModification: currentDate, // Champ requis - date actuelle
-        LangueSite: 'fr', // Champ requis - valeur par défaut français
-        Photo: '', // Champ requis - valeur par défaut vide
-        EstDesactive: false, // Champ optionnel - par défaut actif
-        EstRGPD: false // Champ optionnel - par défaut non RGPD
+        Commentaire: '',
+        DateModification: currentDate,
+        LangueSite: 'fr',
+        Photo: '',
+        EstDesactive: false,
+        EstRGPD: false
       };
 
       console.log('Données envoyées à Supabase:', supabaseUserData);
@@ -143,9 +126,11 @@ export const useSupabaseUsers = () => {
       if (updates.prenom) supabaseUpdates.Prenom = updates.prenom;
       if (updates.email) supabaseUpdates.Email = updates.email;
       
-      // Pour la mise à jour du rôle, on garde l'ancien système pour compatibilité
+      // Pour la mise à jour du rôle, on trouve la catégorie correspondante
       if (updates.role) {
         const getCategoryFromRole = (role: User['role']): number => {
+          // Cette fonction devrait être remplacée par une recherche dans les catégories réelles
+          // Pour l'instant, on garde une correspondance par défaut
           switch (role) {
             case 'administrateur': return 5;
             case 'moderateur': return 6;
@@ -200,7 +185,7 @@ export const useSupabaseUsers = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [getRoleFromCategory]);
 
   return {
     users,
