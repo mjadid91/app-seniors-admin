@@ -7,28 +7,55 @@ import PrestationStatsCards from "./PrestationStatsCards";
 import PrestationFilters from "./PrestationFilters";
 import PrestationTable from "./PrestationTable";
 import PrestationDetailsModal from "./PrestationDetailsModal";
-import { useSupabasePrestations } from "../../hooks/useSupabasePrestations";
+import { useSupabasePrestations, PrestationDB } from "../../hooks/useSupabasePrestations";
+
+// Define the UI shape expected by your table and cards
+type Prestation = {
+  id: string;
+  seniorNom: string;
+  aidantNom: string;
+  typePrestation: string;
+  dateCreation: string;
+  tarif: number;
+  statut: string;
+  evaluation?: number;
+  [key: string]: any; // allow any extra properties (ex: for details modal)
+};
+
+const mapPrestationDBToUI = (db: PrestationDB): Prestation => ({
+  id: db.IDPrestation?.toString() ?? "",
+  seniorNom: "N/A", // No senior info in current `Prestation` table
+  aidantNom: "N/A",  // No aidant info in current `Prestation` table
+  typePrestation: db.Titre ?? "Sans titre",
+  dateCreation: "", // There's no date in current DB; could supplement if property is available
+  tarif: typeof db.TarifIndicatif === "number" ? db.TarifIndicatif : 0,
+  statut: "non_renseigné", // fallback since not present
+  evaluation: undefined,
+  ...db // copy all DB fields (useful for modal/details)
+});
 
 const PrestationTracking = () => {
   const { data: prestations = [], isLoading, error } = useSupabasePrestations();
   const [selectedStatut, setSelectedStatut] = useState<string>("tous");
-  const [selectedPrestation, setSelectedPrestation] = useState<any | null>(null);
+  const [selectedPrestation, setSelectedPrestation] = useState<Prestation | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const { toast } = useToast();
 
-  // Filtrage par statut (à adapter quand la colonne statut existera)
-  const filteredPrestations = prestations.filter(
-    (prestation) =>
-      selectedStatut === "tous" ||
-      prestation.statut === selectedStatut
-  );
+  // Map DB data to UI data (ensures compatibility)
+  const mappedPrestations: Prestation[] = prestations.map(mapPrestationDBToUI);
 
-  const handleVoirPrestation = (prestation: any) => {
+  // Statut filtering: as DB doesn't have .statut yet, only "tous" will show ALL, the rest will yield empty until feature is available
+  const filteredPrestations =
+    selectedStatut === "tous"
+      ? mappedPrestations
+      : mappedPrestations.filter((prestation) => prestation.statut === selectedStatut);
+
+  const handleVoirPrestation = (prestation: Prestation) => {
     setSelectedPrestation(prestation);
     setIsDetailsModalOpen(true);
     toast({
       title: "Détails de la prestation",
-      description: `Ouverture de la prestation ${prestation.IDPrestation} : ${prestation.Titre}`,
+      description: `Ouverture de la prestation ${prestation.id} : ${prestation.typePrestation}`,
     });
     console.log("Voir prestation:", prestation);
   };
@@ -36,7 +63,9 @@ const PrestationTracking = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24 animate-pulse">
-        <span className="text-slate-600">Chargement des prestations depuis la base...</span>
+        <span className="text-slate-600">
+          Chargement des prestations depuis la base...
+        </span>
       </div>
     );
   }
@@ -53,8 +82,12 @@ const PrestationTracking = () => {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold text-slate-800">Suivi des prestations</h2>
-          <p className="text-slate-600 mt-1">Supervision des prestations entre seniors et aidants</p>
+          <h2 className="text-3xl font-bold text-slate-800">
+            Suivi des prestations
+          </h2>
+          <p className="text-slate-600 mt-1">
+            Supervision des prestations entre seniors et aidants
+          </p>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-sm text-slate-600">
@@ -64,7 +97,7 @@ const PrestationTracking = () => {
         </div>
       </div>
 
-      <PrestationStatsCards prestations={prestations} />
+      <PrestationStatsCards prestations={mappedPrestations} />
 
       <Card>
         <CardHeader>
