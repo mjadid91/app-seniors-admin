@@ -53,6 +53,25 @@ const PrestationTracking = () => {
     console.log("Voir prestation:", prestation);
   };
 
+  // *** FIX: add type-safe wrapper for setSelectedStatut ***
+  const handleStatutChange = (statut: string) => {
+    // Only allow the union types (type safety for assignment)
+    const allowedStatuts = [
+      "en_attente",
+      "en_cours",
+      "terminee",
+      "refusee",
+      "annulee",
+      "tous"
+    ] as const;
+    if ((allowedStatuts as readonly string[]).includes(statut)) {
+      setSelectedStatut(statut as Prestation["statut"] | "tous");
+    } else {
+      // fallback: don't update, or you could default to 'tous'
+      setSelectedStatut("tous");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24 animate-pulse">
@@ -98,7 +117,7 @@ const PrestationTracking = () => {
             <CardTitle>Liste des prestations</CardTitle>
             <PrestationFilters
               selectedStatut={selectedStatut}
-              onStatutChange={setSelectedStatut}
+              onStatutChange={handleStatutChange}
             />
           </div>
         </CardHeader>
@@ -120,3 +139,4 @@ const PrestationTracking = () => {
 };
 
 export default PrestationTracking;
+
