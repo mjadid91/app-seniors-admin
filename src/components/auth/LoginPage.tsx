@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,17 +13,16 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
+  
   const { setUser, setAuthenticated } = useAuthStore();
   const { signIn, user, isAuthenticated } = useSupabaseAuth();
-  const navigate = useNavigate();
 
   // Rediriger vers le dashboard si l'utilisateur est déjà connecté
   useEffect(() => {
     if (isAuthenticated && user) {
-      navigate("/", { replace: true });
+      console.log('Utilisateur déjà connecté, redirection automatique vers le dashboard');
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,13 +39,16 @@ const LoginPage = () => {
     try {
       console.log('Tentative de connexion avec:', { email: email.trim() });
       const result = await signIn(email.trim(), password);
-
+      
       if (result.success) {
-        // La redirection sera prise en compte par le useEffect ci-dessus
+        console.log("Connexion réussie - redirection vers le dashboard");
+        // La redirection sera gérée par useSupabaseAuth et Index.tsx
       } else {
+        console.error("Échec de la connexion:", result.error);
         setError(result.error || "Erreur de connexion");
       }
     } catch (err) {
+      console.error("Erreur lors de la connexion:", err);
       setError("Une erreur est survenue lors de la connexion");
     } finally {
       setIsLoading(false);
@@ -57,7 +58,7 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
       <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))]" />
-
+      
       <div className="w-full max-w-md mx-auto relative z-10">
         <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader className="text-center pb-2">
@@ -69,7 +70,7 @@ const LoginPage = () => {
               Connexion à l'interface d'administration
             </CardDescription>
           </CardHeader>
-
+          
           <CardContent className="space-y-4">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -85,7 +86,7 @@ const LoginPage = () => {
                   disabled={isLoading}
                 />
               </div>
-
+              
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-slate-700 font-medium">Mot de passe</Label>
                 <Input
@@ -107,8 +108,8 @@ const LoginPage = () => {
                 </div>
               )}
 
-              <Button
-                type="submit"
+              <Button 
+                type="submit" 
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200 hover:shadow-xl"
                 disabled={isLoading}
               >

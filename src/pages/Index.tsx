@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import LoginPage from "../components/auth/LoginPage";
 import DashboardLayout from "../components/layout/DashboardLayout";
 import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
@@ -10,21 +9,22 @@ const Index = () => {
   const { user, isAuthenticated, loading } = useSupabaseAuth();
   const { setUser, setAuthenticated } = useAuthStore();
   const [isInitializing, setIsInitializing] = useState(true);
-  const navigate = useNavigate();
 
   // Synchroniser l'état d'authentification avec le store global
   useEffect(() => {
     if (!loading) {
+      console.log('Synchronisation de l\'état d\'authentification:', { user, isAuthenticated });
       setUser(user);
       setAuthenticated(isAuthenticated);
       setIsInitializing(false);
-
-      // REDIRECTION VERS LA PAGE DE CONNEXION si on perd la session
-      if (!isAuthenticated || !user) {
-        navigate("/auth", { replace: true });
+      
+      if (isAuthenticated && user) {
+        console.log('Utilisateur connecté - affichage du dashboard');
+      } else {
+        console.log('Utilisateur non connecté - affichage de la page de connexion');
       }
     }
-  }, [user, isAuthenticated, loading, setUser, setAuthenticated, navigate]);
+  }, [user, isAuthenticated, loading, setUser, setAuthenticated]);
 
   if (loading || isInitializing) {
     return (
@@ -38,9 +38,11 @@ const Index = () => {
   }
 
   if (!isAuthenticated || !user) {
+    console.log('Affichage de la page de connexion');
     return <LoginPage />;
   }
 
+  console.log('Affichage du dashboard pour l\'utilisateur:', user);
   return <DashboardLayout />;
 };
 
