@@ -2,11 +2,12 @@
 import { User } from "../../stores/authStore";
 import { UserStats } from "./userTypes";
 
+// Désormais, tous les comptes sont considérés comme "actifs", aucun comme "inactif"
 export const calculateUserStats = (users: User[]): UserStats => {
   return {
     total: users.length,
-    active: users.length - 1,
-    inactive: 1,
+    active: users.length,
+    inactive: 0,
     admins: users.filter(u => u.role === 'administrateur').length
   };
 };
@@ -32,8 +33,8 @@ export const updateStatsAfterUserDeleted = (prevStats: UserStats, deletedUser: U
 export const updateStatsAfterRoleChange = (users: User[]): UserStats => {
   return {
     total: users.length,
-    active: users.length - 1,
-    inactive: 1,
+    active: users.length,
+    inactive: 0,
     admins: users.filter(u => u.role === 'administrateur').length
   };
 };
