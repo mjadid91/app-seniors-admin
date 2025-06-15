@@ -1,60 +1,58 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eye, UserPlus, MessageCircle, Clock, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import SupportTicketModal from "./SupportTicketModal";
+import { useSupabaseSupportTickets, SupportTicketDB } from "@/hooks/useSupabaseSupportTickets";
 
+// Type local pour usage UI et mapping
 interface Ticket {
   id: string;
   sujet: string;
   utilisateur: string;
   dateCreation: string;
-  statut: 'a_traiter' | 'en_cours' | 'resolu';
-  priorite: 'basse' | 'normale' | 'haute';
+  statut: "a_traiter" | "en_cours" | "resolu";
+  priorite: "basse" | "normale" | "haute";
   assigneA?: string;
+  // Extension :
+  message?: string | null;
+  utilisateur_email?: string | null;
 }
 
-const mockTickets: Ticket[] = [
-  {
-    id: 'T001',
-    sujet: 'Problème de connexion',
-    utilisateur: 'Marie Dupont',
-    dateCreation: '2024-06-10',
-    statut: 'a_traiter',
-    priorite: 'haute'
-  },
-  {
-    id: 'T002',
-    sujet: 'Question sur les prestations',
-    utilisateur: 'Pierre Martin',
-    dateCreation: '2024-06-09',
-    statut: 'en_cours',
-    priorite: 'normale',
-    assigneA: 'Admin Support'
-  },
-  {
-    id: 'T003',
-    sujet: 'Demande de remboursement',
-    utilisateur: 'Sophie Bernard',
-    dateCreation: '2024-06-08',
-    statut: 'resolu',
-    priorite: 'basse',
-    assigneA: 'Admin Finance'
-  }
-];
-
 const Support = () => {
-  const [tickets, setTickets] = useState<Ticket[]>(mockTickets);
+  // Appel aux données réelles
+  const { data: ticketsDB = [], isLoading, error } = useSupabaseSupportTickets();
   const [selectedStatut, setSelectedStatut] = useState<string>("tous");
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const { toast } = useToast();
 
-  const filteredTickets = tickets.filter(ticket => 
-    selectedStatut === "tous" || ticket.statut === selectedStatut
+  // Mapping : vue → modèle local Ticket
+  const mappedTickets: Ticket[] = useMemo(() => ticketsDB.map(t => ({
+    id: t.id,
+    sujet: t.sujet ?? "—",
+    utilisateur:
+      ((t.utilisateur_prenom ?? "") + " " + (t.utilisateur_nom ?? "")).trim() || "—",
+    dateCreation: t.date_creation ?? "",
+    statut: t.statut,
+    priorite: t.priorite,
+    assigneA:
+      t.assigne_prenom && t.assigne_nom
+        ? `${t.assigne_prenom} ${t.assigne_nom}`
+        : undefined,
+    message: t.message,
+    utilisateur_email: t.utilisateur_email,
+  })), [ticketsDB]);
+
+  const tickets = mappedTickets;
+
+  const filteredTickets = useMemo(() =>
+    tickets.filter(ticket =>
+      selectedStatut === "tous" || ticket.statut === selectedStatut
+    ), [tickets, selectedStatut]
   );
 
   const getStatutBadgeColor = (statut: string) => {
@@ -94,19 +92,31 @@ const Support = () => {
     console.log("Voir ticket:", ticket);
   };
 
+  // Pour l’instant, on garde la logique d’assignation mock côté UI
   const handleAssignerTicket = (ticket: Ticket) => {
-    const updatedTickets = tickets.map(t => 
-      t.id === ticket.id 
-        ? { ...t, statut: 'en_cours' as const, assigneA: 'Admin Support' }
-        : t
-    );
-    setTickets(updatedTickets);
-    
     toast({
-      title: "Ticket assigné",
-      description: `Le ticket ${ticket.id} a été assigné à Admin Support`,
+      title: "Ticket assigné (mock)",
+      description: `Le ticket ${ticket.id} serait assigné (fonction à implémenter).`,
     });
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-24 animate-pulse">
+        <span className="text-slate-600">
+          Chargement des tickets depuis la base...
+        </span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 bg-red-100 border border-red-200 rounded-xl text-red-700">
+        Erreur lors du chargement des tickets : {error.message}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -221,7 +231,9 @@ const Support = () => {
                     </td>
                     <td className="py-4 px-4 text-slate-600">{ticket.utilisateur}</td>
                     <td className="py-4 px-4 text-slate-600">
-                      {new Date(ticket.dateCreation).toLocaleDateString('fr-FR')}
+                      {ticket.dateCreation
+                        ? new Date(ticket.dateCreation).toLocaleDateString('fr-FR')
+                        : "—"}
                     </td>
                     <td className="py-4 px-4">
                       <Badge className={getPrioriteBadgeColor(ticket.priorite)}>

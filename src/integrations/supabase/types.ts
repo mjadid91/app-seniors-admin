@@ -2138,6 +2138,13 @@ export type Database = {
             foreignKeyName: "PrestationSupport_IDTicketClient_fkey"
             columns: ["IDTicketClient"]
             isOneToOne: false
+            referencedRelation: "support_dashboard_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "PrestationSupport_IDTicketClient_fkey"
+            columns: ["IDTicketClient"]
+            isOneToOne: false
             referencedRelation: "SupportClient"
             referencedColumns: ["IDTicketClient"]
           },
@@ -2979,6 +2986,41 @@ export type Database = {
           type_prestation: string | null
         }
         Relationships: []
+      }
+      support_dashboard_view: {
+        Row: {
+          assigne_email: string | null
+          assigne_nom: string | null
+          assigne_prenom: string | null
+          date_creation: string | null
+          id: number | null
+          id_intervenant: number | null
+          id_prestation_support: number | null
+          id_utilisateur: number | null
+          message: string | null
+          priorite: string | null
+          statut: string | null
+          sujet: string | null
+          utilisateur_email: string | null
+          utilisateur_nom: string | null
+          utilisateur_prenom: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "PrestationSupport_IDIntervenant_fkey"
+            columns: ["id_intervenant"]
+            isOneToOne: false
+            referencedRelation: "Utilisateurs"
+            referencedColumns: ["IDUtilisateurs"]
+          },
+          {
+            foreignKeyName: "SupportClient_IDUtilisateursClient_fkey"
+            columns: ["id_utilisateur"]
+            isOneToOne: false
+            referencedRelation: "Utilisateurs"
+            referencedColumns: ["IDUtilisateurs"]
+          },
+        ]
       }
     }
     Functions: {
