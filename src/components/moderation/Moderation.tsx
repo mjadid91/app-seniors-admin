@@ -2,14 +2,37 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ForumPost, GroupMessage } from './types';
-import { mockForumPosts, mockGroupMessages } from './mockData';
 import ModerationStats from './ModerationStats';
 import ForumPostsTable from './ForumPostsTable';
 import GroupMessagesTable from './GroupMessagesTable';
+// Import the new hooks
+import { useForumPosts } from './useForumPosts';
+import { useGroupMessages } from './useGroupMessages';
 
 const Moderation = () => {
-  const [forumPosts, setForumPosts] = useState<ForumPost[]>(mockForumPosts);
-  const [groupMessages, setGroupMessages] = useState<GroupMessage[]>(mockGroupMessages);
+  // Load forum posts from DB
+  const {
+    data: forumPosts = [],
+    isLoading: forumLoading,
+    error: forumError,
+  } = useForumPosts();
+
+  // Load group messages from DB
+  const {
+    data: groupMessages = [],
+    isLoading: groupsLoading,
+    error: groupsError,
+  } = useGroupMessages();
+
+  // State for updating in memory the status changes locally after moderation
+  const [localForumPosts, setLocalForumPosts] = useState<ForumPost[]>([]);
+  const [localGroupMessages, setLocalGroupMessages] = useState<GroupMessage[]>([]);
+
+  // Derive final lists to display (local edits have priority)
+  const displayedForumPosts =
+    localForumPosts.length > 0 ? localForumPosts : forumPosts;
+  const displayedGroupMessages =
+    localGroupMessages.length > 0 ? localGroupMessages : groupMessages;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -29,17 +52,29 @@ const Moderation = () => {
         </TabsList>
 
         <TabsContent value="forums">
-          <ForumPostsTable 
-            forumPosts={forumPosts} 
-            setForumPosts={setForumPosts} 
-          />
+          {forumLoading ? (
+            <div className="p-4 text-center text-slate-500">Chargement des sujets…</div>
+          ) : forumError ? (
+            <div className="p-4 text-center text-red-500">Erreur de chargement</div>
+          ) : (
+            <ForumPostsTable 
+              forumPosts={displayedForumPosts} 
+              setForumPosts={setLocalForumPosts} 
+            />
+          )}
         </TabsContent>
 
         <TabsContent value="groupes">
-          <GroupMessagesTable 
-            groupMessages={groupMessages} 
-            setGroupMessages={setGroupMessages} 
-          />
+          {groupsLoading ? (
+            <div className="p-4 text-center text-slate-500">Chargement des messages…</div>
+          ) : groupsError ? (
+            <div className="p-4 text-center text-red-500">Erreur de chargement</div>
+          ) : (
+            <GroupMessagesTable 
+              groupMessages={displayedGroupMessages} 
+              setGroupMessages={setLocalGroupMessages} 
+            />
+          )}
         </TabsContent>
       </Tabs>
     </div>
