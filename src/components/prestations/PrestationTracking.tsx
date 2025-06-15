@@ -9,34 +9,27 @@ import PrestationTable from "./PrestationTable";
 import PrestationDetailsModal from "./PrestationDetailsModal";
 import { useSupabasePrestations, PrestationDB } from "../../hooks/useSupabasePrestations";
 
-// Define the UI shape expected by your table and cards
-type Prestation = {
-  id: string;
-  seniorNom: string;
-  aidantNom: string;
-  typePrestation: string;
-  dateCreation: string;
-  tarif: number;
-  statut: string;
-  evaluation?: number;
-  [key: string]: any; // allow any extra properties (ex: for details modal)
-};
+// Import the Prestation type for consistency
+import type { Prestation as PrestationTableType } from "./PrestationTable";
+
+// Use the same type everywhere in this component
+type Prestation = PrestationTableType;
 
 const mapPrestationDBToUI = (db: PrestationDB): Prestation => ({
   id: db.IDPrestation?.toString() ?? "",
   seniorNom: "N/A", // No senior info in current `Prestation` table
   aidantNom: "N/A",  // No aidant info in current `Prestation` table
   typePrestation: db.Titre ?? "Sans titre",
-  dateCreation: "", // There's no date in current DB; could supplement if property is available
+  dateCreation: "", // No date in current DB
   tarif: typeof db.TarifIndicatif === "number" ? db.TarifIndicatif : 0,
-  statut: "non_renseigné", // fallback since not present
+  statut: "en_attente", // fallback to a legal value for the UI props
   evaluation: undefined,
   ...db // copy all DB fields (useful for modal/details)
 });
 
 const PrestationTracking = () => {
   const { data: prestations = [], isLoading, error } = useSupabasePrestations();
-  const [selectedStatut, setSelectedStatut] = useState<string>("tous");
+  const [selectedStatut, setSelectedStatut] = useState<Prestation["statut"] | "tous">("tous");
   const [selectedPrestation, setSelectedPrestation] = useState<Prestation | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const { toast } = useToast();
@@ -44,7 +37,7 @@ const PrestationTracking = () => {
   // Map DB data to UI data (ensures compatibility)
   const mappedPrestations: Prestation[] = prestations.map(mapPrestationDBToUI);
 
-  // Statut filtering: as DB doesn't have .statut yet, only "tous" will show ALL, the rest will yield empty until feature is available
+  // Statut filtering
   const filteredPrestations =
     selectedStatut === "tous"
       ? mappedPrestations
