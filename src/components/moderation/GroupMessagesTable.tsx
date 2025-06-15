@@ -13,6 +13,9 @@ interface GroupMessagesTableProps {
   setGroupMessages: React.Dispatch<React.SetStateAction<GroupMessage[]>>;
 }
 
+const allowedStatuts = ['visible', 'masque', 'supprime'] as const;
+type GroupMessageStatut = typeof allowedStatuts[number];
+
 const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTableProps) => {
   const { toast } = useToast();
   const [selectedMessage, setSelectedMessage] = useState<GroupMessage | null>(null);
@@ -28,10 +31,18 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
     console.log("Voir message:", message);
   };
 
+  const handleStatutChange = (messageId: string, statut: string) => {
+    if ((allowedStatuts as readonly string[]).includes(statut)) {
+      setGroupMessages(prev =>
+        prev.map(m =>
+          m.id === messageId ? { ...m, statut: statut as GroupMessageStatut } : m
+        )
+      );
+    }
+  };
+
   const handleMasquerMessage = (message: GroupMessage) => {
-    setGroupMessages(prev => prev.map(m => 
-      m.id === message.id ? { ...m, statut: 'masque' as const } : m
-    ));
+    handleStatutChange(message.id, 'masque');
     toast({
       title: "Message masqué",
       description: `Le message de ${message.auteur} a été masqué`,

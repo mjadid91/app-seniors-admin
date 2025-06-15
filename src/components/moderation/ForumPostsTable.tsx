@@ -13,6 +13,9 @@ interface ForumPostsTableProps {
   setForumPosts: React.Dispatch<React.SetStateAction<ForumPost[]>>;
 }
 
+const allowedStatuts = ['visible', 'masque', 'archive'] as const;
+type ForumPostStatut = typeof allowedStatuts[number];
+
 const ForumPostsTable = ({ forumPosts, setForumPosts }: ForumPostsTableProps) => {
   const { toast } = useToast();
   const [selectedPost, setSelectedPost] = useState<ForumPost | null>(null);
@@ -28,10 +31,18 @@ const ForumPostsTable = ({ forumPosts, setForumPosts }: ForumPostsTableProps) =>
     console.log("Voir sujet:", post);
   };
 
+  const handleStatutChange = (postId: string, statut: string) => {
+    if ((allowedStatuts as readonly string[]).includes(statut)) {
+      setForumPosts(prev =>
+        prev.map(p =>
+          p.id === postId ? { ...p, statut: statut as ForumPostStatut } : p
+        )
+      );
+    }
+  };
+
   const handleMasquerPost = (post: ForumPost) => {
-    setForumPosts(prev => prev.map(p => 
-      p.id === post.id ? { ...p, statut: 'masque' as const } : p
-    ));
+    handleStatutChange(post.id, 'masque');
     toast({
       title: "Sujet masqué",
       description: `Le sujet "${post.titre}" a été masqué`,
@@ -39,9 +50,7 @@ const ForumPostsTable = ({ forumPosts, setForumPosts }: ForumPostsTableProps) =>
   };
 
   const handleArchiverPost = (post: ForumPost) => {
-    setForumPosts(prev => prev.map(p => 
-      p.id === post.id ? { ...p, statut: 'archive' as const } : p
-    ));
+    handleStatutChange(post.id, 'archive');
     toast({
       title: "Sujet archivé",
       description: `Le sujet "${post.titre}" a été archivé`,
