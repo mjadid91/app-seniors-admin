@@ -13,9 +13,16 @@ const Index = () => {
   // Synchroniser l'état d'authentification avec le store global
   useEffect(() => {
     if (!loading) {
+      console.log('Synchronisation de l\'état d\'authentification:', { user, isAuthenticated });
       setUser(user);
       setAuthenticated(isAuthenticated);
       setIsInitializing(false);
+      
+      if (isAuthenticated && user) {
+        console.log('Utilisateur connecté - affichage du dashboard');
+      } else {
+        console.log('Utilisateur non connecté - affichage de la page de connexion');
+      }
     }
   }, [user, isAuthenticated, loading, setUser, setAuthenticated]);
 
@@ -31,9 +38,11 @@ const Index = () => {
   }
 
   if (!isAuthenticated || !user) {
+    console.log('Affichage de la page de connexion');
     return <LoginPage />;
   }
 
+  console.log('Affichage du dashboard pour l\'utilisateur:', user);
   return <DashboardLayout />;
 };
 

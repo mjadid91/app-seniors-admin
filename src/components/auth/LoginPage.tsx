@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,14 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   const { setUser, setAuthenticated } = useAuthStore();
-  const { signIn } = useSupabaseAuth();
+  const { signIn, user, isAuthenticated } = useSupabaseAuth();
+
+  // Rediriger vers le dashboard si l'utilisateur est déjà connecté
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log('Utilisateur déjà connecté, redirection automatique vers le dashboard');
+    }
+  }, [isAuthenticated, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,8 +41,8 @@ const LoginPage = () => {
       const result = await signIn(email.trim(), password);
       
       if (result.success) {
-        console.log("Connexion réussie");
-        // L'authentification sera gérée par useSupabaseAuth
+        console.log("Connexion réussie - redirection vers le dashboard");
+        // La redirection sera gérée par useSupabaseAuth et Index.tsx
       } else {
         console.error("Échec de la connexion:", result.error);
         setError(result.error || "Erreur de connexion");

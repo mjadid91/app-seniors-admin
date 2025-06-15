@@ -82,30 +82,35 @@ export const useSupabaseAuth = () => {
   };
 
   const signOut = () => {
+    console.log('Déconnexion de l\'utilisateur...');
     setUser(null);
     setIsAuthenticated(false);
     // Nettoyer le localStorage
     localStorage.removeItem('appseniors-auth');
+    console.log('Session fermée et localStorage nettoyé');
   };
 
-  // Initialisation
+  // Initialisation - vérifier s'il y a une session sauvegardée
   useEffect(() => {
-    // Vérifier s'il y a un utilisateur en session (localStorage)
-    const savedUser = localStorage.getItem('appseniors-auth');
-    if (savedUser) {
+    const initializeAuth = () => {
       try {
-        const parsedData = JSON.parse(savedUser);
-        if (parsedData.state?.user && parsedData.state?.isAuthenticated) {
-          setUser(parsedData.state.user);
-          setIsAuthenticated(true);
+        const savedUser = localStorage.getItem('appseniors-auth');
+        if (savedUser) {
+          const parsedData = JSON.parse(savedUser);
+          if (parsedData.state?.user && parsedData.state?.isAuthenticated) {
+            console.log('Session trouvée dans localStorage:', parsedData.state.user);
+            setUser(parsedData.state.user);
+            setIsAuthenticated(true);
+          }
         }
       } catch (error) {
         console.error('Erreur lors de la lecture de la session sauvegardée:', error);
-        // Nettoyer le localStorage en cas d'erreur
         localStorage.removeItem('appseniors-auth');
       }
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   // Sauvegarder l'état d'authentification
@@ -118,7 +123,14 @@ export const useSupabaseAuth = () => {
           token: isAuthenticated ? 'mock-token' : null
         }
       };
-      localStorage.setItem('appseniors-auth', JSON.stringify(authData));
+      
+      if (isAuthenticated && user) {
+        localStorage.setItem('appseniors-auth', JSON.stringify(authData));
+        console.log('Session sauvegardée dans localStorage');
+      } else if (!isAuthenticated) {
+        localStorage.removeItem('appseniors-auth');
+        console.log('Session supprimée du localStorage');
+      }
     }
   }, [user, isAuthenticated, loading]);
 
