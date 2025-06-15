@@ -2,13 +2,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-// Structure d'une prestation minimale adaptée à l'affichage du tableau
+// Structure adaptée à la vue "prestations_dashboard_view"
 export interface PrestationDB {
-  IDPrestation: number;
-  Titre: string;
-  TarifIndicatif: number;
-  Description: string;
-  IDDomaine: number | null;
+  id: string;
+  type_prestation: string;
+  date_creation: string;
+  tarif: number;
+  statut: "en_attente" | "en_cours" | "terminee" | "refusee" | "annulee";
+  IDSeniors: number | null;
+  senior_nom: string;
+  IDAidant: number | null;
+  aidant_nom: string;
+  evaluation?: number | null;
+  evaluation_commentaire?: string | null;
 }
 
 export const useSupabasePrestations = () => {
@@ -16,7 +22,7 @@ export const useSupabasePrestations = () => {
     queryKey: ["prestations"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("Prestation")
+        .from("prestations_dashboard_view")
         .select("*");
       if (error) throw new Error(error.message);
       return data as PrestationDB[];

@@ -45,6 +45,13 @@ export type Database = {
             foreignKeyName: "ActiviteRemuneree_IDSeniors_fkey"
             columns: ["IDSeniors"]
             isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
+          },
+          {
+            foreignKeyName: "ActiviteRemuneree_IDSeniors_fkey"
+            columns: ["IDSeniors"]
+            isOneToOne: false
             referencedRelation: "Seniors"
             referencedColumns: ["IDSeniors"]
           },
@@ -113,6 +120,13 @@ export type Database = {
             foreignKeyName: "Agenda_IDSeniors_fkey"
             columns: ["IDSeniors"]
             isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
+          },
+          {
+            foreignKeyName: "Agenda_IDSeniors_fkey"
+            columns: ["IDSeniors"]
+            isOneToOne: false
             referencedRelation: "Seniors"
             referencedColumns: ["IDSeniors"]
           },
@@ -169,6 +183,13 @@ export type Database = {
             referencedColumns: ["IDAidant"]
           },
           {
+            foreignKeyName: "Aidant_Competences_IDAidant_fkey"
+            columns: ["IDAidant"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDAidant"]
+          },
+          {
             foreignKeyName: "Aidant_Competences_IDCompetences_fkey"
             columns: ["IDCompetences"]
             isOneToOne: false
@@ -207,6 +228,13 @@ export type Database = {
             foreignKeyName: "AssuranceDeces_IDSeniors_fkey"
             columns: ["IDSeniors"]
             isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
+          },
+          {
+            foreignKeyName: "AssuranceDeces_IDSeniors_fkey"
+            columns: ["IDSeniors"]
+            isOneToOne: false
             referencedRelation: "Seniors"
             referencedColumns: ["IDSeniors"]
           },
@@ -241,6 +269,13 @@ export type Database = {
           TypeBesoin?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "BesoinSenior_IDSeniors_fkey"
+            columns: ["IDSeniors"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
+          },
           {
             foreignKeyName: "BesoinSenior_IDSeniors_fkey"
             columns: ["IDSeniors"]
@@ -369,6 +404,13 @@ export type Database = {
             foreignKeyName: "CagnotteDeces_IDSeniors_fkey"
             columns: ["IDSeniors"]
             isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
+          },
+          {
+            foreignKeyName: "CagnotteDeces_IDSeniors_fkey"
+            columns: ["IDSeniors"]
+            isOneToOne: false
             referencedRelation: "Seniors"
             referencedColumns: ["IDSeniors"]
           },
@@ -405,6 +447,13 @@ export type Database = {
             columns: ["IDAidant"]
             isOneToOne: false
             referencedRelation: "Aidant"
+            referencedColumns: ["IDAidant"]
+          },
+          {
+            foreignKeyName: "CandidatureAidant_IDAidant_fkey"
+            columns: ["IDAidant"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
             referencedColumns: ["IDAidant"]
           },
           {
@@ -588,6 +637,13 @@ export type Database = {
             foreignKeyName: "ContactUrgence_IDSeniors_fkey"
             columns: ["IDSeniors"]
             isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
+          },
+          {
+            foreignKeyName: "ContactUrgence_IDSeniors_fkey"
+            columns: ["IDSeniors"]
+            isOneToOne: false
             referencedRelation: "Seniors"
             referencedColumns: ["IDSeniors"]
           },
@@ -630,6 +686,13 @@ export type Database = {
             columns: ["IDAidant"]
             isOneToOne: false
             referencedRelation: "Aidant"
+            referencedColumns: ["IDAidant"]
+          },
+          {
+            foreignKeyName: "ContratCohabitation_IDAidant_fkey"
+            columns: ["IDAidant"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
             referencedColumns: ["IDAidant"]
           },
           {
@@ -719,6 +782,13 @@ export type Database = {
             foreignKeyName: "DirectivesAnticipees_IDSeniors_fkey"
             columns: ["IDSeniors"]
             isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
+          },
+          {
+            foreignKeyName: "DirectivesAnticipees_IDSeniors_fkey"
+            columns: ["IDSeniors"]
+            isOneToOne: false
             referencedRelation: "Seniors"
             referencedColumns: ["IDSeniors"]
           },
@@ -785,6 +855,13 @@ export type Database = {
           URLDocument?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "DocumentPatrimonial_IDSeniors_fkey"
+            columns: ["IDSeniors"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
+          },
           {
             foreignKeyName: "DocumentPatrimonial_IDSeniors_fkey"
             columns: ["IDSeniors"]
@@ -1231,6 +1308,13 @@ export type Database = {
             foreignKeyName: "Humeur_IDSeniors_fkey"
             columns: ["IDSeniors"]
             isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
+          },
+          {
+            foreignKeyName: "Humeur_IDSeniors_fkey"
+            columns: ["IDSeniors"]
+            isOneToOne: false
             referencedRelation: "Seniors"
             referencedColumns: ["IDSeniors"]
           },
@@ -1373,6 +1457,13 @@ export type Database = {
             foreignKeyName: "LogementSenior_IDSeniors_fkey"
             columns: ["IDSeniors"]
             isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
+          },
+          {
+            foreignKeyName: "LogementSenior_IDSeniors_fkey"
+            columns: ["IDSeniors"]
+            isOneToOne: false
             referencedRelation: "Seniors"
             referencedColumns: ["IDSeniors"]
           },
@@ -1413,6 +1504,13 @@ export type Database = {
           RappelActif?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "Medicament_IDSeniors_fkey"
+            columns: ["IDSeniors"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
+          },
           {
             foreignKeyName: "Medicament_IDSeniors_fkey"
             columns: ["IDSeniors"]
@@ -1513,6 +1611,13 @@ export type Database = {
             referencedColumns: ["IDAidant"]
           },
           {
+            foreignKeyName: "MiseEnRelation_IDAidant_fkey"
+            columns: ["IDAidant"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDAidant"]
+          },
+          {
             foreignKeyName: "MiseEnRelation_IDMoyenPaiement_fkey"
             columns: ["IDMoyenPaiement"]
             isOneToOne: false
@@ -1525,6 +1630,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "Partenaire"
             referencedColumns: ["IDPartenaire"]
+          },
+          {
+            foreignKeyName: "MiseEnRelation_IDSeniors_fkey"
+            columns: ["IDSeniors"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
           },
           {
             foreignKeyName: "MiseEnRelation_IDSeniors_fkey"
@@ -1703,6 +1815,13 @@ export type Database = {
           TypeOffre?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "OffreSenior_IDSeniors_fkey"
+            columns: ["IDSeniors"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
+          },
           {
             foreignKeyName: "OffreSenior_IDSeniors_fkey"
             columns: ["IDSeniors"]
@@ -1976,6 +2095,13 @@ export type Database = {
             referencedColumns: ["IDAidant"]
           },
           {
+            foreignKeyName: "PrestationAidant_IDAidant_fkey"
+            columns: ["IDAidant"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDAidant"]
+          },
+          {
             foreignKeyName: "PrestationAidant_IDBesoinSenior_fkey"
             columns: ["IDBesoinSenior"]
             isOneToOne: false
@@ -2049,6 +2175,13 @@ export type Database = {
           TypeProduit?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "Produit_IDSeniorsVendeur_fkey"
+            columns: ["IDSeniorsVendeur"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
+          },
           {
             foreignKeyName: "Produit_IDSeniorsVendeur_fkey"
             columns: ["IDSeniorsVendeur"]
@@ -2131,6 +2264,13 @@ export type Database = {
             foreignKeyName: "RapportMensuel_IDSeniors_fkey"
             columns: ["IDSeniors"]
             isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
+          },
+          {
+            foreignKeyName: "RapportMensuel_IDSeniors_fkey"
+            columns: ["IDSeniors"]
+            isOneToOne: false
             referencedRelation: "Seniors"
             referencedColumns: ["IDSeniors"]
           },
@@ -2171,6 +2311,13 @@ export type Database = {
           TypeRDV?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "RendezVousMedical_IDSeniors_fkey"
+            columns: ["IDSeniors"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
+          },
           {
             foreignKeyName: "RendezVousMedical_IDSeniors_fkey"
             columns: ["IDSeniors"]
@@ -2321,6 +2468,13 @@ export type Database = {
             foreignKeyName: "Seniors_TypeMaladie_IDSeniors_fkey"
             columns: ["IDSeniors"]
             isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
+          },
+          {
+            foreignKeyName: "Seniors_TypeMaladie_IDSeniors_fkey"
+            columns: ["IDSeniors"]
+            isOneToOne: false
             referencedRelation: "Seniors"
             referencedColumns: ["IDSeniors"]
           },
@@ -2456,6 +2610,13 @@ export type Database = {
           Titre?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "Souvenir_IDSeniors_fkey"
+            columns: ["IDSeniors"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDSeniors"]
+          },
           {
             foreignKeyName: "Souvenir_IDSeniors_fkey"
             columns: ["IDSeniors"]
@@ -2803,7 +2964,22 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      prestations_dashboard_view: {
+        Row: {
+          aidant_nom: string | null
+          date_creation: string | null
+          evaluation: number | null
+          evaluation_commentaire: string | null
+          id: string | null
+          IDAidant: number | null
+          IDSeniors: number | null
+          senior_nom: string | null
+          statut: string | null
+          tarif: number | null
+          type_prestation: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

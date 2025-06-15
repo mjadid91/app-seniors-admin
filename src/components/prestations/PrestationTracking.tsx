@@ -16,15 +16,16 @@ import type { Prestation as PrestationTableType } from "./PrestationTable";
 type Prestation = PrestationTableType;
 
 const mapPrestationDBToUI = (db: PrestationDB): Prestation => ({
-  id: db.IDPrestation?.toString() ?? "",
-  seniorNom: "N/A", // No senior info in current `Prestation` table
-  aidantNom: "N/A",  // No aidant info in current `Prestation` table
-  typePrestation: db.Titre ?? "Sans titre",
-  dateCreation: "", // No date in current DB
-  tarif: typeof db.TarifIndicatif === "number" ? db.TarifIndicatif : 0,
-  statut: "en_attente", // fallback to a legal value for the UI props
-  evaluation: undefined,
-  ...db // copy all DB fields (useful for modal/details)
+  id: db.id ?? "",
+  seniorNom: db.senior_nom ?? "N/A",
+  aidantNom: db.aidant_nom ?? "N/A",
+  typePrestation: db.type_prestation ?? "Sans titre",
+  dateCreation: db.date_creation ?? "",
+  tarif: typeof db.tarif === "number" ? db.tarif : 0,
+  statut: db.statut ?? "en_attente",
+  evaluation: db.evaluation ? Number(db.evaluation) : undefined,
+  // Tous les autres champs utiles issus de la vue : IDSeniors, IDAidant, commentaire, etc
+  ...db
 });
 
 const PrestationTracking = () => {
@@ -139,4 +140,3 @@ const PrestationTracking = () => {
 };
 
 export default PrestationTracking;
-
