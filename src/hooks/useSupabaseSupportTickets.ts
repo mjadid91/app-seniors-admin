@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 // Structure adaptée à la vue support_dashboard_view
 export interface SupportTicketDB {
-  id: string;
+  id: number; // Changed from string to number
   sujet: string;
   message: string | null;
   date_creation: string | null;
