@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,23 +14,22 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
   const { setUser, setAuthenticated } = useAuthStore();
   const { signIn, user, isAuthenticated } = useSupabaseAuth();
+  const navigate = useNavigate();
 
   // Rediriger vers le dashboard si l'utilisateur est déjà connecté
   useEffect(() => {
     if (isAuthenticated && user) {
-      console.log('Utilisateur déjà connecté, redirection automatique vers le dashboard');
+      navigate("/", { replace: true });
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
-    // Validation basique
     if (!email.trim() || !password) {
       setError("Veuillez saisir votre email et mot de passe");
       setIsLoading(false);
@@ -37,18 +37,15 @@ const LoginPage = () => {
     }
 
     try {
-      console.log('Tentative de connexion avec:', { email: email.trim() });
       const result = await signIn(email.trim(), password);
-      
+
       if (result.success) {
-        console.log("Connexion réussie - redirection vers le dashboard");
-        // La redirection sera gérée par useSupabaseAuth et Index.tsx
+        // Redirige immédiatement sur succès
+        navigate("/", { replace: true });
       } else {
-        console.error("Échec de la connexion:", result.error);
         setError(result.error || "Erreur de connexion");
       }
     } catch (err) {
-      console.error("Erreur lors de la connexion:", err);
       setError("Une erreur est survenue lors de la connexion");
     } finally {
       setIsLoading(false);
@@ -58,7 +55,6 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
       <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))]" />
-      
       <div className="w-full max-w-md mx-auto relative z-10">
         <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader className="text-center pb-2">
@@ -70,7 +66,6 @@ const LoginPage = () => {
               Connexion à l'interface d'administration
             </CardDescription>
           </CardHeader>
-          
           <CardContent className="space-y-4">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -86,7 +81,6 @@ const LoginPage = () => {
                   disabled={isLoading}
                 />
               </div>
-              
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-slate-700 font-medium">Mot de passe</Label>
                 <Input
@@ -100,16 +94,14 @@ const LoginPage = () => {
                   disabled={isLoading}
                 />
               </div>
-
               {error && (
                 <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm animate-fade-in">
                   <AlertCircle className="h-4 w-4 flex-shrink-0" />
                   {error}
                 </div>
               )}
-
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200 hover:shadow-xl"
                 disabled={isLoading}
               >
@@ -123,7 +115,6 @@ const LoginPage = () => {
                 )}
               </Button>
             </form>
-
             <div className="mt-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-xs text-blue-800 font-medium mb-2">Informations importantes :</p>
               <div className="text-xs text-blue-700 space-y-1">

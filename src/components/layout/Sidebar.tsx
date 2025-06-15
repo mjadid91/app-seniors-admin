@@ -1,12 +1,13 @@
+
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "../../stores/authStore";
 import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
 import { usePermissions } from "../../hooks/usePermissions";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Calendar, 
-  Shield, 
+import {
+  LayoutDashboard,
+  Users,
+  Calendar,
+  Shield,
   Headphones,
   LogOut,
   FileText,
@@ -14,6 +15,7 @@ import {
   ShieldCheck,
   DollarSign
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface SidebarProps {
   activeTab: string;
@@ -36,6 +38,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
   const { user } = useAuthStore();
   const { signOut } = useSupabaseAuth();
   const { canAccessPage } = usePermissions();
+  const navigate = useNavigate();
 
   const handleTabChange = (tabId: string) => {
     if (canAccessPage(tabId)) {
@@ -44,15 +47,15 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
   };
 
   const handleLogout = () => {
-    console.log('Déconnexion en cours...');
     signOut();
+    navigate("/"); // Redirige vers la page de connexion
   };
 
   const getItemStyle = (itemId: string) => {
     if (!canAccessPage(itemId)) {
       return "text-slate-400 cursor-not-allowed opacity-50";
     }
-    
+
     return activeTab === itemId
       ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-sm"
       : "text-slate-600 hover:bg-slate-50 hover:text-slate-800 cursor-pointer";
@@ -71,12 +74,11 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
           </div>
         </div>
       </div>
-
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isAccessible = canAccessPage(item.id);
-          
+
           return (
             <button
               key={item.id}
@@ -98,7 +100,6 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
           );
         })}
       </nav>
-
       <div className="p-4 border-t border-slate-200">
         <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg mb-3">
           <div className="w-8 h-8 bg-gradient-to-br from-slate-400 to-slate-500 rounded-full flex items-center justify-center">
@@ -122,7 +123,6 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
             </div>
           </div>
         </div>
-        
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
