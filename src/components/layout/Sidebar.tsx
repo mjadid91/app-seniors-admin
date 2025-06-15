@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "../../stores/authStore";
+import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
 import { usePermissions } from "../../hooks/usePermissions";
 import { 
   LayoutDashboard, 
@@ -32,13 +33,19 @@ const menuItems = [
 ];
 
 const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
+  const { signOut } = useSupabaseAuth();
   const { canAccessPage } = usePermissions();
 
   const handleTabChange = (tabId: string) => {
     if (canAccessPage(tabId)) {
       setActiveTab(tabId);
     }
+  };
+
+  const handleLogout = () => {
+    console.log('Déconnexion en cours...');
+    signOut();
   };
 
   const getItemStyle = (itemId: string) => {
@@ -117,7 +124,7 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
         </div>
         
         <button
-          onClick={logout}
+          onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
         >
           <LogOut className="h-4 w-4" />
