@@ -22,9 +22,9 @@ export function useFinancesTransactions() {
       setLoading(true);
       setError(null);
 
-      // On suppose que la vue expose les bonnes colonnes, à ajuster si ce n'est pas le cas.
+      // Use the correct lowercase view name matching Supabase's generated types
       const { data, error } = await supabase
-        .from("V_FinancesTransactions")
+        .from("v_financestransactions")
         .select("*")
         .order("date", { ascending: false });
 
@@ -33,9 +33,11 @@ export function useFinancesTransactions() {
         setLoading(false);
         return;
       }
+      // Add a console log for debugging field names
+      console.log("Fetched v_financestransactions:", data);
       setTransactions(
         (data || []).map((t: any) => ({
-          id: t.id ?? t.ID ?? t.IDTransaction ?? Math.random(), // fallback si différent
+          id: t.id ?? t.ID ?? t.IDTransaction ?? Math.random(),
           type: t.type || t.TypeCommande || "-",
           utilisateur: t.utilisateur || t.Utilisateur || t.prenom_utilisateur || "-",
           montant: t.montant ?? t.Montant ?? t.montant_total ?? 0,
