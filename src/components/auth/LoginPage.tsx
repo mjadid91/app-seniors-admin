@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,14 +15,8 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { setUser, setAuthenticated } = useAuthStore();
   const { signIn, user, isAuthenticated } = useSupabaseAuth();
-  const navigate = useNavigate();
 
-  // Rediriger vers le dashboard si l'utilisateur est déjà connecté
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      navigate("/", { replace: true });
-    }
-  }, [isAuthenticated, user, navigate]);
+  // On laisse la page d'accueil gérer la redirection automatiquement
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,12 +32,10 @@ const LoginPage = () => {
     try {
       const result = await signIn(email.trim(), password);
 
-      if (result.success) {
-        // Redirige immédiatement sur succès
-        navigate("/", { replace: true });
-      } else {
+      if (!result.success) {
         setError(result.error || "Erreur de connexion");
       }
+      // NE PLUS NAVIGUER DIRECTEMENT. On laisse la logique d'état globale s'occuper du changement de page
     } catch (err) {
       setError("Une erreur est survenue lors de la connexion");
     } finally {
