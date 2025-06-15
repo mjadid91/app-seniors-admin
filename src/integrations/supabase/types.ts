@@ -416,6 +416,21 @@ export type Database = {
           },
         ]
       }
+      CategorieDocument: {
+        Row: {
+          IDCategorieDocument: number
+          NomCategorie: string
+        }
+        Insert: {
+          IDCategorieDocument?: number
+          NomCategorie: string
+        }
+        Update: {
+          IDCategorieDocument?: number
+          NomCategorie?: string
+        }
+        Relationships: []
+      }
       CategorieOrganisme: {
         Row: {
           IDCategorieOrganisme: number
@@ -706,6 +721,47 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "Seniors"
             referencedColumns: ["IDSeniors"]
+          },
+        ]
+      }
+      Document: {
+        Row: {
+          DateUpload: string
+          IDCategorieDocument: number | null
+          IDDocument: number
+          Statut: string
+          TailleFichier: number | null
+          Titre: string
+          TypeFichier: string
+          URLFichier: string
+        }
+        Insert: {
+          DateUpload?: string
+          IDCategorieDocument?: number | null
+          IDDocument?: number
+          Statut?: string
+          TailleFichier?: number | null
+          Titre: string
+          TypeFichier: string
+          URLFichier: string
+        }
+        Update: {
+          DateUpload?: string
+          IDCategorieDocument?: number | null
+          IDDocument?: number
+          Statut?: string
+          TailleFichier?: number | null
+          Titre?: string
+          TypeFichier?: string
+          URLFichier?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Document_IDCategorieDocument_fkey"
+            columns: ["IDCategorieDocument"]
+            isOneToOne: false
+            referencedRelation: "CategorieDocument"
+            referencedColumns: ["IDCategorieDocument"]
           },
         ]
       }
@@ -1752,6 +1808,36 @@ export type Database = {
           },
         ]
       }
+      Partenaire_Services: {
+        Row: {
+          IDPartenaire: number | null
+          IDServicePartenaire: number | null
+        }
+        Insert: {
+          IDPartenaire?: number | null
+          IDServicePartenaire?: number | null
+        }
+        Update: {
+          IDPartenaire?: number | null
+          IDServicePartenaire?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Partenaire_Services_IDPartenaire_fkey"
+            columns: ["IDPartenaire"]
+            isOneToOne: false
+            referencedRelation: "Partenaire"
+            referencedColumns: ["IDPartenaire"]
+          },
+          {
+            foreignKeyName: "Partenaire_Services_IDServicePartenaire_fkey"
+            columns: ["IDServicePartenaire"]
+            isOneToOne: false
+            referencedRelation: "ServicePartenaire"
+            referencedColumns: ["IDServicePartenaire"]
+          },
+        ]
+      }
       Pieces: {
         Row: {
           DateCreation: string
@@ -2247,6 +2333,21 @@ export type Database = {
           },
         ]
       }
+      ServicePartenaire: {
+        Row: {
+          IDServicePartenaire: number
+          NomService: string
+        }
+        Insert: {
+          IDServicePartenaire?: number
+          NomService: string
+        }
+        Update: {
+          IDServicePartenaire?: number
+          NomService?: string
+        }
+        Relationships: []
+      }
       ServicePostMortem: {
         Row: {
           DateService: string
@@ -2282,6 +2383,47 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "CagnotteDeces"
             referencedColumns: ["IDCagnotteDeces"]
+          },
+        ]
+      }
+      SignalementContenu: {
+        Row: {
+          ActionModeration: string | null
+          DateSignalement: string
+          IDContenu: number
+          IDSignalement: number
+          IDUtilisateurSignaleur: number
+          Motif: string
+          Traité: boolean | null
+          TypeContenu: string
+        }
+        Insert: {
+          ActionModeration?: string | null
+          DateSignalement?: string
+          IDContenu: number
+          IDSignalement?: number
+          IDUtilisateurSignaleur: number
+          Motif: string
+          Traité?: boolean | null
+          TypeContenu: string
+        }
+        Update: {
+          ActionModeration?: string | null
+          DateSignalement?: string
+          IDContenu?: number
+          IDSignalement?: number
+          IDUtilisateurSignaleur?: number
+          Motif?: string
+          Traité?: boolean | null
+          TypeContenu?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "SignalementContenu_IDUtilisateurSignaleur_fkey"
+            columns: ["IDUtilisateurSignaleur"]
+            isOneToOne: false
+            referencedRelation: "Utilisateurs"
+            referencedColumns: ["IDUtilisateurs"]
           },
         ]
       }

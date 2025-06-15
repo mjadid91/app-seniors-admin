@@ -37,6 +37,7 @@ export const useUserCrud = (
 
       console.log('Données envoyées à Supabase:', supabaseUserData);
 
+      // 1. Insertion dans Utilisateurs
       const { data, error: insertError } = await supabase
         .from('Utilisateurs')
         .insert([supabaseUserData])
@@ -50,6 +51,40 @@ export const useUserCrud = (
 
       console.log('Utilisateur créé avec succès:', data);
       const newUser = convertSupabaseUserToAppUser(data, getRoleFromCategory);
+
+      // 2. Récupérer l'IDUtilisateurs
+      const userId = data?.IDUtilisateurs;
+      if (!userId) {
+        throw new Error('IDUtilisateurs introuvable après création');
+      }
+
+      // 3. Insertion dans Langue_Utilisateurs
+      if (userData.languePreferee) {
+        // Trouver l'IDLangue correspondant (par défaut on met: 1 = fr, 2 = en, 3 = es, 4 = de, 5 = it)
+        const langueMap: Record<string, number> = { fr: 1, en: 2, es: 3, de: 4, it: 5 };
+        const idLangue = langueMap[userData.languePreferee] || 1;
+        await supabase
+          .from('Langue_Utilisateurs')
+          .insert([{
+            IDUtilisateurs: userId,
+            IDLangue: idLangue,
+            NiveauLangue: 3 // niveau par défaut (moyen)
+          }]);
+      }
+
+      // 4. Insertion dans Devise_Utilisateurs
+      if (userData.devise) {
+        // Trouver l'IDDevise correspondant (par défaut : 1 = EUR, 2 = USD, 3 = GBP, 4 = CHF, 5 = CAD)
+        const deviseMap: Record<string, number> = { EUR: 1, USD: 2, GBP: 3, CHF: 4, CAD: 5 };
+        const idDevise = deviseMap[userData.devise] || 1;
+        await supabase
+          .from('Devise_Utilisateurs')
+          .insert([{
+            IDUtilisateurs: userId,
+            IDDevise: idDevise
+          }]);
+      }
+
       setUsers([...users, newUser]);
       return newUser;
     } catch (err) {
@@ -119,3 +154,4 @@ export const useUserCrud = (
     deleteUser
   };
 };
+
