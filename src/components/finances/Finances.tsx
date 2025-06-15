@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { DollarSign, TrendingUp, TrendingDown, CreditCard, PieChart, BarChart3, Download, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,75 +7,21 @@ import { useFinancesTransactions } from "./useFinancesTransactions";
 const Finances = () => {
   const [selectedPeriod, setSelectedPeriod] = useState("month");
 
-  const financialData = {
-    revenue: {
-      current: 45620,
-      previous: 42150,
-      change: 8.2
-    },
-    expenses: {
-      current: 28940,
-      previous: 31200,
-      change: -7.2
-    },
-    profit: {
-      current: 16680,
-      previous: 10950,
-      change: 52.3
-    },
-    transactions: 1247
-  };
-
-  const recentTransactions = [
-    {
-      id: 1,
-      type: "Paiement prestation",
-      user: "Marie Dubois",
-      amount: 85.50,
-      date: "2024-01-15",
-      status: "Complété",
-      commission: 8.55
-    },
-    {
-      id: 2,
-      type: "Abonnement premium",
-      user: "Jean Martin",
-      amount: 29.99,
-      date: "2024-01-15",
-      status: "Complété",
-      commission: 29.99
-    },
-    {
-      id: 3,
-      type: "Paiement prestation",
-      user: "Sophie Laurent",
-      amount: 120.00,
-      date: "2024-01-14",
-      status: "En attente",
-      commission: 12.00
-    },
-    {
-      id: 4,
-      type: "Remboursement",
-      user: "Pierre Durand",
-      amount: -65.00,
-      date: "2024-01-14",
-      status: "Traité",
-      commission: -6.50
-    }
-  ];
-
-  const monthlyData = [
-    { month: "Jan", revenue: 42150, expenses: 31200 },
-    { month: "Fév", revenue: 38920, expenses: 29800 },
-    { month: "Mar", revenue: 45620, expenses: 28940 },
-    { month: "Avr", revenue: 48200, expenses: 32100 },
-    { month: "Mai", revenue: 52300, expenses: 30500 },
-    { month: "Jun", revenue: 49800, expenses: 31200 }
-  ];
-
   // hook pour les transactions dynamiques
   const { transactions, loading, error } = useFinancesTransactions();
+
+  // Calculs des sommes dynamiques sur la période si possible
+  const revenus = transactions.reduce(
+    (sum, t) => t.montant > 0 ? sum + t.montant : sum, 0
+  );
+  const depenses = transactions.reduce(
+    (sum, t) => t.montant < 0 ? sum + Math.abs(t.montant) : sum, 0
+  );
+  const profit = revenus - depenses;
+  const nbTransactions = transactions.length;
+
+  // Pour la partie "Evolution mensuelle", on mocke l'affichage vide pour l'instant
+  // ou préparez une séparation par mois si voulu plus tard
 
   return (
     <div className="space-y-6">
@@ -104,13 +51,11 @@ const Finances = () => {
             <div>
               <p className="text-slate-600 text-sm">Revenus</p>
               <p className="text-2xl font-bold text-slate-800">
-                €{financialData.revenue.current.toLocaleString()}
+                {loading ? "..." : "€" + revenus.toLocaleString()}
               </p>
               <div className="flex items-center gap-1 mt-2">
                 <TrendingUp className="h-4 w-4 text-green-600" />
-                <span className="text-green-600 text-sm font-medium">
-                  +{financialData.revenue.change}%
-                </span>
+                {/* % d'évolution : calcul dynamique à venir */}
               </div>
             </div>
             <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -118,19 +63,15 @@ const Finances = () => {
             </div>
           </div>
         </div>
-
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-slate-600 text-sm">Dépenses</p>
               <p className="text-2xl font-bold text-slate-800">
-                €{financialData.expenses.current.toLocaleString()}
+                {loading ? "..." : "€" + depenses.toLocaleString()}
               </p>
               <div className="flex items-center gap-1 mt-2">
-                <TrendingDown className="h-4 w-4 text-green-600" />
-                <span className="text-green-600 text-sm font-medium">
-                  {financialData.expenses.change}%
-                </span>
+                <TrendingDown className="h-4 w-4 text-red-600" />
               </div>
             </div>
             <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
@@ -138,19 +79,15 @@ const Finances = () => {
             </div>
           </div>
         </div>
-
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-slate-600 text-sm">Bénéfices</p>
               <p className="text-2xl font-bold text-slate-800">
-                €{financialData.profit.current.toLocaleString()}
+                {loading ? "..." : "€" + profit.toLocaleString()}
               </p>
               <div className="flex items-center gap-1 mt-2">
                 <TrendingUp className="h-4 w-4 text-blue-600" />
-                <span className="text-blue-600 text-sm font-medium">
-                  +{financialData.profit.change}%
-                </span>
               </div>
             </div>
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -158,19 +95,15 @@ const Finances = () => {
             </div>
           </div>
         </div>
-
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-slate-600 text-sm">Transactions</p>
               <p className="text-2xl font-bold text-slate-800">
-                {financialData.transactions}
+                {loading ? "..." : nbTransactions}
               </p>
               <div className="flex items-center gap-1 mt-2">
                 <CreditCard className="h-4 w-4 text-purple-600" />
-                <span className="text-purple-600 text-sm font-medium">
-                  Ce mois
-                </span>
               </div>
             </div>
             <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -181,64 +114,24 @@ const Finances = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Evolution mensuelle */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-slate-800">Évolution mensuelle</h3>
             <BarChart3 className="h-5 w-5 text-blue-600" />
           </div>
-          <div className="space-y-4">
-            {monthlyData.slice(-6).map((data, index) => (
-              <div key={data.month} className="flex items-center justify-between">
-                <span className="text-slate-600 font-medium">{data.month}</span>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span className="text-sm text-slate-600">€{data.revenue.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                    <span className="text-sm text-slate-600">€{data.expenses.toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="space-y-4 text-slate-400 text-center py-8">
+            <span>Indisponible pour l’instant</span>
           </div>
         </div>
-
+        {/* Répartition des revenus */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-slate-800">Répartition des revenus</h3>
             <PieChart className="h-5 w-5 text-blue-600" />
           </div>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-blue-500 rounded"></div>
-                <span className="text-slate-600">Commissions prestations</span>
-              </div>
-              <span className="font-semibold">65%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-green-500 rounded"></div>
-                <span className="text-slate-600">Abonnements premium</span>
-              </div>
-              <span className="font-semibold">25%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-purple-500 rounded"></div>
-                <span className="text-slate-600">Services additionnels</span>
-              </div>
-              <span className="font-semibold">8%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-                <span className="text-slate-600">Partenariats</span>
-              </div>
-              <span className="font-semibold">2%</span>
-            </div>
+          <div className="space-y-4 text-slate-400 text-center py-8">
+            <span>Indisponible pour l’instant</span>
           </div>
         </div>
       </div>
@@ -330,3 +223,4 @@ const Finances = () => {
 };
 
 export default Finances;
+
