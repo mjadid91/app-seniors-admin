@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuthStore } from "../../stores/authStore";
+import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
 import { AlertCircle } from "lucide-react";
 
 const LoginPage = () => {
@@ -12,7 +13,9 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuthStore();
+  
+  const { setUser, setAuthenticated } = useAuthStore();
+  const { signIn } = useSupabaseAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,12 +23,17 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const success = await login(email, password);
-      if (!success) {
-        setError("Identifiants invalides ou accès non autorisé");
+      const result = await signIn(email, password);
+      
+      if (result.success) {
+        // L'authentification sera gérée par useSupabaseAuth
+        console.log("Connexion réussie");
+      } else {
+        setError(result.error || "Erreur de connexion");
       }
     } catch (err) {
       setError("Une erreur est survenue lors de la connexion");
+      console.error("Erreur de connexion:", err);
     } finally {
       setIsLoading(false);
     }
@@ -36,7 +44,6 @@ const LoginPage = () => {
       <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))]" />
       
       <div className="w-full max-w-md mx-auto relative z-10">
-        {/* Formulaire de connexion */}
         <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader className="text-center pb-2">
             <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg">
@@ -99,12 +106,11 @@ const LoginPage = () => {
               </Button>
             </form>
 
-            {/* Informations de connexion */}
             <div className="mt-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-xs text-blue-800 font-medium mb-2">Informations de test :</p>
               <div className="text-xs text-blue-700 space-y-1">
-                <div><strong>Emails :</strong> admin@appseniors.fr, support@appseniors.fr, moderateur@appseniors.fr, viewer@appseniors.fr</div>
-                <div><strong>Mot de passe :</strong> demo123</div>
+                <div><strong>Utilisez l'email et mot de passe</strong> de l'utilisateur que vous avez créé dans la base de données</div>
+                <div>L'utilisateur doit avoir une catégorie d'utilisateur valide (1-7)</div>
               </div>
             </div>
           </CardContent>

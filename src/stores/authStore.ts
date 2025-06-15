@@ -19,67 +19,9 @@ interface AuthState {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   checkAuth: () => Promise<void>;
+  setUser: (user: User | null) => void;
+  setAuthenticated: (authenticated: boolean) => void;
 }
-
-// Mock users for demonstration avec différents rôles
-const mockUsers: User[] = [
-  {
-    id: '1',
-    nom: 'Dubois',
-    prenom: 'Marie',
-    email: 'admin@appseniors.fr',
-    role: 'administrateur',
-    dateInscription: '2024-01-15'
-  },
-  {
-    id: '2',
-    nom: 'Martin',
-    prenom: 'Pierre',
-    email: 'support@appseniors.fr',
-    role: 'support',
-    dateInscription: '2024-02-10'
-  },
-  {
-    id: '3',
-    nom: 'Durand',
-    prenom: 'Sophie',
-    email: 'moderateur@appseniors.fr',
-    role: 'moderateur',
-    dateInscription: '2024-03-05'
-  },
-  {
-    id: '4',
-    nom: 'Leclerc',
-    prenom: 'Jean',
-    email: 'viewer@appseniors.fr',
-    role: 'visualisateur',
-    dateInscription: '2024-03-20'
-  },
-  {
-    id: '5',
-    nom: 'Bernard',
-    prenom: 'Alice',
-    email: 'admin2@appseniors.fr',
-    role: 'administrateur',
-    dateInscription: '2024-01-20'
-  },
-  {
-    id: '6',
-    nom: 'Rousseau',
-    prenom: 'Marc',
-    email: 'support2@appseniors.fr',
-    role: 'support',
-    dateInscription: '2024-02-15'
-  },
-  {
-    id: '7',
-    nom: 'Leroy',
-    prenom: 'Emma',
-    email: 'moderateur2@appseniors.fr',
-    role: 'moderateur',
-    dateInscription: '2024-03-10'
-  }
-];
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -89,18 +31,7 @@ export const useAuthStore = create<AuthState>()(
       token: null,
 
       login: async (email: string, password: string) => {
-        // Mock authentication - replace with real API call
-        const user = mockUsers.find(u => u.email === email);
-        
-        if (user && password === 'demo123') {
-          const token = 'mock-jwt-token';
-          set({ 
-            user, 
-            isAuthenticated: true, 
-            token 
-          });
-          return true;
-        }
+        // Cette fonction sera maintenant gérée par useSupabaseAuth
         return false;
       },
 
@@ -118,8 +49,15 @@ export const useAuthStore = create<AuthState>()(
           set({ isAuthenticated: false, user: null });
           return;
         }
-        // In real app, verify token with backend
-        // For now, keep existing state
+        // En mode réel, on vérifierait le token avec le backend
+      },
+
+      setUser: (user: User | null) => {
+        set({ user });
+      },
+
+      setAuthenticated: (authenticated: boolean) => {
+        set({ isAuthenticated: authenticated });
       }
     }),
     {

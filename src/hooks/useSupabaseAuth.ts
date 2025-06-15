@@ -1,0 +1,116 @@
+
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { User as AppUser } from '../stores/authStore';
+import { useUserCategories } from './useUserCategories';
+
+export const useSupabaseAuth = () => {
+  const [user, setUser] = useState<AppUser | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { getRoleFromCategory, loading: categoriesLoading } = useUserCategories();
+
+  const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      setLoading(true);
+      
+      console.log('Tentative de connexion pour:', email);
+      
+      // Attendre que les catégories soient chargées
+      if (categoriesLoading || !getRoleFromCategory) {
+        return { success: false, error: 'Chargement des catégories en cours...' };
+      }
+      
+      // Vérifier si l'utilisateur existe dans notre table Utilisateurs
+      const { data: userData, error: userError } = await supabase
+        .from('Utilisateurs')
+        .select('*')
+        .eq('Email', email)
+        .single();
+
+      console.log('Résultat de la requête utilisateur:', { userData, userError });
+
+      if (userError || !userData) {
+        console.error('Utilisateur non trouvé:', userError);
+        return { success: false, error: 'Utilisateur non trouvé dans la base de données' };
+      }
+
+      // Vérifier le mot de passe
+      if (userData.MotDePasse !== password) {
+        console.error('Mot de passe incorrect');
+        return { success: false, error: 'Mot de passe incorrect' };
+      }
+
+      // Créer l'utilisateur de l'application
+      const role = getRoleFromCategory(userData.IDCatUtilisateurs);
+      console.log('Rôle attribué:', role, 'pour la catégorie:', userData.IDCatUtilisateurs);
+
+      const appUser: AppUser = {
+        id: userData.IDUtilisateurs.toString(),
+        nom: userData.Nom,
+        prenom: userData.Prenom,
+        email: userData.Email,
+        role: role,
+        dateInscription: userData.DateInscription,
+        photo: userData.Photo
+      };
+
+      console.log('Utilisateur créé:', appUser);
+
+      setUser(appUser);
+      setIsAuthenticated(true);
+
+      return { success: true };
+    } catch (error) {
+      console.error('Erreur lors de la connexion:', error);
+      return { success: false, error: 'Erreur lors de la connexion' };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signOut = () => {
+    setUser(null);
+    setIsAuthenticated(false);
+  };
+
+  // Initialisation
+  useEffect(() => {
+    // Vérifier s'il y a un utilisateur en session (localStorage)
+    const savedUser = localStorage.getItem('appseniors-auth');
+    if (savedUser) {
+      try {
+        const parsedData = JSON.parse(savedUser);
+        if (parsedData.state?.user && parsedData.state?.isAuthenticated) {
+          setUser(parsedData.state.user);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error('Erreur lors de la lecture de la session sauvegardée:', error);
+      }
+    }
+    setLoading(false);
+  }, []);
+
+  // Sauvegarder l'état d'authentification
+  useEffect(() => {
+    if (!loading) {
+      const authData = {
+        state: {
+          user,
+          isAuthenticated,
+          token: isAuthenticated ? 'mock-token' : null
+        }
+      };
+      localStorage.setItem('appseniors-auth', JSON.stringify(authData));
+    }
+  }, [user, isAuthenticated, loading]);
+
+  return {
+    user,
+    isAuthenticated,
+    loading: loading || categoriesLoading,
+    signIn,
+    signOut
+  };
+};

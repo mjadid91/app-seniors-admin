@@ -2,24 +2,30 @@
 import { useState, useEffect } from "react";
 import LoginPage from "../components/auth/LoginPage";
 import DashboardLayout from "../components/layout/DashboardLayout";
+import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import { useAuthStore } from "../stores/authStore";
 
 const Index = () => {
-  const { isAuthenticated, user, checkAuth } = useAuthStore();
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isAuthenticated, loading } = useSupabaseAuth();
+  const { setUser, setAuthenticated } = useAuthStore();
+  const [isInitializing, setIsInitializing] = useState(true);
 
+  // Synchroniser l'état d'authentification avec le store global
   useEffect(() => {
-    const initAuth = async () => {
-      await checkAuth();
-      setIsLoading(false);
-    };
-    initAuth();
-  }, [checkAuth]);
+    if (!loading) {
+      setUser(user);
+      setAuthenticated(isAuthenticated);
+      setIsInitializing(false);
+    }
+  }, [user, isAuthenticated, loading, setUser, setAuthenticated]);
 
-  if (isLoading) {
+  if (loading || isInitializing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Chargement de l'application...</p>
+        </div>
       </div>
     );
   }
