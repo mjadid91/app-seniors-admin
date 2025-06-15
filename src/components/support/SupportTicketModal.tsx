@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -148,14 +147,14 @@ const SupportTicketModal = ({ isOpen, onClose, ticket, onTicketUpdated }: Suppor
             
             <TabsContent value="reply" className="space-y-4">
               <TicketReplyForm 
-                ticketId={ticket.id}
+                ticketId={String(ticket.id)}
                 onReplySubmitted={handleReplySubmitted}
               />
             </TabsContent>
             
             <TabsContent value="assign" className="space-y-4">
               <TicketAssignmentForm
-                ticketId={ticket.id}
+                ticketId={String(ticket.id)}
                 currentAssignee={ticket.assigneA}
                 onAssignmentChanged={handleAssignmentChanged}
               />
