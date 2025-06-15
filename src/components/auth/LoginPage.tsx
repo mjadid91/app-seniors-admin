@@ -22,18 +22,27 @@ const LoginPage = () => {
     setError("");
     setIsLoading(true);
 
+    // Validation basique
+    if (!email.trim() || !password) {
+      setError("Veuillez saisir votre email et mot de passe");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const result = await signIn(email, password);
+      console.log('Tentative de connexion avec:', { email: email.trim() });
+      const result = await signIn(email.trim(), password);
       
       if (result.success) {
-        // L'authentification sera gérée par useSupabaseAuth
         console.log("Connexion réussie");
+        // L'authentification sera gérée par useSupabaseAuth
       } else {
+        console.error("Échec de la connexion:", result.error);
         setError(result.error || "Erreur de connexion");
       }
     } catch (err) {
+      console.error("Erreur lors de la connexion:", err);
       setError("Une erreur est survenue lors de la connexion");
-      console.error("Erreur de connexion:", err);
     } finally {
       setIsLoading(false);
     }
@@ -67,6 +76,7 @@ const LoginPage = () => {
                   placeholder="admin@appseniors.fr"
                   required
                   className="border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                  disabled={isLoading}
                 />
               </div>
               
@@ -80,6 +90,7 @@ const LoginPage = () => {
                   placeholder="••••••••"
                   required
                   className="border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                  disabled={isLoading}
                 />
               </div>
 
@@ -107,10 +118,11 @@ const LoginPage = () => {
             </form>
 
             <div className="mt-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-xs text-blue-800 font-medium mb-2">Informations de test :</p>
+              <p className="text-xs text-blue-800 font-medium mb-2">Informations importantes :</p>
               <div className="text-xs text-blue-700 space-y-1">
-                <div><strong>Utilisez l'email et mot de passe</strong> de l'utilisateur que vous avez créé dans la base de données</div>
-                <div>L'utilisateur doit avoir une catégorie d'utilisateur valide (1-7)</div>
+                <div><strong>Seuls les administrateurs, modérateurs et support</strong> peuvent se connecter</div>
+                <div>Utilisez l'email et mot de passe exacts de votre compte</div>
+                <div>Catégories autorisées : 5, 6, 7, 8</div>
               </div>
             </div>
           </CardContent>

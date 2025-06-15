@@ -54,7 +54,6 @@ export const useUserCategories = () => {
 
       console.log('All transformed categories:', transformedCategories);
       
-      // Ne pas filtrer ici - garder toutes les catégories pour les conversions
       setCategories(transformedCategories);
     } catch (err) {
       console.error('Erreur lors de la récupération des catégories:', err);
@@ -95,15 +94,33 @@ export const useUserCategories = () => {
 
   // Fonction pour déterminer le rôle basé sur les flags d'une catégorie
   const getRoleFromCategory = useCallback((categoryId: number): 'administrateur' | 'moderateur' | 'support' | 'visualisateur' => {
+    console.log('getRoleFromCategory appelée avec categoryId:', categoryId);
+    console.log('Categories disponibles:', categories);
+    
     const category = categories.find(cat => cat.IDCatUtilisateurs === categoryId);
     if (!category) {
       console.warn('Category not found for ID:', categoryId, 'Available categories:', categories);
       return 'visualisateur';
     }
 
-    if (category.EstAdministrateur) return 'administrateur';
-    if (category.EstModerateur) return 'moderateur';
-    if (category.EstSupport) return 'support';
+    console.log('Category trouvée:', category);
+
+    // Logique pour les catégories 5, 6, 7, 8
+    if (category.EstAdministrateur) {
+      console.log('Rôle: administrateur');
+      return 'administrateur';
+    }
+    if (category.EstModerateur) {
+      console.log('Rôle: moderateur');
+      return 'moderateur';
+    }
+    if (category.EstSupport) {
+      console.log('Rôle: support');
+      return 'support';
+    }
+    
+    // Pour toute autre catégorie autorisée (5, 6, 7, 8), attribuer visualisateur par défaut
+    console.log('Rôle par défaut: visualisateur');
     return 'visualisateur';
   }, [categories]);
 

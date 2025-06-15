@@ -25,20 +25,32 @@ export const useSupabaseAuth = () => {
       const { data: userData, error: userError } = await supabase
         .from('Utilisateurs')
         .select('*')
-        .eq('Email', email)
+        .eq('Email', email.trim().toLowerCase())
         .single();
 
       console.log('Résultat de la requête utilisateur:', { userData, userError });
 
-      if (userError || !userData) {
-        console.error('Utilisateur non trouvé:', userError);
+      if (userError) {
+        console.error('Erreur lors de la requête:', userError);
         return { success: false, error: 'Utilisateur non trouvé dans la base de données' };
       }
 
-      // Vérifier le mot de passe
+      if (!userData) {
+        console.error('Aucun utilisateur trouvé pour cet email');
+        return { success: false, error: 'Utilisateur non trouvé dans la base de données' };
+      }
+
+      // Vérifier que l'utilisateur a une catégorie autorisée (5, 6, 7, 8)
+      const allowedCategories = [5, 6, 7, 8];
+      if (!allowedCategories.includes(userData.IDCatUtilisateurs)) {
+        console.error('Catégorie d\'utilisateur non autorisée:', userData.IDCatUtilisateurs);
+        return { success: false, error: 'Vous n\'êtes pas autorisé à accéder à cette application' };
+      }
+
+      // Vérifier le mot de passe (comparaison exacte)
       if (userData.MotDePasse !== password) {
         console.error('Mot de passe incorrect');
-        return { success: false, error: 'Mot de passe incorrect' };
+        return { success: false, error: 'Email ou mot de passe incorrect' };
       }
 
       // Créer l'utilisateur de l'application
@@ -47,15 +59,15 @@ export const useSupabaseAuth = () => {
 
       const appUser: AppUser = {
         id: userData.IDUtilisateurs.toString(),
-        nom: userData.Nom,
-        prenom: userData.Prenom,
+        nom: userData.Nom || '',
+        prenom: userData.Prenom || '',
         email: userData.Email,
         role: role,
-        dateInscription: userData.DateInscription,
-        photo: userData.Photo
+        dateInscription: userData.DateInscription || new Date().toISOString(),
+        photo: userData.Photo || undefined
       };
 
-      console.log('Utilisateur créé:', appUser);
+      console.log('Utilisateur créé avec succès:', appUser);
 
       setUser(appUser);
       setIsAuthenticated(true);
@@ -72,6 +84,8 @@ export const useSupabaseAuth = () => {
   const signOut = () => {
     setUser(null);
     setIsAuthenticated(false);
+    // Nettoyer le localStorage
+    localStorage.removeItem('appseniors-auth');
   };
 
   // Initialisation
@@ -87,6 +101,8 @@ export const useSupabaseAuth = () => {
         }
       } catch (error) {
         console.error('Erreur lors de la lecture de la session sauvegardée:', error);
+        // Nettoyer le localStorage en cas d'erreur
+        localStorage.removeItem('appseniors-auth');
       }
     }
     setLoading(false);
