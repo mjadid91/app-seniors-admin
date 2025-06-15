@@ -10,7 +10,7 @@ import { useSupabaseSupportTickets, SupportTicketDB } from "@/hooks/useSupabaseS
 
 // Type local pour usage UI et mapping
 interface Ticket {
-  id: string;
+  id: number; // Changed from string to number
   sujet: string;
   utilisateur: string;
   dateCreation: string;
