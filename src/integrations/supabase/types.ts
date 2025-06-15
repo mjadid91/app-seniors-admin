@@ -2062,6 +2062,7 @@ export type Database = {
       }
       Prestation: {
         Row: {
+          DateCreation: string | null
           Description: string
           IDDomaine: number | null
           IDPrestation: number
@@ -2069,6 +2070,7 @@ export type Database = {
           Titre: string
         }
         Insert: {
+          DateCreation?: string | null
           Description: string
           IDDomaine?: number | null
           IDPrestation?: number
@@ -2076,6 +2078,7 @@ export type Database = {
           Titre: string
         }
         Update: {
+          DateCreation?: string | null
           Description?: string
           IDDomaine?: number | null
           IDPrestation?: number
@@ -3109,6 +3112,16 @@ export type Database = {
             referencedColumns: ["IDUtilisateurs"]
           },
         ]
+      }
+      v_activitesrecentes: {
+        Row: {
+          datetime: string | null
+          id: number | null
+          subtitle: string | null
+          title: string | null
+          type: string | null
+        }
+        Relationships: []
       }
       v_financestransactions: {
         Row: {
