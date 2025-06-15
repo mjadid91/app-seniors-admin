@@ -1,7 +1,7 @@
-
 import { useState } from "react";
 import { DollarSign, TrendingUp, TrendingDown, CreditCard, PieChart, BarChart3, Download, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useFinancesTransactions } from "./useFinancesTransactions";
 
 const Finances = () => {
   const [selectedPeriod, setSelectedPeriod] = useState("month");
@@ -72,6 +72,9 @@ const Finances = () => {
     { month: "Mai", revenue: 52300, expenses: 30500 },
     { month: "Jun", revenue: 49800, expenses: 31200 }
   ];
+
+  // hook pour les transactions dynamiques
+  const { transactions, loading, error } = useFinancesTransactions();
 
   return (
     <div className="space-y-6">
@@ -261,41 +264,59 @@ const Finances = () => {
               </tr>
             </thead>
             <tbody>
-              {recentTransactions.map((transaction) => (
+              {loading && (
+                <tr>
+                  <td colSpan={6} className="py-6 text-center text-blue-500 font-medium">
+                    Chargement des transactions...
+                  </td>
+                </tr>
+              )}
+              {error && !loading && (
+                <tr>
+                  <td colSpan={6} className="py-6 text-center text-red-600 font-medium">
+                    {error}
+                  </td>
+                </tr>
+              )}
+              {!loading && !error && transactions.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="py-6 text-center text-slate-500">
+                    Aucune transaction trouvée.
+                  </td>
+                </tr>
+              )}
+              {!loading && !error && transactions.map((transaction) => (
                 <tr key={transaction.id} className="border-b border-slate-100 hover:bg-slate-50">
                   <td className="py-4 px-4">
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4 text-blue-600" />
-                      <span className="font-medium text-slate-800">{transaction.type}</span>
-                    </div>
+                    {transaction.type}
                   </td>
-                  <td className="py-4 px-4 text-slate-600">{transaction.user}</td>
                   <td className="py-4 px-4">
-                    <span className={`font-semibold ${
-                      transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      €{Math.abs(transaction.amount).toFixed(2)}
+                    {transaction.utilisateur}
+                  </td>
+                  <td className="py-4 px-4">
+                    <span className={`font-semibold ${transaction.montant > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      €{Math.abs(transaction.montant).toFixed(2)}
                     </span>
                   </td>
                   <td className="py-4 px-4">
-                    <span className={`font-medium ${
-                      transaction.commission > 0 ? 'text-green-600' : 'text-red-600'
-                    }`}>
+                    <span className={`font-medium ${transaction.commission > 0 ? 'text-green-600' : 'text-red-600'}`}>
                       €{Math.abs(transaction.commission).toFixed(2)}
                     </span>
                   </td>
                   <td className="py-4 px-4 text-slate-600">
-                    {new Date(transaction.date).toLocaleDateString('fr-FR')}
+                    {transaction.date
+                      ? new Date(transaction.date).toLocaleDateString('fr-FR')
+                      : ""}
                   </td>
                   <td className="py-4 px-4">
                     <span className={`px-2 py-1 rounded-full text-xs ${
-                      transaction.status === 'Complété' 
+                      transaction.statut === 'Complété'
                         ? 'bg-green-100 text-green-700'
-                        : transaction.status === 'En attente'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-blue-100 text-blue-700'
+                        : transaction.statut === 'En attente'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-blue-100 text-blue-700'
                     }`}>
-                      {transaction.status}
+                      {transaction.statut}
                     </span>
                   </td>
                 </tr>

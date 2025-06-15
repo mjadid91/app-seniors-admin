@@ -336,18 +336,21 @@ export type Database = {
         Row: {
           DateUtilisation: string
           IDBonPlan: number | null
+          IDCommande: number | null
           IDUtilisateurs: number | null
           StatutUtilisation: string
         }
         Insert: {
           DateUtilisation: string
           IDBonPlan?: number | null
+          IDCommande?: number | null
           IDUtilisateurs?: number | null
           StatutUtilisation: string
         }
         Update: {
           DateUtilisation?: string
           IDBonPlan?: number | null
+          IDCommande?: number | null
           IDUtilisateurs?: number | null
           StatutUtilisation?: string
         }
@@ -358,6 +361,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "BonPlan"
             referencedColumns: ["IDBonPlan"]
+          },
+          {
+            foreignKeyName: "bonplan_utilisateurs_idcommande_fkey"
+            columns: ["IDCommande"]
+            isOneToOne: false
+            referencedRelation: "Commande"
+            referencedColumns: ["IDCommande"]
+          },
+          {
+            foreignKeyName: "bonplan_utilisateurs_idcommande_fkey"
+            columns: ["IDCommande"]
+            isOneToOne: false
+            referencedRelation: "v_financestransactions"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "BonPlan_Utilisateurs_IDUtilisateurs_fkey"
@@ -548,19 +565,28 @@ export type Database = {
           DateCommande: string
           IDCommande: number
           IDMoyenPaiement: number | null
+          IDUtilisateurPayeur: number | null
+          MontantTotal: number
           StatutCommande: string
+          TypeCommande: string | null
         }
         Insert: {
           DateCommande: string
           IDCommande?: number
           IDMoyenPaiement?: number | null
+          IDUtilisateurPayeur?: number | null
+          MontantTotal?: number
           StatutCommande: string
+          TypeCommande?: string | null
         }
         Update: {
           DateCommande?: string
           IDCommande?: number
           IDMoyenPaiement?: number | null
+          IDUtilisateurPayeur?: number | null
+          MontantTotal?: number
           StatutCommande?: string
+          TypeCommande?: string | null
         }
         Relationships: [
           {
@@ -569,6 +595,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "MoyenPaiement"
             referencedColumns: ["IDMoyenPaiement"]
+          },
+          {
+            foreignKeyName: "commande_idutilisateurpayeur_fkey"
+            columns: ["IDUtilisateurPayeur"]
+            isOneToOne: false
+            referencedRelation: "Utilisateurs"
+            referencedColumns: ["IDUtilisateurs"]
           },
         ]
       }
@@ -1006,6 +1039,13 @@ export type Database = {
             referencedColumns: ["IDCommande"]
           },
           {
+            foreignKeyName: "Evaluation_IDCommande_fkey"
+            columns: ["IDCommande"]
+            isOneToOne: false
+            referencedRelation: "v_financestransactions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "Evaluation_IDMiseEnRelation_fkey"
             columns: ["IDMiseEnRelation"]
             isOneToOne: false
@@ -1146,6 +1186,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "Commande"
             referencedColumns: ["IDCommande"]
+          },
+          {
+            foreignKeyName: "Facture_IDCommande_fkey"
+            columns: ["IDCommande"]
+            isOneToOne: false
+            referencedRelation: "v_financestransactions"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "Facture_IDMiseEnRelation_IDPrestation_fkey"
@@ -1566,6 +1613,7 @@ export type Database = {
           DateRefusPaiement: string
           DurePrestation: number
           IDAidant: number | null
+          IDCommande: number | null
           IDMiseEnRelation: number
           IDMoyenPaiement: number | null
           IDPartenairePayeur: number | null
@@ -1580,6 +1628,7 @@ export type Database = {
           DateRefusPaiement: string
           DurePrestation?: number
           IDAidant?: number | null
+          IDCommande?: number | null
           IDMiseEnRelation?: number
           IDMoyenPaiement?: number | null
           IDPartenairePayeur?: number | null
@@ -1594,6 +1643,7 @@ export type Database = {
           DateRefusPaiement?: string
           DurePrestation?: number
           IDAidant?: number | null
+          IDCommande?: number | null
           IDMiseEnRelation?: number
           IDMoyenPaiement?: number | null
           IDPartenairePayeur?: number | null
@@ -1616,6 +1666,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "prestations_dashboard_view"
             referencedColumns: ["IDAidant"]
+          },
+          {
+            foreignKeyName: "miseenrelation_idcommande_fkey"
+            columns: ["IDCommande"]
+            isOneToOne: false
+            referencedRelation: "Commande"
+            referencedColumns: ["IDCommande"]
+          },
+          {
+            foreignKeyName: "miseenrelation_idcommande_fkey"
+            columns: ["IDCommande"]
+            isOneToOne: false
+            referencedRelation: "v_financestransactions"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "MiseEnRelation_IDMoyenPaiement_fkey"
@@ -2224,6 +2288,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "Commande"
             referencedColumns: ["IDCommande"]
+          },
+          {
+            foreignKeyName: "Produit_Commande_IDCommande_fkey"
+            columns: ["IDCommande"]
+            isOneToOne: false
+            referencedRelation: "v_financestransactions"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "Produit_Commande_IDProduit_fkey"
@@ -2940,6 +3011,7 @@ export type Database = {
       VersementCommissions: {
         Row: {
           DateVersement: string
+          IDCommande: number | null
           IDPrestation: number | null
           IDVersementCommissions: number
           MontantCommission: number
@@ -2947,6 +3019,7 @@ export type Database = {
         }
         Insert: {
           DateVersement: string
+          IDCommande?: number | null
           IDPrestation?: number | null
           IDVersementCommissions?: number
           MontantCommission?: number
@@ -2954,12 +3027,27 @@ export type Database = {
         }
         Update: {
           DateVersement?: string
+          IDCommande?: number | null
           IDPrestation?: number | null
           IDVersementCommissions?: number
           MontantCommission?: number
           MoyenVersement?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "versementcommissions_idcommande_fkey"
+            columns: ["IDCommande"]
+            isOneToOne: false
+            referencedRelation: "Commande"
+            referencedColumns: ["IDCommande"]
+          },
+          {
+            foreignKeyName: "versementcommissions_idcommande_fkey"
+            columns: ["IDCommande"]
+            isOneToOne: false
+            referencedRelation: "v_financestransactions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "VersementCommissions_IDPrestation_fkey"
             columns: ["IDPrestation"]
@@ -3021,6 +3109,18 @@ export type Database = {
             referencedColumns: ["IDUtilisateurs"]
           },
         ]
+      }
+      v_financestransactions: {
+        Row: {
+          commission: number | null
+          date: string | null
+          id: number | null
+          montant: number | null
+          statut: string | null
+          type: string | null
+          utilisateur: string | null
+        }
+        Relationships: []
       }
     }
     Functions: {
