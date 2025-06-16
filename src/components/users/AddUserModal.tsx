@@ -27,8 +27,8 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
     setIsLoading(true);
 
     try {
-      console.log('Mot de passe envoyé depuis AddUserModal:', userPassword);
-      onAddUser(newUser, userPassword);
+      console.log('Création utilisateur avec mot de passe:', userPassword);
+      await onAddUser(newUser, userPassword);
       setCreatedPassword(userPassword);
       setShowCreatedPassword(true);
       
@@ -42,10 +42,10 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
       resetFormData();
       setPassword("");
     } catch (error) {
-      console.error('Erreur dans handleSubmit:', error);
+      console.error('Erreur lors de la création:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de créer l'utilisateur.",
+        description: error instanceof Error ? error.message : "Impossible de créer l'utilisateur.",
         variant: "destructive"
       });
     } finally {
@@ -63,12 +63,16 @@ const AddUserModal = ({ isOpen, onClose, onAddUser }: AddUserModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Ajouter un utilisateur</DialogTitle>
-          <DialogDescription>
-            Créez un nouveau compte utilisateur pour l'administration.
-          </DialogDescription>
+          <DialogTitle className="text-xl font-semibold">
+            {showCreatedPassword ? "Utilisateur créé" : "Ajouter un utilisateur"}
+          </DialogTitle>
+          {!showCreatedPassword && (
+            <DialogDescription>
+              Créez un nouveau compte utilisateur avec les informations et permissions appropriées.
+            </DialogDescription>
+          )}
         </DialogHeader>
 
         {showCreatedPassword ? (
