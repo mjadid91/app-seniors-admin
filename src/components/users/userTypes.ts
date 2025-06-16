@@ -1,5 +1,5 @@
 
-import { User } from '../../stores/authStore';
+import { User } from "../../stores/authStore";
 
 export interface UserStats {
   total: number;
@@ -12,15 +12,15 @@ export interface UserManagementState {
   searchTerm: string;
   users: User[];
   filteredUsers: User[];
-  stats: UserStats;
   isAddUserModalOpen: boolean;
   isEditUserModalOpen: boolean;
   isDeleteConfirmOpen: boolean;
   selectedUser: User | null;
+  stats: UserStats;
 }
 
 export interface UserManagementActions {
-  setSearchTerm: (searchTerm: string) => void;
+  setSearchTerm: (term: string) => void;
   handleRoleChange: (userId: string, newRole: User['role']) => void;
   handleAddUser: () => void;
   handleUserAdded: (newUserData: CreateUserData, userPassword: string) => void;
@@ -28,9 +28,15 @@ export interface UserManagementActions {
   handleUserEdited: (userId: string, updatedData: Partial<User>) => void;
   handleDeleteUser: (user: User) => void;
   handleUserDeleted: (userId: string) => void;
-  setIsAddUserModalOpen: (isOpen: boolean) => void;
-  setIsEditUserModalOpen: (isOpen: boolean) => void;
-  setIsDeleteConfirmOpen: (isOpen: boolean) => void;
+  setIsAddUserModalOpen: (open: boolean) => void;
+  setIsEditUserModalOpen: (open: boolean) => void;
+  setIsDeleteConfirmOpen: (open: boolean) => void;
+}
+
+// Extension for the new user data structure that includes category ID
+export interface UserWithCategory extends Omit<User, 'role'> {
+  categoryId: number;
+  categoryLabel: string;
 }
 
 export interface CreateUserData {
@@ -39,6 +45,6 @@ export interface CreateUserData {
   email: string;
   categoryId: number;
   dateInscription: string;
-  languePreferee?: string;
-  devise?: string;
+  languePreferee?: string;  // Ajout de la langue préférée (optional)
+  devise?: string;          // Ajout de la devise (optional)
 }
