@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { UserHookReturn } from './types/userTypes';
 import { useUserData } from './operations/useUserData';
 import { useUserCategories } from './useUserCategories';
@@ -17,34 +17,19 @@ export const useSupabaseUsers = (): UserHookReturn => {
     deleteUser
   } = useUserData();
 
-  const effectRef = useRef({
-    hasTriggered: false
-  });
-
   useEffect(() => {
     console.log('useSupabaseUsers useEffect triggered', { 
       categoriesLoading, 
-      categoriesError,
-      hasTriggered: effectRef.current.hasTriggered
+      categoriesError
     });
-
-    // Prevent multiple effect triggers
-    if (effectRef.current.hasTriggered) {
-      console.log('Effect already triggered, skipping...');
-      return;
-    }
     
     if (categoriesError) {
       console.error('Error loading categories:', categoriesError);
       return;
     }
 
-    if (!categoriesLoading) {
-      effectRef.current.hasTriggered = true;
-      console.log('Categories loaded, initializing data...');
-      initializeData();
-    }
-  }, [categoriesLoading, categoriesError, initializeData]);
+    initializeData();
+  }, [categoriesError, initializeData]);
 
   return {
     users,
