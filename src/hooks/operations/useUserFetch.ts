@@ -17,7 +17,8 @@ export const useUserFetch = (
       setLoading(true);
       setError(null);
 
-      // Filtrer uniquement les catégories 5, 6, 7, 8 pour la section utilisateurs
+      // Filtrer UNIQUEMENT les catégories administratives (5, 6, 7, 8) pour la section utilisateurs
+      // Les catégories 1 (Senior) et 4 (Aidant) sont gérées dans leurs sections respectives
       const { data, error: fetchError } = await supabase
         .from('Utilisateurs')
         .select('*')
@@ -32,18 +33,18 @@ export const useUserFetch = (
       }
 
       if (!data || data.length === 0) {
-        console.log('No users found with categories 5, 6, 7, 8');
+        console.log('No administrative users found with categories 5, 6, 7, 8');
         setUsers([]);
         return;
       }
 
-      console.log('Raw users data:', data);
+      console.log('Raw administrative users data:', data);
 
       const transformedUsers: User[] = data.map((user: SupabaseUser) => 
         convertSupabaseUserToAppUser(user, getRoleFromCategory)
       );
 
-      console.log('Transformed users:', transformedUsers);
+      console.log('Transformed administrative users:', transformedUsers);
       setUsers(transformedUsers);
     } catch (err) {
       console.error('Error fetching users:', err);
@@ -58,7 +59,7 @@ export const useUserFetch = (
     try {
       console.log('Checking for missing specialized entries...');
       
-      // Vérifier les utilisateurs seniors
+      // Vérifier les utilisateurs seniors (catégorie 1)
       const { data: seniorsUsers } = await supabase
         .from('Utilisateurs')
         .select('IDUtilisateurs')
@@ -70,7 +71,7 @@ export const useUserFetch = (
             .from('Seniors')
             .select('IDSeniors')
             .eq('IDUtilisateurSenior', user.IDUtilisateurs)
-            .single();
+            .maybeSingle();
 
           if (!existingSenior) {
             console.log(`Creating missing Senior entry for user ${user.IDUtilisateurs}`);
@@ -85,7 +86,7 @@ export const useUserFetch = (
         }
       }
 
-      // Vérifier les utilisateurs aidants
+      // Vérifier les utilisateurs aidants (catégorie 4)
       const { data: aidantsUsers } = await supabase
         .from('Utilisateurs')
         .select('IDUtilisateurs')
@@ -97,7 +98,7 @@ export const useUserFetch = (
             .from('Aidant')
             .select('IDAidant')
             .eq('IDUtilisateurs', user.IDUtilisateurs)
-            .single();
+            .maybeSingle();
 
           if (!existingAidant) {
             console.log(`Creating missing Aidant entry for user ${user.IDUtilisateurs}`);

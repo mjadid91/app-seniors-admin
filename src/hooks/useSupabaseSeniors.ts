@@ -13,7 +13,7 @@ export const useSupabaseSeniors = () => {
     try {
       console.log('Fetching seniors...');
       
-      // Récupérer les utilisateurs avec la catégorie 1 (seniors)
+      // Récupérer UNIQUEMENT les utilisateurs avec la catégorie 1 (seniors)
       const { data: utilisateursData, error: utilisateursError } = await supabase
         .from('Utilisateurs')
         .select('*')
@@ -72,27 +72,33 @@ export const useSupabaseSeniors = () => {
         utilisateursMap.set(user.IDUtilisateurs, user);
       });
 
-      // Transformer les données
-      const seniorsWithUserInfo: Senior[] = (seniorsData || []).map(senior => {
-        const userInfo = utilisateursMap.get(senior.IDUtilisateurSenior);
-        
-        return {
-          id: senior.IDSeniors.toString(),
-          nom: userInfo?.Nom || 'Nom non renseigné',
-          prenom: userInfo?.Prenom || 'Prénom non renseigné',
-          email: userInfo?.Email || 'Email non renseigné',
-          telephone: userInfo?.Telephone || 'Non renseigné',
-          dateNaissance: userInfo?.DateNaissance || '1970-01-01',
-          adresse: userInfo?.Adresse || 'Non renseigné',
-          niveauAutonomie: senior.NiveauAutonomie === 1 ? 'faible' : senior.NiveauAutonomie === 2 ? 'moyen' : 'eleve',
-          dateInscription: userInfo?.DateInscription || new Date().toISOString(),
-          statut: 'actif' as const,
-          ville: 'Non renseigné',
-          codePostal: 'Non renseigné'
-        };
-      });
+      // Transformer les données - S'assurer qu'on ne traite que les vrais seniors
+      const seniorsWithUserInfo: Senior[] = (seniorsData || [])
+        .filter(senior => {
+          const userInfo = utilisateursMap.get(senior.IDUtilisateurSenior);
+          // Vérifier que l'utilisateur existe ET qu'il a bien la catégorie 1
+          return userInfo && userInfo.IDCatUtilisateurs === 1;
+        })
+        .map(senior => {
+          const userInfo = utilisateursMap.get(senior.IDUtilisateurSenior);
+          
+          return {
+            id: senior.IDSeniors.toString(),
+            nom: userInfo?.Nom || 'Nom non renseigné',
+            prenom: userInfo?.Prenom || 'Prénom non renseigné',
+            email: userInfo?.Email || 'Email non renseigné',
+            telephone: userInfo?.Telephone || 'Non renseigné',
+            dateNaissance: userInfo?.DateNaissance || '1970-01-01',
+            adresse: userInfo?.Adresse || 'Non renseigné',
+            niveauAutonomie: senior.NiveauAutonomie === 1 ? 'faible' : senior.NiveauAutonomie === 2 ? 'moyen' : 'eleve',
+            dateInscription: userInfo?.DateInscription || new Date().toISOString(),
+            statut: 'actif' as const,
+            ville: 'Non renseigné',
+            codePostal: 'Non renseigné'
+          };
+        });
 
-      console.log('Seniors transformés:', seniorsWithUserInfo);
+      console.log('Seniors transformés (catégorie 1 uniquement):', seniorsWithUserInfo);
       setSeniors(seniorsWithUserInfo);
     } catch (err) {
       console.error('Erreur complète lors de la récupération des seniors:', err);
@@ -105,7 +111,7 @@ export const useSupabaseSeniors = () => {
     try {
       console.log('Fetching aidants...');
       
-      // Récupérer les utilisateurs avec la catégorie 4 (aidants)
+      // Récupérer UNIQUEMENT les utilisateurs avec la catégorie 4 (aidants)
       const { data: utilisateursData, error: utilisateursError } = await supabase
         .from('Utilisateurs')
         .select('*')
@@ -164,33 +170,39 @@ export const useSupabaseSeniors = () => {
         utilisateursMap.set(user.IDUtilisateurs, user);
       });
 
-      // Transformer les données
-      const aidantsWithUserInfo: Aidant[] = (aidantsData || []).map(aidant => {
-        const userInfo = utilisateursMap.get(aidant.IDUtilisateurs);
-        
-        return {
-          id: aidant.IDAidant.toString(),
-          nom: userInfo?.Nom || 'Nom non renseigné',
-          prenom: userInfo?.Prenom || 'Prénom non renseigné',
-          email: userInfo?.Email || 'Email non renseigné',
-          telephone: userInfo?.Telephone || 'Non renseigné',
-          dateNaissance: userInfo?.DateNaissance || '1970-01-01',
-          adresse: userInfo?.Adresse || 'Non renseigné',
-          profession: 'Aidant professionnel',
-          experience: aidant.Experience || 'Expérience à définir',
-          dateInscription: userInfo?.DateInscription || new Date().toISOString(),
-          statut: 'actif' as const,
-          ville: 'Non renseigné',
-          codePostal: 'Non renseigné',
-          tarifHoraire: aidant.TarifAidant || 0,
-          disponibilites: {
-            jours: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'],
-            heures: '9h-17h'
-          }
-        };
-      });
+      // Transformer les données - S'assurer qu'on ne traite que les vrais aidants
+      const aidantsWithUserInfo: Aidant[] = (aidantsData || [])
+        .filter(aidant => {
+          const userInfo = utilisateursMap.get(aidant.IDUtilisateurs);
+          // Vérifier que l'utilisateur existe ET qu'il a bien la catégorie 4
+          return userInfo && userInfo.IDCatUtilisateurs === 4;
+        })
+        .map(aidant => {
+          const userInfo = utilisateursMap.get(aidant.IDUtilisateurs);
+          
+          return {
+            id: aidant.IDAidant.toString(),
+            nom: userInfo?.Nom || 'Nom non renseigné',
+            prenom: userInfo?.Prenom || 'Prénom non renseigné',
+            email: userInfo?.Email || 'Email non renseigné',
+            telephone: userInfo?.Telephone || 'Non renseigné',
+            dateNaissance: userInfo?.DateNaissance || '1970-01-01',
+            adresse: userInfo?.Adresse || 'Non renseigné',
+            profession: 'Aidant professionnel',
+            experience: aidant.Experience || 'Expérience à définir',
+            dateInscription: userInfo?.DateInscription || new Date().toISOString(),
+            statut: 'actif' as const,
+            ville: 'Non renseigné',
+            codePostal: 'Non renseigné',
+            tarifHoraire: aidant.TarifAidant || 0,
+            disponibilites: {
+              jours: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'],
+              heures: '9h-17h'
+            }
+          };
+        });
 
-      console.log('Aidants transformés:', aidantsWithUserInfo);
+      console.log('Aidants transformés (catégorie 4 uniquement):', aidantsWithUserInfo);
       setAidants(aidantsWithUserInfo);
     } catch (err) {
       console.error('Erreur complète lors de la récupération des aidants:', err);
