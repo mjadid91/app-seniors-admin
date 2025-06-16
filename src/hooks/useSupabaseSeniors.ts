@@ -32,6 +32,26 @@ export const useSupabaseSeniors = () => {
         return;
       }
 
+      // Pour chaque utilisateur senior, s'assurer qu'il a une entrée dans la table Seniors
+      for (const user of utilisateursData) {
+        const { data: existingSenior } = await supabase
+          .from('Seniors')
+          .select('IDSeniors')
+          .eq('IDUtilisateurSenior', user.IDUtilisateurs)
+          .maybeSingle();
+
+        if (!existingSenior) {
+          console.log(`Creating missing Senior entry for user ${user.IDUtilisateurs}`);
+          await supabase
+            .from('Seniors')
+            .insert({
+              IDUtilisateurSenior: user.IDUtilisateurs,
+              NiveauAutonomie: 2,
+              EstRGPD: false
+            });
+        }
+      }
+
       // Récupérer les informations seniors correspondantes
       const userIds = utilisateursData.map(u => u.IDUtilisateurs);
       const { data: seniorsData, error: seniorsError } = await supabase
@@ -102,6 +122,26 @@ export const useSupabaseSeniors = () => {
         console.log('Aucun utilisateur aidant trouvé avec la catégorie 4');
         setAidants([]);
         return;
+      }
+
+      // Pour chaque utilisateur aidant, s'assurer qu'il a une entrée dans la table Aidant
+      for (const user of utilisateursData) {
+        const { data: existingAidant } = await supabase
+          .from('Aidant')
+          .select('IDAidant')
+          .eq('IDUtilisateurs', user.IDUtilisateurs)
+          .maybeSingle();
+
+        if (!existingAidant) {
+          console.log(`Creating missing Aidant entry for user ${user.IDUtilisateurs}`);
+          await supabase
+            .from('Aidant')
+            .insert({
+              IDUtilisateurs: user.IDUtilisateurs,
+              Experience: 'Expérience à définir',
+              TarifAidant: 0
+            });
+        }
       }
 
       // Récupérer les informations aidants correspondantes
