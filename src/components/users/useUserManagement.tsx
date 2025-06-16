@@ -5,12 +5,7 @@ import { usePermissions, PERMISSIONS } from "../../hooks/usePermissions";
 import { useToast } from "@/hooks/use-toast";
 import { UserStats, UserManagementState, UserManagementActions, CreateUserData } from "./userTypes";
 import { useSupabaseUsers } from "../../hooks/useSupabaseUsers";
-import { 
-  calculateUserStats, 
-  updateStatsAfterUserAdded, 
-  updateStatsAfterUserDeleted, 
-  updateStatsAfterRoleChange 
-} from "./userStatsUtils";
+import { calculateUserStats } from "./userStatsUtils";
 import { filterUsers } from "./userFilterUtils";
 
 export const useUserManagement = (): UserManagementState & UserManagementActions => {
