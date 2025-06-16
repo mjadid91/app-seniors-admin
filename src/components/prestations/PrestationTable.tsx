@@ -4,7 +4,7 @@ import { Eye } from "lucide-react";
 
 // Export Prestation interface for usage in other files
 export interface Prestation {
-  id: string;
+  id: number; // ← ici
   seniorNom: string;
   aidantNom: string;
   typePrestation: string;
@@ -13,6 +13,7 @@ export interface Prestation {
   statut: 'en_attente' | 'en_cours' | 'terminee' | 'refusee' | 'annulee';
   evaluation?: number;
 }
+
 
 interface PrestationTableProps {
   prestations: Prestation[];

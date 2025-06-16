@@ -16,7 +16,7 @@ import type { Prestation as PrestationTableType } from "./PrestationTable";
 type Prestation = PrestationTableType;
 
 const mapPrestationDBToUI = (db: PrestationDB): Prestation => ({
-  id: db.id ?? "",
+  id: db.id?.toString() ?? "",
   seniorNom: db.senior_nom ?? "N/A",
   aidantNom: db.aidant_nom ?? "N/A",
   typePrestation: db.type_prestation ?? "Sans titre",
