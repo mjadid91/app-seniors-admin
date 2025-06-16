@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { UserHookReturn } from './types/userTypes';
 import { useUserData } from './operations/useUserData';
 import { useUserCategories } from './useUserCategories';
@@ -16,11 +16,14 @@ export const useSupabaseUsers = (): UserHookReturn => {
     updateUser,
     deleteUser
   } = useUserData();
+  
+  const hasTriggeredInit = useRef(false);
 
   useEffect(() => {
     console.log('useSupabaseUsers useEffect triggered', { 
       categoriesLoading, 
-      categoriesError
+      categoriesError,
+      hasTriggeredInit: hasTriggeredInit.current
     });
     
     if (categoriesError) {
@@ -28,8 +31,12 @@ export const useSupabaseUsers = (): UserHookReturn => {
       return;
     }
 
-    initializeData();
-  }, [categoriesError, initializeData]);
+    // Ne déclencher l'initialisation qu'une seule fois
+    if (!categoriesLoading && !hasTriggeredInit.current) {
+      hasTriggeredInit.current = true;
+      initializeData();
+    }
+  }, [categoriesLoading, categoriesError, initializeData]);
 
   return {
     users,

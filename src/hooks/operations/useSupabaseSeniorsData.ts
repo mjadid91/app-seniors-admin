@@ -1,13 +1,22 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Senior } from '../../types/seniors';
 import { transformSeniorData, createUtilisateursMap } from '../utils/seniorsDataTransformers';
 
 export const useSupabaseSeniorsData = () => {
   const [seniors, setSeniors] = useState<Senior[]>([]);
+  const isFetching = useRef(false);
 
   const fetchSeniors = async () => {
+    // Empêcher les appels multiples
+    if (isFetching.current) {
+      console.log('Senior fetch already in progress');
+      return;
+    }
+
+    isFetching.current = true;
+    
     try {
       console.log('Fetching seniors...');
       
@@ -21,8 +30,6 @@ export const useSupabaseSeniorsData = () => {
         console.error('Erreur lors de la récupération des utilisateurs seniors:', utilisateursError);
         throw new Error(`Erreur utilisateurs seniors: ${utilisateursError.message}`);
       }
-
-      console.log('Utilisateurs seniors data:', utilisateursData);
 
       if (!utilisateursData || utilisateursData.length === 0) {
         console.log('Aucun utilisateur senior trouvé avec la catégorie 1');
@@ -62,17 +69,22 @@ export const useSupabaseSeniorsData = () => {
         throw new Error(`Erreur seniors: ${seniorsError.message}`);
       }
 
-      console.log('Seniors data:', seniorsData);
-
       // Créer un map des utilisateurs par ID et transformer les données
       const utilisateursMap = createUtilisateursMap(utilisateursData);
       const seniorsWithUserInfo = transformSeniorData(seniorsData, utilisateursMap);
 
-      console.log('Seniors transformés:', seniorsWithUserInfo);
-      setSeniors(seniorsWithUserInfo);
+      // Déduplication des données par ID pour éviter les doublons
+      const uniqueSeniors = seniorsWithUserInfo.filter((senior, index, self) => 
+        index === self.findIndex(s => s.id === senior.id)
+      );
+
+      console.log('Seniors transformés et dédupliqués:', uniqueSeniors);
+      setSeniors(uniqueSeniors);
     } catch (err) {
       console.error('Erreur complète lors de la récupération des seniors:', err);
       throw err;
+    } finally {
+      isFetching.current = false;
     }
   };
 

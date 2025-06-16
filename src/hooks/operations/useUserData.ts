@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { User } from '../../stores/authStore';
 import { useUserCategories } from '../useUserCategories';
 import { CreateUserData } from '../../components/users/userTypes';
@@ -19,7 +19,8 @@ export const useUserData = (): Omit<UserHookReturn, 'users' | 'loading' | 'error
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [hasFetched, setHasFetched] = useState(false);
+  const hasInitialized = useRef(false);
+  const isInitializing = useRef(false);
   
   const { getRoleFromCategory, loading: categoriesLoading, error: categoriesError } = useUserCategories();
 
@@ -28,25 +29,34 @@ export const useUserData = (): Omit<UserHookReturn, 'users' | 'loading' | 'error
 
   // Initialize data once when categories are ready
   const initializeData = useCallback(async () => {
-    if (!categoriesLoading && !categoriesError && getRoleFromCategory && !hasFetched) {
+    // Empêcher l'initialisation multiple
+    if (hasInitialized.current || isInitializing.current || categoriesLoading || categoriesError || !getRoleFromCategory) {
+      return;
+    }
+
+    hasInitialized.current = true;
+    isInitializing.current = true;
+    
+    try {
       console.log('Initializing user data...');
-      setHasFetched(true);
       
       // First ensure specialized entries exist
       await ensureSpecializedEntries();
       
       // Then fetch users
       await fetchUsers();
+    } catch (err) {
+      console.error('Error initializing user data:', err);
+    } finally {
+      isInitializing.current = false;
     }
-  }, [categoriesLoading, categoriesError, getRoleFromCategory, hasFetched, fetchUsers, ensureSpecializedEntries]);
+  }, [categoriesLoading, categoriesError, getRoleFromCategory, fetchUsers, ensureSpecializedEntries]);
 
   // Manual refetch function
   const refetchUsers = useCallback(async () => {
-    if (!categoriesLoading && !categoriesError && getRoleFromCategory) {
-      setHasFetched(false);
+    if (!categoriesLoading && !categoriesError && getRoleFromCategory && !isInitializing.current) {
       await ensureSpecializedEntries();
       await fetchUsers();
-      setHasFetched(true);
     }
   }, [categoriesLoading, categoriesError, getRoleFromCategory, fetchUsers, ensureSpecializedEntries]);
 
