@@ -12,13 +12,24 @@ interface RoleSelectorProps {
 const RoleSelector = ({ formData, setFormData }: RoleSelectorProps) => {
   const { categories, loading: categoriesLoading } = useUserCategories();
 
+  const getCategoryDescription = (category: any) => {
+    if (category.EstAdministrateur) return " (Accès complet)";
+    if (category.EstModerateur) return " (Modération)";
+    if (category.EstSupport) return " (Support technique)";
+    if (category.EstSenior) return " (Personne âgée)";
+    if (category.EstAidant) return " (Professionnel d'aide)";
+    if (category.EstTuteur) return " (Tuteur légal)";
+    if (category.EstOrganisme) return " (Structure organisationnelle)";
+    return " (Visualisation uniquement)";
+  };
+
   return (
     <div className="space-y-2">
-      <Label htmlFor="role">Rôle *</Label>
+      <Label htmlFor="role">Catégorie d'utilisateur *</Label>
       {categoriesLoading ? (
         <div className="flex items-center gap-2 p-2 border rounded">
           <div className="w-4 h-4 border border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-sm text-gray-600">Chargement des rôles...</span>
+          <span className="text-sm text-gray-600">Chargement des catégories...</span>
         </div>
       ) : (
         <Select 
@@ -27,7 +38,7 @@ const RoleSelector = ({ formData, setFormData }: RoleSelectorProps) => {
           required
         >
           <SelectTrigger>
-            <SelectValue placeholder="Sélectionner un rôle" />
+            <SelectValue placeholder="Sélectionner une catégorie" />
           </SelectTrigger>
           <SelectContent>
             {categories.map((category) => (
@@ -36,14 +47,14 @@ const RoleSelector = ({ formData, setFormData }: RoleSelectorProps) => {
                 value={category.IDCatUtilisateurs.toString()}
               >
                 {category.LibelleCategorie}
-                {category.EstAdministrateur && " (Accès complet)"}
+                {getCategoryDescription(category)}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       )}
       <p className="text-xs text-muted-foreground">
-        Les rôles sont basés sur les attributs de la table CatUtilisateurs : Administrateur, Modérateur, Support, Visualisateur
+        Sélectionnez la catégorie appropriée. Les seniors et aidants auront automatiquement leurs profils spécifiques créés.
       </p>
     </div>
   );

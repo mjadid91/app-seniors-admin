@@ -39,7 +39,9 @@ export const useSupabaseSeniors = () => {
 
   const fetchSeniors = async () => {
     try {
-      // Fetch seniors with their user information
+      console.log('Fetching seniors...');
+      
+      // Fetch seniors avec join sur Utilisateurs
       const { data: seniorsData, error: seniorsError } = await supabase
         .from('Seniors')
         .select(`
@@ -48,49 +50,47 @@ export const useSupabaseSeniors = () => {
           IDStructures,
           IDTuteur,
           EstRGPD,
-          NiveauAutonomie
+          NiveauAutonomie,
+          Utilisateurs!inner(
+            IDUtilisateurs,
+            Nom,
+            Prenom,
+            Email,
+            Telephone,
+            DateNaissance,
+            Adresse,
+            DateInscription
+          )
         `);
 
       if (seniorsError) {
+        console.error('Erreur lors de la récupération des seniors:', seniorsError);
         throw seniorsError;
       }
 
-      // Fetch user information for seniors
-      const seniorUserIds = seniorsData?.map(s => s.IDUtilisateurSenior).filter(Boolean) || [];
-      
-      let seniorsWithUserInfo: Senior[] = [];
-      
-      if (seniorUserIds.length > 0) {
-        const { data: usersData, error: usersError } = await supabase
-          .from('Utilisateurs')
-          .select('*')
-          .in('IDUtilisateurs', seniorUserIds);
+      console.log('Seniors data:', seniorsData);
 
-        if (usersError) {
-          throw usersError;
-        }
+      // Transformer les données
+      const seniorsWithUserInfo: Senior[] = (seniorsData || []).map(senior => {
+        const userInfo = senior.Utilisateurs as any;
+        
+        return {
+          id: senior.IDSeniors.toString(),
+          nom: userInfo?.Nom || 'Nom non renseigné',
+          prenom: userInfo?.Prenom || 'Prénom non renseigné',
+          email: userInfo?.Email || 'Email non renseigné',
+          telephone: userInfo?.Telephone || 'Non renseigné',
+          dateNaissance: userInfo?.DateNaissance || '1970-01-01',
+          adresse: userInfo?.Adresse || 'Non renseigné',
+          niveauAutonomie: senior.NiveauAutonomie === 1 ? 'faible' : senior.NiveauAutonomie === 2 ? 'moyen' : 'eleve',
+          dateInscription: userInfo?.DateInscription || new Date().toISOString(),
+          statut: 'actif' as const,
+          ville: 'Non renseigné', // Pas de champ ville dans la base
+          codePostal: 'Non renseigné' // Pas de champ code postal dans la base
+        };
+      });
 
-        // Combine senior and user data
-        seniorsWithUserInfo = seniorsData?.map(senior => {
-          const userInfo = usersData?.find(user => user.IDUtilisateurs === senior.IDUtilisateurSenior);
-          
-          return {
-            id: senior.IDSeniors.toString(),
-            nom: userInfo?.Nom || 'Nom non renseigné',
-            prenom: userInfo?.Prenom || 'Prénom non renseigné',
-            email: userInfo?.Email || 'Email non renseigné',
-            telephone: userInfo?.Telephone,
-            dateNaissance: userInfo?.DateNaissance || '1970-01-01',
-            adresse: userInfo?.Adresse,
-            niveauAutonomie: senior.NiveauAutonomie === 1 ? 'faible' : senior.NiveauAutonomie === 2 ? 'moyen' : 'eleve',
-            dateInscription: userInfo?.DateInscription || new Date().toISOString(),
-            statut: 'actif' as const,
-            ville: 'Non renseigné', // Pas de champ ville dans la base
-            codePostal: 'Non renseigné' // Pas de champ code postal dans la base
-          };
-        }) || [];
-      }
-
+      console.log('Seniors transformés:', seniorsWithUserInfo);
       setSeniors(seniorsWithUserInfo);
     } catch (err) {
       console.error('Erreur lors de la récupération des seniors:', err);
@@ -101,62 +101,62 @@ export const useSupabaseSeniors = () => {
 
   const fetchAidants = async () => {
     try {
-      // Fetch aidants with their user information
+      console.log('Fetching aidants...');
+      
+      // Fetch aidants avec join sur Utilisateurs
       const { data: aidantsData, error: aidantsError } = await supabase
         .from('Aidant')
         .select(`
           IDAidant,
           IDUtilisateurs,
           Experience,
-          TarifAidant
+          TarifAidant,
+          Utilisateurs!inner(
+            IDUtilisateurs,
+            Nom,
+            Prenom,
+            Email,
+            Telephone,
+            DateNaissance,
+            Adresse,
+            DateInscription
+          )
         `);
 
       if (aidantsError) {
+        console.error('Erreur lors de la récupération des aidants:', aidantsError);
         throw aidantsError;
       }
 
-      // Fetch user information for aidants
-      const aidantUserIds = aidantsData?.map(a => a.IDUtilisateurs).filter(Boolean) || [];
-      
-      let aidantsWithUserInfo: Aidant[] = [];
-      
-      if (aidantUserIds.length > 0) {
-        const { data: usersData, error: usersError } = await supabase
-          .from('Utilisateurs')
-          .select('*')
-          .in('IDUtilisateurs', aidantUserIds);
+      console.log('Aidants data:', aidantsData);
 
-        if (usersError) {
-          throw usersError;
-        }
+      // Transformer les données
+      const aidantsWithUserInfo: Aidant[] = (aidantsData || []).map(aidant => {
+        const userInfo = aidant.Utilisateurs as any;
+        
+        return {
+          id: aidant.IDAidant.toString(),
+          nom: userInfo?.Nom || 'Nom non renseigné',
+          prenom: userInfo?.Prenom || 'Prénom non renseigné',
+          email: userInfo?.Email || 'Email non renseigné',
+          telephone: userInfo?.Telephone || 'Non renseigné',
+          dateNaissance: userInfo?.DateNaissance || '1970-01-01',
+          adresse: userInfo?.Adresse || 'Non renseigné',
+          profession: 'Aidant professionnel',
+          experience: aidant.Experience || 'Expérience à définir',
+          dateInscription: userInfo?.DateInscription || new Date().toISOString(),
+          statut: 'actif' as const,
+          ville: 'Non renseigné', // Pas de champ ville dans la base
+          codePostal: 'Non renseigné', // Pas de champ code postal dans la base
+          tarifHoraire: aidant.TarifAidant || 0,
+          disponibilites: {
+            jours: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'],
+            heures: '9h-17h'
+          }
+        };
+      });
 
-        // Combine aidant and user data
-        aidantsWithUserInfo = aidantsData?.map(aidant => {
-          const userInfo = usersData?.find(user => user.IDUtilisateurs === aidant.IDUtilisateurs);
-          
-          return {
-            id: aidant.IDAidant.toString(),
-            nom: userInfo?.Nom || 'Nom non renseigné',
-            prenom: userInfo?.Prenom || 'Prénom non renseigné',
-            email: userInfo?.Email || 'Email non renseigné',
-            telephone: userInfo?.Telephone || 'Non renseigné',
-            dateNaissance: userInfo?.DateNaissance || '1970-01-01',
-            adresse: userInfo?.Adresse,
-            profession: 'Aidant', // Pas de champ profession spécifique dans la base
-            experience: aidant.Experience,
-            dateInscription: userInfo?.DateInscription || new Date().toISOString(),
-            statut: 'actif' as const,
-            ville: 'Non renseigné', // Pas de champ ville dans la base
-            codePostal: 'Non renseigné', // Pas de champ code postal dans la base
-            tarifHoraire: aidant.TarifAidant,
-            disponibilites: {
-              jours: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'],
-              heures: '9h-17h'
-            }
-          };
-        }) || [];
-      }
-
+      console.log('Aidants transformés:', aidantsWithUserInfo);
       setAidants(aidantsWithUserInfo);
     } catch (err) {
       console.error('Erreur lors de la récupération des aidants:', err);

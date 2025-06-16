@@ -65,13 +65,13 @@ export const useUserCategories = () => {
 
   // Fonction pour déterminer le libellé du rôle basé sur les flags
   const getRoleLabel = (category: any): string => {
+    if (category.EstSenior) return 'Senior';
+    if (category.EstTuteur) return 'Tuteur';
+    if (category.EstOrganisme) return 'Organisme';
+    if (category.EstAidant) return 'Aidant';
     if (category.EstAdministrateur) return 'Administrateur';
     if (category.EstModerateur) return 'Modérateur';
     if (category.EstSupport) return 'Support';
-    if (category.EstSenior) return 'Senior';
-    if (category.EstAidant) return 'Aidant';
-    if (category.EstTuteur) return 'Tuteur';
-    if (category.EstOrganisme) return 'Organisme';
     // Si tous les flags sont à false, c'est un Visualisateur
     return 'Visualisateur';
   };
@@ -105,7 +105,6 @@ export const useUserCategories = () => {
 
     console.log('Category trouvée:', category);
 
-    // Logique pour les catégories 5, 6, 7, 8
     if (category.EstAdministrateur) {
       console.log('Rôle: administrateur');
       return 'administrateur';
@@ -119,7 +118,7 @@ export const useUserCategories = () => {
       return 'support';
     }
     
-    // Pour toute autre catégorie autorisée (5, 6, 7, 8), attribuer visualisateur par défaut
+    // Pour toute autre catégorie autorisée, attribuer visualisateur par défaut
     console.log('Rôle par défaut: visualisateur');
     return 'visualisateur';
   }, [categories]);
