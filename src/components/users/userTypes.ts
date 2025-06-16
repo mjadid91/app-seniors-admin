@@ -39,4 +39,6 @@ export interface CreateUserData {
   email: string;
   categoryId: number;
   dateInscription: string;
+  languePreferee?: string;
+  devise?: string;
 }
