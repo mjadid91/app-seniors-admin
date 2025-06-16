@@ -13,6 +13,15 @@ const RoleSelector = ({ formData, setFormData }: RoleSelectorProps) => {
   const { categories, loading: categoriesLoading } = useUserCategories();
 
   const getCategoryDescription = (category: any) => {
+    // Descriptions spécifiques selon les nouvelles catégories
+    if (category.IDCatUtilisateurs === 1) return " (Senior - Personne âgée)";
+    if (category.IDCatUtilisateurs === 4) return " (Aidant professionnel)";
+    if (category.IDCatUtilisateurs === 5) return " (Administrateur - Accès complet)";
+    if (category.IDCatUtilisateurs === 6) return " (Modérateur - Modération)";
+    if (category.IDCatUtilisateurs === 7) return " (Support technique)";
+    if (category.IDCatUtilisateurs === 8) return " (Visualisateur)";
+    
+    // Descriptions génériques basées sur les flags pour les autres catégories
     if (category.EstAdministrateur) return " (Accès complet)";
     if (category.EstModerateur) return " (Modération)";
     if (category.EstSupport) return " (Support technique)";
@@ -54,7 +63,7 @@ const RoleSelector = ({ formData, setFormData }: RoleSelectorProps) => {
         </Select>
       )}
       <p className="text-xs text-muted-foreground">
-        Sélectionnez la catégorie appropriée. Les seniors et aidants auront automatiquement leurs profils spécifiques créés.
+        Sélectionnez la catégorie appropriée. Les seniors (catégorie 1) et aidants (catégorie 4) auront automatiquement leurs profils spécifiques créés.
       </p>
     </div>
   );

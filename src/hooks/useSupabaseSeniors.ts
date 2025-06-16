@@ -13,55 +13,47 @@ export const useSupabaseSeniors = () => {
     try {
       console.log('Fetching seniors...');
       
-      // D'abord récupérer les seniors
-      const { data: seniorsData, error: seniorsError } = await supabase
-        .from('Seniors')
-        .select('*');
-
-      if (seniorsError) {
-        console.error('Erreur lors de la récupération des seniors:', seniorsError);
-        throw new Error(`Erreur seniors: ${seniorsError.message}`);
-      }
-
-      console.log('Seniors data brute:', seniorsData);
-
-      if (!seniorsData || seniorsData.length === 0) {
-        console.log('Aucun senior trouvé');
-        setSeniors([]);
-        return;
-      }
-
-      // Récupérer les informations utilisateurs pour chaque senior
-      const seniorIds = seniorsData.map(s => s.IDUtilisateurSenior).filter(Boolean);
-      
-      if (seniorIds.length === 0) {
-        console.log('Aucun IDUtilisateurSenior valide trouvé');
-        setSeniors([]);
-        return;
-      }
-
+      // Récupérer les utilisateurs avec la catégorie 1 (seniors)
       const { data: utilisateursData, error: utilisateursError } = await supabase
         .from('Utilisateurs')
         .select('*')
-        .in('IDUtilisateurs', seniorIds);
+        .eq('IDCatUtilisateurs', 1);
 
       if (utilisateursError) {
         console.error('Erreur lors de la récupération des utilisateurs seniors:', utilisateursError);
         throw new Error(`Erreur utilisateurs seniors: ${utilisateursError.message}`);
       }
 
-      console.log('Utilisateurs data:', utilisateursData);
+      console.log('Utilisateurs seniors data:', utilisateursData);
+
+      if (!utilisateursData || utilisateursData.length === 0) {
+        console.log('Aucun utilisateur senior trouvé avec la catégorie 1');
+        setSeniors([]);
+        return;
+      }
+
+      // Récupérer les informations seniors correspondantes
+      const userIds = utilisateursData.map(u => u.IDUtilisateurs);
+      const { data: seniorsData, error: seniorsError } = await supabase
+        .from('Seniors')
+        .select('*')
+        .in('IDUtilisateurSenior', userIds);
+
+      if (seniorsError) {
+        console.error('Erreur lors de la récupération des seniors:', seniorsError);
+        throw new Error(`Erreur seniors: ${seniorsError.message}`);
+      }
+
+      console.log('Seniors data:', seniorsData);
 
       // Créer un map des utilisateurs par ID
       const utilisateursMap = new Map();
-      if (utilisateursData) {
-        utilisateursData.forEach(user => {
-          utilisateursMap.set(user.IDUtilisateurs, user);
-        });
-      }
+      utilisateursData.forEach(user => {
+        utilisateursMap.set(user.IDUtilisateurs, user);
+      });
 
       // Transformer les données
-      const seniorsWithUserInfo: Senior[] = seniorsData.map(senior => {
+      const seniorsWithUserInfo: Senior[] = (seniorsData || []).map(senior => {
         const userInfo = utilisateursMap.get(senior.IDUtilisateurSenior);
         
         return {
@@ -93,37 +85,11 @@ export const useSupabaseSeniors = () => {
     try {
       console.log('Fetching aidants...');
       
-      // D'abord récupérer les aidants
-      const { data: aidantsData, error: aidantsError } = await supabase
-        .from('Aidant')
-        .select('*');
-
-      if (aidantsError) {
-        console.error('Erreur lors de la récupération des aidants:', aidantsError);
-        throw new Error(`Erreur aidants: ${aidantsError.message}`);
-      }
-
-      console.log('Aidants data brute:', aidantsData);
-
-      if (!aidantsData || aidantsData.length === 0) {
-        console.log('Aucun aidant trouvé');
-        setAidants([]);
-        return;
-      }
-
-      // Récupérer les informations utilisateurs pour chaque aidant
-      const aidantUserIds = aidantsData.map(a => a.IDUtilisateurs).filter(Boolean);
-      
-      if (aidantUserIds.length === 0) {
-        console.log('Aucun IDUtilisateurs valide trouvé pour les aidants');
-        setAidants([]);
-        return;
-      }
-
+      // Récupérer les utilisateurs avec la catégorie 4 (aidants)
       const { data: utilisateursData, error: utilisateursError } = await supabase
         .from('Utilisateurs')
         .select('*')
-        .in('IDUtilisateurs', aidantUserIds);
+        .eq('IDCatUtilisateurs', 4);
 
       if (utilisateursError) {
         console.error('Erreur lors de la récupération des utilisateurs aidants:', utilisateursError);
@@ -132,16 +98,34 @@ export const useSupabaseSeniors = () => {
 
       console.log('Utilisateurs aidants data:', utilisateursData);
 
-      // Créer un map des utilisateurs par ID
-      const utilisateursMap = new Map();
-      if (utilisateursData) {
-        utilisateursData.forEach(user => {
-          utilisateursMap.set(user.IDUtilisateurs, user);
-        });
+      if (!utilisateursData || utilisateursData.length === 0) {
+        console.log('Aucun utilisateur aidant trouvé avec la catégorie 4');
+        setAidants([]);
+        return;
       }
 
+      // Récupérer les informations aidants correspondantes
+      const userIds = utilisateursData.map(u => u.IDUtilisateurs);
+      const { data: aidantsData, error: aidantsError } = await supabase
+        .from('Aidant')
+        .select('*')
+        .in('IDUtilisateurs', userIds);
+
+      if (aidantsError) {
+        console.error('Erreur lors de la récupération des aidants:', aidantsError);
+        throw new Error(`Erreur aidants: ${aidantsError.message}`);
+      }
+
+      console.log('Aidants data:', aidantsData);
+
+      // Créer un map des utilisateurs par ID
+      const utilisateursMap = new Map();
+      utilisateursData.forEach(user => {
+        utilisateursMap.set(user.IDUtilisateurs, user);
+      });
+
       // Transformer les données
-      const aidantsWithUserInfo: Aidant[] = aidantsData.map(aidant => {
+      const aidantsWithUserInfo: Aidant[] = (aidantsData || []).map(aidant => {
         const userInfo = utilisateursMap.get(aidant.IDUtilisateurs);
         
         return {
