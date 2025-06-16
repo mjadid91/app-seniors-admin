@@ -34,6 +34,8 @@ export const useSupabaseSeniors = () => {
 
       // Récupérer les informations seniors correspondantes
       const userIds = utilisateursData.map(u => u.IDUtilisateurs);
+      console.log('User IDs to fetch seniors for:', userIds);
+      
       const { data: seniorsData, error: seniorsError } = await supabase
         .from('Seniors')
         .select('*')
@@ -46,33 +48,47 @@ export const useSupabaseSeniors = () => {
 
       console.log('Seniors data:', seniorsData);
 
-      // Créer un map des utilisateurs par ID
+      // Créer un map des utilisateurs par ID pour éviter les doublons
       const utilisateursMap = new Map();
       utilisateursData.forEach(user => {
         utilisateursMap.set(user.IDUtilisateurs, user);
       });
 
-      // Transformer les données
-      const seniorsWithUserInfo: Senior[] = (seniorsData || []).map(senior => {
+      // Créer un Set pour éviter les doublons de seniors
+      const uniqueSeniorsMap = new Map();
+
+      // Transformer les données en évitant les doublons
+      (seniorsData || []).forEach(senior => {
         const userInfo = utilisateursMap.get(senior.IDUtilisateurSenior);
         
-        return {
-          id: senior.IDSeniors.toString(),
-          nom: userInfo?.Nom || 'Nom non renseigné',
-          prenom: userInfo?.Prenom || 'Prénom non renseigné',
-          email: userInfo?.Email || 'Email non renseigné',
-          telephone: userInfo?.Telephone || 'Non renseigné',
-          dateNaissance: userInfo?.DateNaissance || '1970-01-01',
-          adresse: userInfo?.Adresse || 'Non renseigné',
-          niveauAutonomie: senior.NiveauAutonomie === 1 ? 'faible' : senior.NiveauAutonomie === 2 ? 'moyen' : 'eleve',
-          dateInscription: userInfo?.DateInscription || new Date().toISOString(),
-          statut: 'actif' as const,
-          ville: 'Non renseigné',
-          codePostal: 'Non renseigné'
-        };
+        // Utiliser l'ID du senior comme clé unique
+        const seniorId = senior.IDSeniors.toString();
+        
+        if (!uniqueSeniorsMap.has(seniorId) && userInfo) {
+          const seniorData: Senior = {
+            id: seniorId,
+            nom: userInfo.Nom || 'Nom non renseigné',
+            prenom: userInfo.Prenom || 'Prénom non renseigné',
+            email: userInfo.Email || 'Email non renseigné',
+            telephone: userInfo.Telephone || 'Non renseigné',
+            dateNaissance: userInfo.DateNaissance || '1970-01-01',
+            adresse: userInfo.Adresse || 'Non renseigné',
+            niveauAutonomie: senior.NiveauAutonomie === 1 ? 'faible' : senior.NiveauAutonomie === 2 ? 'moyen' : 'eleve',
+            dateInscription: userInfo.DateInscription || new Date().toISOString(),
+            statut: 'actif' as const,
+            ville: 'Non renseigné',
+            codePostal: 'Non renseigné'
+          };
+          
+          uniqueSeniorsMap.set(seniorId, seniorData);
+        }
       });
 
-      console.log('Seniors transformés:', seniorsWithUserInfo);
+      // Convertir la Map en Array
+      const seniorsWithUserInfo = Array.from(uniqueSeniorsMap.values());
+
+      console.log('Nombre de seniors uniques transformés:', seniorsWithUserInfo.length);
+      console.log('Seniors transformés (uniques):', seniorsWithUserInfo);
       setSeniors(seniorsWithUserInfo);
     } catch (err) {
       console.error('Erreur complète lors de la récupération des seniors:', err);
@@ -118,39 +134,53 @@ export const useSupabaseSeniors = () => {
 
       console.log('Aidants data:', aidantsData);
 
-      // Créer un map des utilisateurs par ID
+      // Créer un map des utilisateurs par ID pour éviter les doublons
       const utilisateursMap = new Map();
       utilisateursData.forEach(user => {
         utilisateursMap.set(user.IDUtilisateurs, user);
       });
 
-      // Transformer les données
-      const aidantsWithUserInfo: Aidant[] = (aidantsData || []).map(aidant => {
+      // Créer un Set pour éviter les doublons d'aidants
+      const uniqueAidantsMap = new Map();
+
+      // Transformer les données en évitant les doublons
+      (aidantsData || []).forEach(aidant => {
         const userInfo = utilisateursMap.get(aidant.IDUtilisateurs);
         
-        return {
-          id: aidant.IDAidant.toString(),
-          nom: userInfo?.Nom || 'Nom non renseigné',
-          prenom: userInfo?.Prenom || 'Prénom non renseigné',
-          email: userInfo?.Email || 'Email non renseigné',
-          telephone: userInfo?.Telephone || 'Non renseigné',
-          dateNaissance: userInfo?.DateNaissance || '1970-01-01',
-          adresse: userInfo?.Adresse || 'Non renseigné',
-          profession: 'Aidant professionnel',
-          experience: aidant.Experience || 'Expérience à définir',
-          dateInscription: userInfo?.DateInscription || new Date().toISOString(),
-          statut: 'actif' as const,
-          ville: 'Non renseigné',
-          codePostal: 'Non renseigné',
-          tarifHoraire: aidant.TarifAidant || 0,
-          disponibilites: {
-            jours: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'],
-            heures: '9h-17h'
-          }
-        };
+        // Utiliser l'ID de l'aidant comme clé unique
+        const aidantId = aidant.IDAidant.toString();
+        
+        if (!uniqueAidantsMap.has(aidantId) && userInfo) {
+          const aidantData: Aidant = {
+            id: aidantId,
+            nom: userInfo.Nom || 'Nom non renseigné',
+            prenom: userInfo.Prenom || 'Prénom non renseigné',
+            email: userInfo.Email || 'Email non renseigné',
+            telephone: userInfo.Telephone || 'Non renseigné',
+            dateNaissance: userInfo.DateNaissance || '1970-01-01',
+            adresse: userInfo.Adresse || 'Non renseigné',
+            profession: 'Aidant professionnel',
+            experience: aidant.Experience || 'Expérience à définir',
+            dateInscription: userInfo.DateInscription || new Date().toISOString(),
+            statut: 'actif' as const,
+            ville: 'Non renseigné',
+            codePostal: 'Non renseigné',
+            tarifHoraire: aidant.TarifAidant || 0,
+            disponibilites: {
+              jours: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'],
+              heures: '9h-17h'
+            }
+          };
+          
+          uniqueAidantsMap.set(aidantId, aidantData);
+        }
       });
 
-      console.log('Aidants transformés:', aidantsWithUserInfo);
+      // Convertir la Map en Array
+      const aidantsWithUserInfo = Array.from(uniqueAidantsMap.values());
+
+      console.log('Nombre d\'aidants uniques transformés:', aidantsWithUserInfo.length);
+      console.log('Aidants transformés (uniques):', aidantsWithUserInfo);
       setAidants(aidantsWithUserInfo);
     } catch (err) {
       console.error('Erreur complète lors de la récupération des aidants:', err);

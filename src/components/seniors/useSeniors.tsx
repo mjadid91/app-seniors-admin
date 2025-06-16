@@ -16,8 +16,27 @@ export const useSeniors = () => {
 
   // Utiliser les vraies données de Supabase au lieu des données de démonstration
   useEffect(() => {
+    console.log('useSeniors - Données reçues:', { 
+      realSeniorsCount: realSeniors.length, 
+      realAidantsCount: realAidants.length,
+      loading,
+      error 
+    });
+    
     if (realSeniors.length > 0 || realAidants.length > 0) {
       console.log('Calculating stats from real data:', { realSeniors, realAidants });
+      
+      // Vérifier s'il y a des doublons dans les seniors
+      const seniorIds = realSeniors.map(s => s.id);
+      const uniqueIds = new Set(seniorIds);
+      
+      if (seniorIds.length !== uniqueIds.size) {
+        console.warn('Doublons détectés dans les seniors!', {
+          totalSeniors: seniorIds.length,
+          uniqueSeniors: uniqueIds.size,
+          seniors: realSeniors
+        });
+      }
       
       // Calcul des statistiques basé sur les vraies données
       const newStats: SeniorsStats = {
@@ -47,7 +66,7 @@ export const useSeniors = () => {
       console.log('New stats calculated:', newStats);
       setStats(newStats);
     }
-  }, [realSeniors, realAidants]);
+  }, [realSeniors, realAidants, loading, error]);
 
   return {
     seniors: realSeniors,
