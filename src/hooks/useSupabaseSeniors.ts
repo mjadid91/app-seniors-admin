@@ -6,18 +6,27 @@ import { useSupabaseAidantsData } from './operations/useSupabaseAidantsData';
 export const useSupabaseSeniors = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const isInitializedRef = useRef(false);
+  const initRef = useRef({
+    hasInitialized: false,
+    isInitializing: false
+  });
 
   const { seniors, setSeniors, fetchSeniors } = useSupabaseSeniorsData();
   const { aidants, setAidants, fetchAidants } = useSupabaseAidantsData();
 
   const fetchData = async () => {
     // Empêcher les appels multiples pendant l'initialisation
-    if (isInitializedRef.current && loading) {
-      console.log('Data fetch already in progress, skipping...');
+    if (initRef.current.isInitializing) {
+      console.log('Seniors data fetch already in progress, skipping...');
       return;
     }
 
+    if (initRef.current.hasInitialized) {
+      console.log('Seniors data already initialized, skipping...');
+      return;
+    }
+
+    initRef.current.isInitializing = true;
     setLoading(true);
     setError(null);
     
@@ -26,17 +35,18 @@ export const useSupabaseSeniors = () => {
         fetchSeniors(),
         fetchAidants()
       ]);
+      initRef.current.hasInitialized = true;
     } catch (err) {
       console.error('Erreur globale:', err);
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
     } finally {
       setLoading(false);
+      initRef.current.isInitializing = false;
     }
   };
 
   useEffect(() => {
-    if (!isInitializedRef.current) {
-      isInitializedRef.current = true;
+    if (!initRef.current.hasInitialized && !initRef.current.isInitializing) {
       fetchData();
     }
   }, []);

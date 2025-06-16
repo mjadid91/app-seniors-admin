@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { User } from '../../stores/authStore';
 import { useUserCategories } from '../useUserCategories';
 import { CreateUserData } from '../../components/users/userTypes';
@@ -19,7 +19,13 @@ export const useUserData = (): Omit<UserHookReturn, 'users' | 'loading' | 'error
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [hasFetched, setHasFetched] = useState(false);
+  const initializationRef = useRef<{
+    hasFetched: boolean;
+    isInitializing: boolean;
+  }>({
+    hasFetched: false,
+    isInitializing: false
+  });
   
   const { getRoleFromCategory, loading: categoriesLoading, error: categoriesError } = useUserCategories();
 
@@ -28,27 +34,61 @@ export const useUserData = (): Omit<UserHookReturn, 'users' | 'loading' | 'error
 
   // Initialize data once when categories are ready
   const initializeData = useCallback(async () => {
-    if (!categoriesLoading && !categoriesError && getRoleFromCategory && !hasFetched) {
-      console.log('Initializing user data...');
-      setHasFetched(true);
+    console.log('initializeData called', {
+      categoriesLoading,
+      categoriesError,
+      hasFetched: initializationRef.current.hasFetched,
+      isInitializing: initializationRef.current.isInitializing,
+      hasRoleFromCategory: !!getRoleFromCategory
+    });
+
+    // Prevent multiple simultaneous initializations
+    if (initializationRef.current.isInitializing) {
+      console.log('Already initializing, skipping...');
+      return;
+    }
+
+    // Check if we already initialized successfully
+    if (initializationRef.current.hasFetched) {
+      console.log('Already fetched, skipping...');
+      return;
+    }
+
+    // Wait for categories to be ready
+    if (categoriesLoading || categoriesError || !getRoleFromCategory) {
+      console.log('Categories not ready yet');
+      return;
+    }
+
+    try {
+      initializationRef.current.isInitializing = true;
+      console.log('Starting initialization...');
       
       // First ensure specialized entries exist
       await ensureSpecializedEntries();
       
       // Then fetch users
       await fetchUsers();
+      
+      initializationRef.current.hasFetched = true;
+      console.log('Initialization completed successfully');
+    } catch (err) {
+      console.error('Error during initialization:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
+      initializationRef.current.isInitializing = false;
     }
-  }, [categoriesLoading, categoriesError, getRoleFromCategory, hasFetched, fetchUsers, ensureSpecializedEntries]);
+  }, [categoriesLoading, categoriesError, getRoleFromCategory, fetchUsers, ensureSpecializedEntries, setError]);
 
   // Manual refetch function
   const refetchUsers = useCallback(async () => {
     if (!categoriesLoading && !categoriesError && getRoleFromCategory) {
-      setHasFetched(false);
-      await ensureSpecializedEntries();
-      await fetchUsers();
-      setHasFetched(true);
+      // Reset initialization state for manual refetch
+      initializationRef.current.hasFetched = false;
+      initializationRef.current.isInitializing = false;
+      await initializeData();
     }
-  }, [categoriesLoading, categoriesError, getRoleFromCategory, fetchUsers, ensureSpecializedEntries]);
+  }, [categoriesLoading, categoriesError, getRoleFromCategory, initializeData]);
 
   return {
     users,
