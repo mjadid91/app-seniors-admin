@@ -3,34 +3,6 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Senior, Aidant } from '../types/seniors';
 
-interface SupabaseSenior {
-  IDSeniors: number;
-  IDUtilisateurSenior: number;
-  IDStructures?: number;
-  IDTuteur?: number;
-  EstRGPD: boolean;
-  NiveauAutonomie: number;
-}
-
-interface SupabaseAidant {
-  IDAidant: number;
-  IDUtilisateurs: number;
-  Experience: string;
-  TarifAidant: number;
-}
-
-interface SupabaseUser {
-  IDUtilisateurs: number;
-  Nom: string;
-  Prenom: string;
-  Email: string;
-  Telephone: string;
-  DateNaissance: string;
-  Adresse: string;
-  Genre: string;
-  DateInscription: string;
-}
-
 export const useSupabaseSeniors = () => {
   const [seniors, setSeniors] = useState<Senior[]>([]);
   const [aidants, setAidants] = useState<Aidant[]>([]);
@@ -41,38 +13,56 @@ export const useSupabaseSeniors = () => {
     try {
       console.log('Fetching seniors...');
       
-      // Fetch seniors avec join sur Utilisateurs
+      // D'abord récupérer les seniors
       const { data: seniorsData, error: seniorsError } = await supabase
         .from('Seniors')
-        .select(`
-          IDSeniors,
-          IDUtilisateurSenior,
-          IDStructures,
-          IDTuteur,
-          EstRGPD,
-          NiveauAutonomie,
-          Utilisateurs!inner(
-            IDUtilisateurs,
-            Nom,
-            Prenom,
-            Email,
-            Telephone,
-            DateNaissance,
-            Adresse,
-            DateInscription
-          )
-        `);
+        .select('*');
 
       if (seniorsError) {
         console.error('Erreur lors de la récupération des seniors:', seniorsError);
-        throw seniorsError;
+        throw new Error(`Erreur seniors: ${seniorsError.message}`);
       }
 
-      console.log('Seniors data:', seniorsData);
+      console.log('Seniors data brute:', seniorsData);
+
+      if (!seniorsData || seniorsData.length === 0) {
+        console.log('Aucun senior trouvé');
+        setSeniors([]);
+        return;
+      }
+
+      // Récupérer les informations utilisateurs pour chaque senior
+      const seniorIds = seniorsData.map(s => s.IDUtilisateurSenior).filter(Boolean);
+      
+      if (seniorIds.length === 0) {
+        console.log('Aucun IDUtilisateurSenior valide trouvé');
+        setSeniors([]);
+        return;
+      }
+
+      const { data: utilisateursData, error: utilisateursError } = await supabase
+        .from('Utilisateurs')
+        .select('*')
+        .in('IDUtilisateurs', seniorIds);
+
+      if (utilisateursError) {
+        console.error('Erreur lors de la récupération des utilisateurs seniors:', utilisateursError);
+        throw new Error(`Erreur utilisateurs seniors: ${utilisateursError.message}`);
+      }
+
+      console.log('Utilisateurs data:', utilisateursData);
+
+      // Créer un map des utilisateurs par ID
+      const utilisateursMap = new Map();
+      if (utilisateursData) {
+        utilisateursData.forEach(user => {
+          utilisateursMap.set(user.IDUtilisateurs, user);
+        });
+      }
 
       // Transformer les données
-      const seniorsWithUserInfo: Senior[] = (seniorsData || []).map(senior => {
-        const userInfo = senior.Utilisateurs as any;
+      const seniorsWithUserInfo: Senior[] = seniorsData.map(senior => {
+        const userInfo = utilisateursMap.get(senior.IDUtilisateurSenior);
         
         return {
           id: senior.IDSeniors.toString(),
@@ -85,16 +75,16 @@ export const useSupabaseSeniors = () => {
           niveauAutonomie: senior.NiveauAutonomie === 1 ? 'faible' : senior.NiveauAutonomie === 2 ? 'moyen' : 'eleve',
           dateInscription: userInfo?.DateInscription || new Date().toISOString(),
           statut: 'actif' as const,
-          ville: 'Non renseigné', // Pas de champ ville dans la base
-          codePostal: 'Non renseigné' // Pas de champ code postal dans la base
+          ville: 'Non renseigné',
+          codePostal: 'Non renseigné'
         };
       });
 
       console.log('Seniors transformés:', seniorsWithUserInfo);
       setSeniors(seniorsWithUserInfo);
     } catch (err) {
-      console.error('Erreur lors de la récupération des seniors:', err);
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      console.error('Erreur complète lors de la récupération des seniors:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inconnue lors du chargement des seniors');
       setSeniors([]);
     }
   };
@@ -103,36 +93,56 @@ export const useSupabaseSeniors = () => {
     try {
       console.log('Fetching aidants...');
       
-      // Fetch aidants avec join sur Utilisateurs
+      // D'abord récupérer les aidants
       const { data: aidantsData, error: aidantsError } = await supabase
         .from('Aidant')
-        .select(`
-          IDAidant,
-          IDUtilisateurs,
-          Experience,
-          TarifAidant,
-          Utilisateurs!inner(
-            IDUtilisateurs,
-            Nom,
-            Prenom,
-            Email,
-            Telephone,
-            DateNaissance,
-            Adresse,
-            DateInscription
-          )
-        `);
+        .select('*');
 
       if (aidantsError) {
         console.error('Erreur lors de la récupération des aidants:', aidantsError);
-        throw aidantsError;
+        throw new Error(`Erreur aidants: ${aidantsError.message}`);
       }
 
-      console.log('Aidants data:', aidantsData);
+      console.log('Aidants data brute:', aidantsData);
+
+      if (!aidantsData || aidantsData.length === 0) {
+        console.log('Aucun aidant trouvé');
+        setAidants([]);
+        return;
+      }
+
+      // Récupérer les informations utilisateurs pour chaque aidant
+      const aidantUserIds = aidantsData.map(a => a.IDUtilisateurs).filter(Boolean);
+      
+      if (aidantUserIds.length === 0) {
+        console.log('Aucun IDUtilisateurs valide trouvé pour les aidants');
+        setAidants([]);
+        return;
+      }
+
+      const { data: utilisateursData, error: utilisateursError } = await supabase
+        .from('Utilisateurs')
+        .select('*')
+        .in('IDUtilisateurs', aidantUserIds);
+
+      if (utilisateursError) {
+        console.error('Erreur lors de la récupération des utilisateurs aidants:', utilisateursError);
+        throw new Error(`Erreur utilisateurs aidants: ${utilisateursError.message}`);
+      }
+
+      console.log('Utilisateurs aidants data:', utilisateursData);
+
+      // Créer un map des utilisateurs par ID
+      const utilisateursMap = new Map();
+      if (utilisateursData) {
+        utilisateursData.forEach(user => {
+          utilisateursMap.set(user.IDUtilisateurs, user);
+        });
+      }
 
       // Transformer les données
-      const aidantsWithUserInfo: Aidant[] = (aidantsData || []).map(aidant => {
-        const userInfo = aidant.Utilisateurs as any;
+      const aidantsWithUserInfo: Aidant[] = aidantsData.map(aidant => {
+        const userInfo = utilisateursMap.get(aidant.IDUtilisateurs);
         
         return {
           id: aidant.IDAidant.toString(),
@@ -146,8 +156,8 @@ export const useSupabaseSeniors = () => {
           experience: aidant.Experience || 'Expérience à définir',
           dateInscription: userInfo?.DateInscription || new Date().toISOString(),
           statut: 'actif' as const,
-          ville: 'Non renseigné', // Pas de champ ville dans la base
-          codePostal: 'Non renseigné', // Pas de champ code postal dans la base
+          ville: 'Non renseigné',
+          codePostal: 'Non renseigné',
           tarifHoraire: aidant.TarifAidant || 0,
           disponibilites: {
             jours: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'],
@@ -159,8 +169,8 @@ export const useSupabaseSeniors = () => {
       console.log('Aidants transformés:', aidantsWithUserInfo);
       setAidants(aidantsWithUserInfo);
     } catch (err) {
-      console.error('Erreur lors de la récupération des aidants:', err);
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      console.error('Erreur complète lors de la récupération des aidants:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inconnue lors du chargement des aidants');
       setAidants([]);
     }
   };
@@ -169,12 +179,17 @@ export const useSupabaseSeniors = () => {
     setLoading(true);
     setError(null);
     
-    await Promise.all([
-      fetchSeniors(),
-      fetchAidants()
-    ]);
-    
-    setLoading(false);
+    try {
+      await Promise.all([
+        fetchSeniors(),
+        fetchAidants()
+      ]);
+    } catch (err) {
+      console.error('Erreur globale:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
