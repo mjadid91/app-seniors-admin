@@ -3,15 +3,16 @@ import { useState, useEffect } from "react";
 import { User } from "../../stores/authStore";
 import { usePermissions, PERMISSIONS } from "../../hooks/usePermissions";
 import { useToast } from "@/hooks/use-toast";
-import { UserStats, UserManagementState, UserManagementActions, CreateUserData } from "./userTypes";
+import { UserManagementState, UserManagementActions, CreateUserData } from "./userTypes";
 import { useSupabaseUsers } from "../../hooks/useSupabaseUsers";
 import { 
   calculateUserStats, 
   updateStatsAfterUserAdded, 
   updateStatsAfterUserDeleted, 
-  updateStatsAfterRoleChange 
-} from "./userStatsUtils";
-import { filterUsers } from "./userFilterUtils";
+  updateStatsAfterRoleChange,
+  UserStats
+} from "../../hooks/utils/userStatsUtils";
+import { filterUsers } from "../../hooks/utils/userFilterUtils";
 
 export const useUserManagement = (): UserManagementState & UserManagementActions => {
   const [searchTerm, setSearchTerm] = useState("");

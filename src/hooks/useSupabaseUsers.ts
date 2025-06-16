@@ -1,70 +1,41 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { User } from '../stores/authStore';
-import { useUserCategories } from './useUserCategories';
-import { CreateUserData } from '../components/users/userTypes';
+import { useEffect } from 'react';
 import { UserHookReturn } from './types/userTypes';
-import { useUserCrud } from './operations/useUserCrud';
-import { useUserFetch } from './operations/useUserFetch';
+import { useUserData } from './operations/useUserData';
+import { useUserCategories } from './useUserCategories';
 
 export const useSupabaseUsers = (): UserHookReturn => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [hasFetched, setHasFetched] = useState(false);
-  
-  const { getRoleFromCategory, loading: categoriesLoading, error: categoriesError } = useUserCategories();
-
-  const { fetchUsers, ensureSpecializedEntries } = useUserFetch(setUsers, setLoading, setError, getRoleFromCategory);
-  const { addUser, updateUser, deleteUser } = useUserCrud(users, setUsers, getRoleFromCategory);
-
-  // Utiliser useCallback pour éviter les re-créations de fonction
-  const fetchUsersOnce = useCallback(async () => {
-    if (!categoriesLoading && !categoriesError && getRoleFromCategory && !hasFetched) {
-      console.log('Fetching users once...');
-      setHasFetched(true);
-      
-      // D'abord s'assurer que les entrées spécialisées existent
-      await ensureSpecializedEntries();
-      
-      // Puis récupérer les utilisateurs
-      await fetchUsers();
-    }
-  }, [categoriesLoading, categoriesError, getRoleFromCategory, hasFetched, fetchUsers, ensureSpecializedEntries]);
+  const { loading: categoriesLoading, error: categoriesError } = useUserCategories();
+  const {
+    users,
+    loading,
+    error,
+    initializeData,
+    fetchUsers,
+    addUser,
+    updateUser,
+    deleteUser
+  } = useUserData();
 
   useEffect(() => {
     console.log('useSupabaseUsers useEffect triggered', { 
       categoriesLoading, 
-      categoriesError, 
-      hasFetched,
-      getRoleFromCategory: !!getRoleFromCategory 
+      categoriesError
     });
     
     if (categoriesError) {
       console.error('Error loading categories:', categoriesError);
-      setError(categoriesError);
-      setLoading(false);
       return;
     }
 
-    fetchUsersOnce();
-  }, [categoriesError, fetchUsersOnce]);
-
-  // Fonction pour refetch manuellement
-  const refetchUsers = useCallback(async () => {
-    if (!categoriesLoading && !categoriesError && getRoleFromCategory) {
-      setHasFetched(false);
-      await ensureSpecializedEntries();
-      await fetchUsers();
-      setHasFetched(true);
-    }
-  }, [categoriesLoading, categoriesError, getRoleFromCategory, fetchUsers, ensureSpecializedEntries]);
+    initializeData();
+  }, [categoriesError, initializeData]);
 
   return {
     users,
     loading: loading || categoriesLoading,
     error: error || categoriesError,
-    fetchUsers: refetchUsers,
+    fetchUsers,
     addUser,
     updateUser,
     deleteUser
