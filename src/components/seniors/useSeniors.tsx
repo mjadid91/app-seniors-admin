@@ -16,7 +16,8 @@ export const useSeniors = () => {
 
   // Utiliser les vraies données de Supabase au lieu des données de démonstration
   useEffect(() => {
-    console.log('useSeniors - Données reçues:', { 
+    console.log('=== useSeniors - Calcul des statistiques ===');
+    console.log('Données reçues:', { 
       realSeniorsCount: realSeniors.length, 
       realAidantsCount: realAidants.length,
       loading,
@@ -24,18 +25,20 @@ export const useSeniors = () => {
     });
     
     if (realSeniors.length > 0 || realAidants.length > 0) {
-      console.log('Calculating stats from real data:', { realSeniors, realAidants });
+      console.log('Seniors reçus pour calcul stats:', realSeniors.map(s => ({ id: s.id, nom: s.nom, prenom: s.prenom })));
       
-      // Vérifier s'il y a des doublons dans les seniors
+      // Vérification stricte de l'unicité
       const seniorIds = realSeniors.map(s => s.id);
       const uniqueIds = new Set(seniorIds);
       
       if (seniorIds.length !== uniqueIds.size) {
-        console.warn('Doublons détectés dans les seniors!', {
+        console.error('❌ DOUBLONS DÉTECTÉS dans useSeniors!', {
           totalSeniors: seniorIds.length,
           uniqueSeniors: uniqueIds.size,
-          seniors: realSeniors
+          doublons: seniorIds.filter((id, index) => seniorIds.indexOf(id) !== index)
         });
+      } else {
+        console.log('✅ Aucun doublon détecté dans useSeniors');
       }
       
       // Calcul des statistiques basé sur les vraies données
@@ -63,7 +66,7 @@ export const useSeniors = () => {
         }
       };
 
-      console.log('New stats calculated:', newStats);
+      console.log('Stats calculées:', newStats);
       setStats(newStats);
     }
   }, [realSeniors, realAidants, loading, error]);

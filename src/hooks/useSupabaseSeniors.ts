@@ -32,7 +32,7 @@ export const useSupabaseSeniors = () => {
         return;
       }
 
-      // Récupérer les informations seniors correspondantes
+      // Récupérer les informations seniors correspondantes avec une requête optimisée
       const userIds = utilisateursData.map(u => u.IDUtilisateurs);
       console.log('User IDs to fetch seniors for:', userIds);
       
@@ -46,49 +46,83 @@ export const useSupabaseSeniors = () => {
         throw new Error(`Erreur seniors: ${seniorsError.message}`);
       }
 
-      console.log('Seniors data:', seniorsData);
+      console.log('Seniors data brute:', seniorsData);
+      console.log('Nombre de seniors bruts:', seniorsData?.length || 0);
 
-      // Créer un map des utilisateurs par ID pour éviter les doublons
+      // Créer un map des utilisateurs par ID
       const utilisateursMap = new Map();
       utilisateursData.forEach(user => {
-        utilisateursMap.set(user.IDUtilisateurs, user);
+        if (!utilisateursMap.has(user.IDUtilisateurs)) {
+          utilisateursMap.set(user.IDUtilisateurs, user);
+          console.log(`Ajout utilisateur ID ${user.IDUtilisateurs} dans la map`);
+        } else {
+          console.warn(`Utilisateur ID ${user.IDUtilisateurs} déjà présent dans la map!`);
+        }
       });
 
-      // Créer un Set pour éviter les doublons de seniors
+      // Créer une Map pour garantir l'unicité des seniors
       const uniqueSeniorsMap = new Map();
 
-      // Transformer les données en évitant les doublons
-      (seniorsData || []).forEach(senior => {
+      // Transformer les données en évitant strictement les doublons
+      (seniorsData || []).forEach((senior, index) => {
+        console.log(`Traitement senior ${index + 1}:`, {
+          IDSeniors: senior.IDSeniors,
+          IDUtilisateurSenior: senior.IDUtilisateurSenior
+        });
+
         const userInfo = utilisateursMap.get(senior.IDUtilisateurSenior);
         
-        // Utiliser l'ID du senior comme clé unique
-        const seniorId = senior.IDSeniors.toString();
-        
-        if (!uniqueSeniorsMap.has(seniorId) && userInfo) {
-          const seniorData: Senior = {
-            id: seniorId,
-            nom: userInfo.Nom || 'Nom non renseigné',
-            prenom: userInfo.Prenom || 'Prénom non renseigné',
-            email: userInfo.Email || 'Email non renseigné',
-            telephone: userInfo.Telephone || 'Non renseigné',
-            dateNaissance: userInfo.DateNaissance || '1970-01-01',
-            adresse: userInfo.Adresse || 'Non renseigné',
-            niveauAutonomie: senior.NiveauAutonomie === 1 ? 'faible' : senior.NiveauAutonomie === 2 ? 'moyen' : 'eleve',
-            dateInscription: userInfo.DateInscription || new Date().toISOString(),
-            statut: 'actif' as const,
-            ville: 'Non renseigné',
-            codePostal: 'Non renseigné'
-          };
-          
-          uniqueSeniorsMap.set(seniorId, seniorData);
+        if (!userInfo) {
+          console.warn(`Utilisateur non trouvé pour IDUtilisateurSenior: ${senior.IDUtilisateurSenior}`);
+          return;
         }
+
+        // Utiliser l'ID du senior comme clé unique STRICTE
+        const seniorId = `senior_${senior.IDSeniors}`;
+        
+        if (uniqueSeniorsMap.has(seniorId)) {
+          console.error(`DOUBLON DÉTECTÉ! Senior ID ${senior.IDSeniors} déjà présent!`);
+          return; // Ignorer le doublon
+        }
+
+        const seniorData: Senior = {
+          id: seniorId,
+          nom: userInfo.Nom || 'Nom non renseigné',
+          prenom: userInfo.Prenom || 'Prénom non renseigné',
+          email: userInfo.Email || 'Email non renseigné',
+          telephone: userInfo.Telephone || 'Non renseigné',
+          dateNaissance: userInfo.DateNaissance || '1970-01-01',
+          adresse: userInfo.Adresse || 'Non renseigné',
+          niveauAutonomie: senior.NiveauAutonomie === 1 ? 'faible' : senior.NiveauAutonomie === 2 ? 'moyen' : 'eleve',
+          dateInscription: userInfo.DateInscription || new Date().toISOString(),
+          statut: 'actif' as const,
+          ville: 'Non renseigné',
+          codePostal: 'Non renseigné'
+        };
+        
+        uniqueSeniorsMap.set(seniorId, seniorData);
+        console.log(`Senior ajouté avec ID unique: ${seniorId}`);
       });
 
       // Convertir la Map en Array
       const seniorsWithUserInfo = Array.from(uniqueSeniorsMap.values());
 
-      console.log('Nombre de seniors uniques transformés:', seniorsWithUserInfo.length);
-      console.log('Seniors transformés (uniques):', seniorsWithUserInfo);
+      console.log('=== RÉSUMÉ DE LA TRANSFORMATION ===');
+      console.log('Nombre d\'utilisateurs seniors:', utilisateursData.length);
+      console.log('Nombre de seniors bruts:', seniorsData?.length || 0);
+      console.log('Nombre de seniors uniques finaux:', seniorsWithUserInfo.length);
+      console.log('IDs seniors finaux:', seniorsWithUserInfo.map(s => s.id));
+      
+      // Vérification finale de l'unicité
+      const finalIds = seniorsWithUserInfo.map(s => s.id);
+      const uniqueFinalIds = new Set(finalIds);
+      if (finalIds.length !== uniqueFinalIds.size) {
+        console.error('ERREUR CRITIQUE: Des doublons persistent dans le résultat final!');
+        console.error('IDs en doublon:', finalIds.filter((id, index) => finalIds.indexOf(id) !== index));
+      } else {
+        console.log('✅ Aucun doublon dans le résultat final');
+      }
+
       setSeniors(seniorsWithUserInfo);
     } catch (err) {
       console.error('Erreur complète lors de la récupération des seniors:', err);
