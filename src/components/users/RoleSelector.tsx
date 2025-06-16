@@ -13,7 +13,7 @@ const RoleSelector = ({ formData, setFormData }: RoleSelectorProps) => {
   const { categories, loading: categoriesLoading } = useUserCategories();
 
   const getCategoryDescription = (category: any) => {
-    // Descriptions spécifiques selon les catégories
+    // Descriptions spécifiques selon les nouvelles catégories
     if (category.IDCatUtilisateurs === 1) return " (Senior - Personne âgée)";
     if (category.IDCatUtilisateurs === 4) return " (Aidant professionnel)";
     if (category.IDCatUtilisateurs === 5) return " (Administrateur - Accès complet)";
@@ -31,16 +31,6 @@ const RoleSelector = ({ formData, setFormData }: RoleSelectorProps) => {
     if (category.EstOrganisme) return " (Structure organisationnelle)";
     return " (Visualisation uniquement)";
   };
-
-  // Filtrer et ordonner les catégories pour l'affichage
-  const availableCategories = categories.filter(category => {
-    // Inclure toutes les catégories : Senior (1), Aidant (4), et administratives (5, 6, 7, 8)
-    return [1, 4, 5, 6, 7, 8].includes(category.IDCatUtilisateurs);
-  }).sort((a, b) => {
-    // Ordre de priorité : Senior, Aidant, puis administratives
-    const order = [1, 4, 5, 6, 7, 8];
-    return order.indexOf(a.IDCatUtilisateurs) - order.indexOf(b.IDCatUtilisateurs);
-  });
 
   return (
     <div className="space-y-2">
@@ -60,7 +50,7 @@ const RoleSelector = ({ formData, setFormData }: RoleSelectorProps) => {
             <SelectValue placeholder="Sélectionner une catégorie" />
           </SelectTrigger>
           <SelectContent>
-            {availableCategories.map((category) => (
+            {categories.map((category) => (
               <SelectItem 
                 key={category.IDCatUtilisateurs} 
                 value={category.IDCatUtilisateurs.toString()}

@@ -15,7 +15,7 @@ export const useSupabaseUsers = (): UserHookReturn => {
   
   const { getRoleFromCategory, loading: categoriesLoading, error: categoriesError } = useUserCategories();
 
-  const { fetchUsers, ensureSpecializedEntries } = useUserFetch(setUsers, setLoading, setError, getRoleFromCategory);
+  const { fetchUsers } = useUserFetch(setUsers, setLoading, setError, getRoleFromCategory);
   const { addUser, updateUser, deleteUser } = useUserCrud(users, setUsers, getRoleFromCategory);
 
   // Utiliser useCallback pour éviter les re-créations de fonction
@@ -23,14 +23,9 @@ export const useSupabaseUsers = (): UserHookReturn => {
     if (!categoriesLoading && !categoriesError && getRoleFromCategory && !hasFetched) {
       console.log('Fetching users once...');
       setHasFetched(true);
-      
-      // D'abord s'assurer que les entrées spécialisées existent
-      await ensureSpecializedEntries();
-      
-      // Puis récupérer les utilisateurs
       await fetchUsers();
     }
-  }, [categoriesLoading, categoriesError, getRoleFromCategory, hasFetched, fetchUsers, ensureSpecializedEntries]);
+  }, [categoriesLoading, categoriesError, getRoleFromCategory, hasFetched, fetchUsers]);
 
   useEffect(() => {
     console.log('useSupabaseUsers useEffect triggered', { 
@@ -54,11 +49,10 @@ export const useSupabaseUsers = (): UserHookReturn => {
   const refetchUsers = useCallback(async () => {
     if (!categoriesLoading && !categoriesError && getRoleFromCategory) {
       setHasFetched(false);
-      await ensureSpecializedEntries();
       await fetchUsers();
       setHasFetched(true);
     }
-  }, [categoriesLoading, categoriesError, getRoleFromCategory, fetchUsers, ensureSpecializedEntries]);
+  }, [categoriesLoading, categoriesError, getRoleFromCategory, fetchUsers]);
 
   return {
     users,
