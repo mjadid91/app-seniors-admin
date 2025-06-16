@@ -32,10 +32,28 @@ export const useSupabaseSeniors = () => {
         return;
       }
 
-      // Récupérer les informations seniors correspondantes avec une requête optimisée
+      // Pour chaque utilisateur senior, s'assurer qu'il a une entrée dans la table Seniors
+      for (const user of utilisateursData) {
+        const { data: existingSenior } = await supabase
+          .from('Seniors')
+          .select('IDSeniors')
+          .eq('IDUtilisateurSenior', user.IDUtilisateurs)
+          .maybeSingle();
+
+        if (!existingSenior) {
+          console.log(`Creating missing Senior entry for user ${user.IDUtilisateurs}`);
+          await supabase
+            .from('Seniors')
+            .insert({
+              IDUtilisateurSenior: user.IDUtilisateurs,
+              NiveauAutonomie: 2,
+              EstRGPD: false
+            });
+        }
+      }
+
+      // Récupérer les informations seniors correspondantes
       const userIds = utilisateursData.map(u => u.IDUtilisateurs);
-      console.log('User IDs to fetch seniors for:', userIds);
-      
       const { data: seniorsData, error: seniorsError } = await supabase
         .from('Seniors')
         .select('*')
@@ -46,83 +64,35 @@ export const useSupabaseSeniors = () => {
         throw new Error(`Erreur seniors: ${seniorsError.message}`);
       }
 
-      console.log('Seniors data brute:', seniorsData);
-      console.log('Nombre de seniors bruts:', seniorsData?.length || 0);
+      console.log('Seniors data:', seniorsData);
 
       // Créer un map des utilisateurs par ID
       const utilisateursMap = new Map();
       utilisateursData.forEach(user => {
-        if (!utilisateursMap.has(user.IDUtilisateurs)) {
-          utilisateursMap.set(user.IDUtilisateurs, user);
-          console.log(`Ajout utilisateur ID ${user.IDUtilisateurs} dans la map`);
-        } else {
-          console.warn(`Utilisateur ID ${user.IDUtilisateurs} déjà présent dans la map!`);
-        }
+        utilisateursMap.set(user.IDUtilisateurs, user);
       });
 
-      // Créer une Map pour garantir l'unicité des seniors
-      const uniqueSeniorsMap = new Map();
-
-      // Transformer les données en évitant strictement les doublons
-      (seniorsData || []).forEach((senior, index) => {
-        console.log(`Traitement senior ${index + 1}:`, {
-          IDSeniors: senior.IDSeniors,
-          IDUtilisateurSenior: senior.IDUtilisateurSenior
-        });
-
+      // Transformer les données
+      const seniorsWithUserInfo: Senior[] = (seniorsData || []).map(senior => {
         const userInfo = utilisateursMap.get(senior.IDUtilisateurSenior);
         
-        if (!userInfo) {
-          console.warn(`Utilisateur non trouvé pour IDUtilisateurSenior: ${senior.IDUtilisateurSenior}`);
-          return;
-        }
-
-        // Utiliser l'ID du senior comme clé unique STRICTE
-        const seniorId = `senior_${senior.IDSeniors}`;
-        
-        if (uniqueSeniorsMap.has(seniorId)) {
-          console.error(`DOUBLON DÉTECTÉ! Senior ID ${senior.IDSeniors} déjà présent!`);
-          return; // Ignorer le doublon
-        }
-
-        const seniorData: Senior = {
-          id: seniorId,
-          nom: userInfo.Nom || 'Nom non renseigné',
-          prenom: userInfo.Prenom || 'Prénom non renseigné',
-          email: userInfo.Email || 'Email non renseigné',
-          telephone: userInfo.Telephone || 'Non renseigné',
-          dateNaissance: userInfo.DateNaissance || '1970-01-01',
-          adresse: userInfo.Adresse || 'Non renseigné',
+        return {
+          id: senior.IDSeniors.toString(),
+          nom: userInfo?.Nom || 'Nom non renseigné',
+          prenom: userInfo?.Prenom || 'Prénom non renseigné',
+          email: userInfo?.Email || 'Email non renseigné',
+          telephone: userInfo?.Telephone || 'Non renseigné',
+          dateNaissance: userInfo?.DateNaissance || '1970-01-01',
+          adresse: userInfo?.Adresse || 'Non renseigné',
           niveauAutonomie: senior.NiveauAutonomie === 1 ? 'faible' : senior.NiveauAutonomie === 2 ? 'moyen' : 'eleve',
-          dateInscription: userInfo.DateInscription || new Date().toISOString(),
+          dateInscription: userInfo?.DateInscription || new Date().toISOString(),
           statut: 'actif' as const,
           ville: 'Non renseigné',
           codePostal: 'Non renseigné'
         };
-        
-        uniqueSeniorsMap.set(seniorId, seniorData);
-        console.log(`Senior ajouté avec ID unique: ${seniorId}`);
       });
 
-      // Convertir la Map en Array
-      const seniorsWithUserInfo = Array.from(uniqueSeniorsMap.values());
-
-      console.log('=== RÉSUMÉ DE LA TRANSFORMATION ===');
-      console.log('Nombre d\'utilisateurs seniors:', utilisateursData.length);
-      console.log('Nombre de seniors bruts:', seniorsData?.length || 0);
-      console.log('Nombre de seniors uniques finaux:', seniorsWithUserInfo.length);
-      console.log('IDs seniors finaux:', seniorsWithUserInfo.map(s => s.id));
-      
-      // Vérification finale de l'unicité
-      const finalIds = seniorsWithUserInfo.map(s => s.id);
-      const uniqueFinalIds = new Set(finalIds);
-      if (finalIds.length !== uniqueFinalIds.size) {
-        console.error('ERREUR CRITIQUE: Des doublons persistent dans le résultat final!');
-        console.error('IDs en doublon:', finalIds.filter((id, index) => finalIds.indexOf(id) !== index));
-      } else {
-        console.log('✅ Aucun doublon dans le résultat final');
-      }
-
+      console.log('Seniors transformés:', seniorsWithUserInfo);
       setSeniors(seniorsWithUserInfo);
     } catch (err) {
       console.error('Erreur complète lors de la récupération des seniors:', err);
@@ -154,6 +124,26 @@ export const useSupabaseSeniors = () => {
         return;
       }
 
+      // Pour chaque utilisateur aidant, s'assurer qu'il a une entrée dans la table Aidant
+      for (const user of utilisateursData) {
+        const { data: existingAidant } = await supabase
+          .from('Aidant')
+          .select('IDAidant')
+          .eq('IDUtilisateurs', user.IDUtilisateurs)
+          .maybeSingle();
+
+        if (!existingAidant) {
+          console.log(`Creating missing Aidant entry for user ${user.IDUtilisateurs}`);
+          await supabase
+            .from('Aidant')
+            .insert({
+              IDUtilisateurs: user.IDUtilisateurs,
+              Experience: 'Expérience à définir',
+              TarifAidant: 0
+            });
+        }
+      }
+
       // Récupérer les informations aidants correspondantes
       const userIds = utilisateursData.map(u => u.IDUtilisateurs);
       const { data: aidantsData, error: aidantsError } = await supabase
@@ -168,53 +158,39 @@ export const useSupabaseSeniors = () => {
 
       console.log('Aidants data:', aidantsData);
 
-      // Créer un map des utilisateurs par ID pour éviter les doublons
+      // Créer un map des utilisateurs par ID
       const utilisateursMap = new Map();
       utilisateursData.forEach(user => {
         utilisateursMap.set(user.IDUtilisateurs, user);
       });
 
-      // Créer un Set pour éviter les doublons d'aidants
-      const uniqueAidantsMap = new Map();
-
-      // Transformer les données en évitant les doublons
-      (aidantsData || []).forEach(aidant => {
+      // Transformer les données
+      const aidantsWithUserInfo: Aidant[] = (aidantsData || []).map(aidant => {
         const userInfo = utilisateursMap.get(aidant.IDUtilisateurs);
         
-        // Utiliser l'ID de l'aidant comme clé unique
-        const aidantId = aidant.IDAidant.toString();
-        
-        if (!uniqueAidantsMap.has(aidantId) && userInfo) {
-          const aidantData: Aidant = {
-            id: aidantId,
-            nom: userInfo.Nom || 'Nom non renseigné',
-            prenom: userInfo.Prenom || 'Prénom non renseigné',
-            email: userInfo.Email || 'Email non renseigné',
-            telephone: userInfo.Telephone || 'Non renseigné',
-            dateNaissance: userInfo.DateNaissance || '1970-01-01',
-            adresse: userInfo.Adresse || 'Non renseigné',
-            profession: 'Aidant professionnel',
-            experience: aidant.Experience || 'Expérience à définir',
-            dateInscription: userInfo.DateInscription || new Date().toISOString(),
-            statut: 'actif' as const,
-            ville: 'Non renseigné',
-            codePostal: 'Non renseigné',
-            tarifHoraire: aidant.TarifAidant || 0,
-            disponibilites: {
-              jours: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'],
-              heures: '9h-17h'
-            }
-          };
-          
-          uniqueAidantsMap.set(aidantId, aidantData);
-        }
+        return {
+          id: aidant.IDAidant.toString(),
+          nom: userInfo?.Nom || 'Nom non renseigné',
+          prenom: userInfo?.Prenom || 'Prénom non renseigné',
+          email: userInfo?.Email || 'Email non renseigné',
+          telephone: userInfo?.Telephone || 'Non renseigné',
+          dateNaissance: userInfo?.DateNaissance || '1970-01-01',
+          adresse: userInfo?.Adresse || 'Non renseigné',
+          profession: 'Aidant professionnel',
+          experience: aidant.Experience || 'Expérience à définir',
+          dateInscription: userInfo?.DateInscription || new Date().toISOString(),
+          statut: 'actif' as const,
+          ville: 'Non renseigné',
+          codePostal: 'Non renseigné',
+          tarifHoraire: aidant.TarifAidant || 0,
+          disponibilites: {
+            jours: ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'],
+            heures: '9h-17h'
+          }
+        };
       });
 
-      // Convertir la Map en Array
-      const aidantsWithUserInfo = Array.from(uniqueAidantsMap.values());
-
-      console.log('Nombre d\'aidants uniques transformés:', aidantsWithUserInfo.length);
-      console.log('Aidants transformés (uniques):', aidantsWithUserInfo);
+      console.log('Aidants transformés:', aidantsWithUserInfo);
       setAidants(aidantsWithUserInfo);
     } catch (err) {
       console.error('Erreur complète lors de la récupération des aidants:', err);
