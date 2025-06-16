@@ -18,8 +18,8 @@ const RoleSelector = ({ formData, setFormData }: RoleSelectorProps) => {
     if (category.IDCatUtilisateurs === 4) return " (Aidant professionnel)";
     if (category.IDCatUtilisateurs === 5) return " (Administrateur - Accès complet)";
     if (category.IDCatUtilisateurs === 6) return " (Modérateur - Modération)";
-    if (category.IDCatUtilisateurs === 7) return " (Support technique)";
-    if (category.IDCatUtilisateurs === 8) return " (Visualisateur)";
+    if (category.IDCatUtilisateurs === 7) return " (Visualisateur)";
+    if (category.IDCatUtilisateurs === 8) return " (Support)";
     
     // Descriptions génériques basées sur les flags pour les autres catégories
     if (category.EstAdministrateur) return " (Accès complet)";
@@ -50,15 +50,15 @@ const RoleSelector = ({ formData, setFormData }: RoleSelectorProps) => {
             <SelectValue placeholder="Sélectionner une catégorie" />
           </SelectTrigger>
           <SelectContent>
-            {categories.map((category) => (
-              <SelectItem 
-                key={category.IDCatUtilisateurs} 
-                value={category.IDCatUtilisateurs.toString()}
-              >
-                {category.LibelleCategorie}
-                {getCategoryDescription(category)}
-              </SelectItem>
-            ))}
+            {categories
+                .filter(cat => [5, 6, 7, 8].includes(cat.IDCatUtilisateurs))
+                .map((category) => (
+                    <SelectItem key={category.IDCatUtilisateurs} value={category.IDCatUtilisateurs.toString()}>
+                      {category.LibelleCategorie}
+                      {getCategoryDescription(category)}
+                    </SelectItem>
+                ))}
+
           </SelectContent>
         </Select>
       )}

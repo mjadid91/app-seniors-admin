@@ -30,3 +30,14 @@ export interface UserHookReturn {
   updateUser: (userId: string, updates: Partial<User>) => Promise<User>;
   deleteUser: (userId: string) => Promise<void>;
 }
+
+export interface CreateUserData {
+  nom: string;
+  prenom: string;
+  email: string;
+  categoryId: number;
+  dateInscription: string;
+  languePreferee?: string; // ← à ajouter
+  devise?: string;         // ← à ajouter
+}
+

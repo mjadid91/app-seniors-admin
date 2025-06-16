@@ -10,6 +10,7 @@ import RoleSelector from "./RoleSelector";
 import PreferencesFields from "./PreferencesFields";
 import UserFormActions from "./UserFormActions";
 
+
 interface UserCreationFormProps {
   password: string;
   setPassword: (password: string) => void;
@@ -41,7 +42,9 @@ const UserCreationForm = ({
       prenom: formData.prenom,
       email: formData.email,
       categoryId: formData.categoryId,
-      dateInscription: new Date().toISOString().split('T')[0]
+      dateInscription: new Date().toISOString().split('T')[0],
+      languePreferee: formData.languePreferee,
+      devise: formData.devise
     };
 
     onSubmit(newUser, password);

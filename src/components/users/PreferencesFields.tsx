@@ -1,7 +1,14 @@
-
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { UserFormData } from "../../hooks/useUserFormData";
+import { useSupabaseLangues } from "@/hooks/useSupabaseLangues";
+import { useSupabaseDevises } from "@/hooks/useSupabaseDevises";
 
 interface PreferencesFieldsProps {
   formData: UserFormData;
@@ -9,39 +16,59 @@ interface PreferencesFieldsProps {
 }
 
 const PreferencesFields = ({ formData, setFormData }: PreferencesFieldsProps) => {
+  const { langues, loading: loadingLangues } = useSupabaseLangues();
+  const { devises, loading: loadingDevises } = useSupabaseDevises();
+
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <div className="space-y-2">
-        <Label htmlFor="langue">Langue préférée</Label>
-        <Select value={formData.languePreferee} onValueChange={(value) => setFormData({ ...formData, languePreferee: value })}>
-          <SelectTrigger>
-            <SelectValue placeholder="Sélectionner..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="fr">Français</SelectItem>
-            <SelectItem value="en">English</SelectItem>
-            <SelectItem value="es">Español</SelectItem>
-            <SelectItem value="de">Deutsch</SelectItem>
-            <SelectItem value="it">Italiano</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="grid grid-cols-2 gap-4">
+        {/* LANGUE */}
+        <div className="space-y-2">
+          <Label htmlFor="langue">Langue préférée</Label>
+          {loadingLangues ? (
+              <div className="text-sm text-gray-500">Chargement...</div>
+          ) : (
+              <Select
+                  value={formData.languePreferee}
+                  onValueChange={(value) => setFormData({ ...formData, languePreferee: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {langues.map((langue) => (
+                      <SelectItem key={langue.IDLangue} value={langue.Titre}>
+                        {langue.Titre}
+                      </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+          )}
+        </div>
+
+        {/* DEVISE */}
+        <div className="space-y-2">
+          <Label htmlFor="devise">Devise</Label>
+          {loadingDevises ? (
+              <div className="text-sm text-gray-500">Chargement...</div>
+          ) : (
+              <Select
+                  value={formData.devise}
+                  onValueChange={(value) => setFormData({ ...formData, devise: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {devises.map((devise) => (
+                      <SelectItem key={devise.IDDevise} value={devise.Titre}>
+                        {devise.Titre}
+                      </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+          )}
+        </div>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="devise">Devise</Label>
-        <Select value={formData.devise} onValueChange={(value) => setFormData({ ...formData, devise: value })}>
-          <SelectTrigger>
-            <SelectValue placeholder="Sélectionner..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="EUR">Euro (€)</SelectItem>
-            <SelectItem value="USD">Dollar US ($)</SelectItem>
-            <SelectItem value="GBP">Livre Sterling (£)</SelectItem>
-            <SelectItem value="CHF">Franc Suisse (CHF)</SelectItem>
-            <SelectItem value="CAD">Dollar Canadien (CAD)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
   );
 };
 
