@@ -1,14 +1,22 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Senior } from '../../types/seniors';
 import { transformSeniorData, createUtilisateursMap } from '../utils/seniorsDataTransformers';
 
 export const useSupabaseSeniorsData = () => {
   const [seniors, setSeniors] = useState<Senior[]>([]);
+  const isLoadingRef = useRef(false);
 
   const fetchSeniors = async () => {
+    // Empêcher les appels multiples simultanés
+    if (isLoadingRef.current) {
+      console.log('Fetch seniors already in progress, skipping...');
+      return;
+    }
+
     try {
+      isLoadingRef.current = true;
       console.log('Fetching seniors...');
       
       // Récupérer les utilisateurs avec la catégorie 1 (seniors)
@@ -30,49 +38,73 @@ export const useSupabaseSeniorsData = () => {
         return;
       }
 
-      // Pour chaque utilisateur senior, s'assurer qu'il a une entrée dans la table Seniors
-      for (const user of utilisateursData) {
-        const { data: existingSenior } = await supabase
-          .from('Seniors')
-          .select('IDSeniors')
-          .eq('IDUtilisateurSenior', user.IDUtilisateurs)
-          .maybeSingle();
-
-        if (!existingSenior) {
-          console.log(`Creating missing Senior entry for user ${user.IDUtilisateurs}`);
-          await supabase
-            .from('Seniors')
-            .insert({
-              IDUtilisateurSenior: user.IDUtilisateurs,
-              NiveauAutonomie: 2,
-              EstRGPD: false
-            });
-        }
-      }
-
-      // Récupérer les informations seniors correspondantes
+      // Récupérer d'abord tous les seniors existants
       const userIds = utilisateursData.map(u => u.IDUtilisateurs);
-      const { data: seniorsData, error: seniorsError } = await supabase
+      const { data: existingSeniorsData, error: existingSeniorsError } = await supabase
         .from('Seniors')
         .select('*')
         .in('IDUtilisateurSenior', userIds);
 
-      if (seniorsError) {
-        console.error('Erreur lors de la récupération des seniors:', seniorsError);
-        throw new Error(`Erreur seniors: ${seniorsError.message}`);
+      if (existingSeniorsError) {
+        console.error('Erreur lors de la récupération des seniors existants:', existingSeniorsError);
+        throw new Error(`Erreur seniors existants: ${existingSeniorsError.message}`);
       }
 
-      console.log('Seniors data:', seniorsData);
+      // Identifier les utilisateurs qui n'ont pas d'entrée Senior
+      const existingSeniorUserIds = new Set(existingSeniorsData?.map(s => s.IDUtilisateurSenior) || []);
+      const usersWithoutSeniorEntry = utilisateursData.filter(user => !existingSeniorUserIds.has(user.IDUtilisateurs));
+
+      // Créer les entrées manquantes en une seule fois
+      if (usersWithoutSeniorEntry.length > 0) {
+        console.log(`Creating ${usersWithoutSeniorEntry.length} missing Senior entries`);
+        const newSeniorEntries = usersWithoutSeniorEntry.map(user => ({
+          IDUtilisateurSenior: user.IDUtilisateurs,
+          NiveauAutonomie: 2,
+          EstRGPD: false
+        }));
+
+        const { error: insertError } = await supabase
+          .from('Seniors')
+          .insert(newSeniorEntries);
+
+        if (insertError) {
+          console.error('Erreur lors de la création des entrées Senior:', insertError);
+          throw new Error(`Erreur création seniors: ${insertError.message}`);
+        }
+      }
+
+      // Récupérer toutes les informations seniors finales
+      const { data: allSeniorsData, error: allSeniorsError } = await supabase
+        .from('Seniors')
+        .select('*')
+        .in('IDUtilisateurSenior', userIds);
+
+      if (allSeniorsError) {
+        console.error('Erreur lors de la récupération finale des seniors:', allSeniorsError);
+        throw new Error(`Erreur seniors finaux: ${allSeniorsError.message}`);
+      }
+
+      console.log('All seniors data:', allSeniorsData);
 
       // Créer un map des utilisateurs par ID et transformer les données
       const utilisateursMap = createUtilisateursMap(utilisateursData);
-      const seniorsWithUserInfo = transformSeniorData(seniorsData, utilisateursMap);
+      const seniorsWithUserInfo = transformSeniorData(allSeniorsData, utilisateursMap);
 
-      console.log('Seniors transformés:', seniorsWithUserInfo);
-      setSeniors(seniorsWithUserInfo);
+      // Déduplication basée sur l'ID pour éviter les doublons
+      const uniqueSeniors = seniorsWithUserInfo.reduce((acc, senior) => {
+        if (!acc.find(s => s.id === senior.id)) {
+          acc.push(senior);
+        }
+        return acc;
+      }, [] as Senior[]);
+
+      console.log('Seniors transformés et dédupliqués:', uniqueSeniors);
+      setSeniors(uniqueSeniors);
     } catch (err) {
       console.error('Erreur complète lors de la récupération des seniors:', err);
       throw err;
+    } finally {
+      isLoadingRef.current = false;
     }
   };
 
