@@ -24,7 +24,7 @@ interface Ticket {
 
 const Support = () => {
   // Appel aux données réelles
-  const { data: ticketsDB = [], isLoading, error } = useSupabaseSupportTickets();
+  const { data: ticketsDB = [], isLoading, error, refetch } = useSupabaseSupportTickets();
   const [selectedStatut, setSelectedStatut] = useState<string>("tous");
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
@@ -279,9 +279,10 @@ const Support = () => {
       </Card>
 
       <SupportTicketModal
-        isOpen={isTicketModalOpen}
-        onClose={() => setIsTicketModalOpen(false)}
-        ticket={selectedTicket}
+          isOpen={isTicketModalOpen}
+          onClose={() => setIsTicketModalOpen(false)}
+          ticket={selectedTicket}
+          onTicketUpdated={() => refetch()} // ← callback appelé après assignation
       />
     </div>
   );

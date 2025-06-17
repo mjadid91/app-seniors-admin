@@ -50,7 +50,7 @@ const RecentActivity = () => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="max-h-96 overflow-y-auto space-y-4 p-2 border rounded-md bg-white shadow-sm">
       {activities.map((activity) => {
         const mapping = ICON_MAP[activity.type] || {
           icon: Clock,
