@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Document {
   id: number;
@@ -16,6 +17,7 @@ interface Document {
   uploadDate: string;
   category: string;
   status: string;
+  utilisateurId: number;
 }
 
 interface AddDocumentModalProps {
@@ -29,13 +31,68 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
     name: "",
     category: "",
     status: "Brouillon",
-    description: ""
+    description: "",
+    utilisateurId: ""
   });
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [catNameToId, setCatNameToId] = useState<Record<string, number>>({});
+  const [users, setUsers] = useState<{ id: number; fullName: string }[]>([]);
   const { toast } = useToast();
 
-  const categories = ["Légal", "Documentation", "Qualité", "Formation", "Procédures"];
+  useEffect(() => {
+    if (isOpen) {
+      loadCategories();
+      loadUsers();
+    }
+  }, [isOpen, toast]);
+
+  // Charger les catégories
+  const loadCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("CategorieDocument")
+        .select("IDCategorieDocument, NomCategorie");
+
+      if (error) {
+        toast({ title: "Erreur", description: "Échec du chargement des catégories.", variant: "destructive" });
+        return;
+      }
+
+      const nameToId: Record<string, number> = {};
+      setCategories(data.map((cat) => {
+        nameToId[cat.NomCategorie] = cat.IDCategorieDocument;
+        return cat.NomCategorie;
+      }));
+      setCatNameToId(nameToId);
+    } catch (error) {
+      console.error('Erreur lors du chargement des catégories:', error);
+      toast({ title: "Erreur", description: "Échec du chargement des catégories.", variant: "destructive" });
+    }
+  };
+
+  // Charger les utilisateurs
+  const loadUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("Utilisateurs")
+        .select("IDUtilisateurs, Nom, Prenom");
+
+      if (error) {
+        toast({ title: "Erreur", description: "Échec du chargement des utilisateurs.", variant: "destructive" });
+        return;
+      }
+
+      setUsers(data.map(user => ({
+        id: user.IDUtilisateurs,
+        fullName: `${user.Prenom} ${user.Nom}`
+      })));
+    } catch (error) {
+      console.error('Erreur lors du chargement des utilisateurs:', error);
+      toast({ title: "Erreur", description: "Échec du chargement des utilisateurs.", variant: "destructive" });
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -45,34 +102,77 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.name || !formData.category || !formData.utilisateurId) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs obligatoires.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
+      // Insérer le document dans la base de données
+      const catId = catNameToId[formData.category];
+      const { data, error } = await supabase
+        .from("Document")
+        .insert([
+          {
+            Titre: formData.name,
+            TypeFichier: file ? file.name.split('.').pop()?.toUpperCase() || 'PDF' : 'PDF',
+            TailleFichier: file ? parseFloat((file.size / 1024 / 1024).toFixed(1)) : 0,
+            DateUpload: new Date().toISOString().split('T')[0],
+            IDCategorieDocument: catId,
+            Statut: formData.status,
+            IDUtilisateurs: parseInt(formData.utilisateurId),
+            URLFichier: "#", // Placeholder pour l'URL du fichier
+          },
+        ])
+        .select();
+
+      if (error) {
+        console.error('Erreur lors de l\'insertion:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible d'ajouter le document à la base de données.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Créer l'objet document pour le callback
       const newDocument: Omit<Document, 'id'> = {
         name: formData.name,
         type: file ? file.name.split('.').pop()?.toUpperCase() || 'PDF' : 'PDF',
         size: file ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : '0.0 MB',
         uploadDate: new Date().toISOString().split('T')[0],
         category: formData.category,
-        status: formData.status
+        status: formData.status,
+        utilisateurId: parseInt(formData.utilisateurId)
       };
 
       onAddDocument(newDocument);
-      
+
       toast({
         title: "Document ajouté",
         description: `${formData.name} a été ajouté avec succès.`,
       });
 
+      // Réinitialiser le formulaire
       setFormData({
         name: "",
         category: "",
         status: "Brouillon",
-        description: ""
+        description: "",
+        utilisateurId: ""
       });
       setFile(null);
       onClose();
     } catch (error) {
+      console.error('Erreur lors de l\'ajout du document:', error);
       toast({
         title: "Erreur",
         description: "Impossible d'ajouter le document.",
@@ -94,7 +194,7 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Nom du document</Label>
+            <Label htmlFor="name">Nom du document *</Label>
             <Input
               id="name"
               value={formData.name}
@@ -102,8 +202,25 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
               required
             />
           </div>
+          
           <div className="space-y-2">
-            <Label htmlFor="category">Catégorie</Label>
+            <Label htmlFor="utilisateur">Utilisateur concerné *</Label>
+            <Select value={formData.utilisateurId} onValueChange={(value) => setFormData({ ...formData, utilisateurId: value })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choisir un utilisateur" />
+              </SelectTrigger>
+              <SelectContent>
+                {users.map(user => (
+                  <SelectItem key={user.id} value={user.id.toString()}>
+                    {user.fullName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="category">Catégorie *</Label>
             <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner une catégorie" />
@@ -115,6 +232,7 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
               </SelectContent>
             </Select>
           </div>
+          
           <div className="space-y-2">
             <Label htmlFor="status">Statut</Label>
             <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
@@ -127,6 +245,7 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
               </SelectContent>
             </Select>
           </div>
+          
           <div className="space-y-2">
             <Label htmlFor="file">Fichier</Label>
             <Input
@@ -136,6 +255,7 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
               accept=".pdf,.doc,.docx,.txt"
             />
           </div>
+          
           <div className="space-y-2">
             <Label htmlFor="description">Description (optionnel)</Label>
             <Textarea
@@ -143,8 +263,10 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
+              placeholder="Description du document..."
             />
           </div>
+          
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={onClose}>
               Annuler
