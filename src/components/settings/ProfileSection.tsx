@@ -125,7 +125,7 @@ const ProfileSection = () => {
                 >
                   <label className="cursor-pointer">
                     <Upload className="h-4 w-4 mr-2" />
-                    Télécharger
+                    Télécharger une image
                     <input
                       type="file"
                       accept="image/*"
