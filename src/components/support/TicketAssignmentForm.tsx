@@ -44,13 +44,12 @@ const TicketAssignmentForm = ({ ticketId, currentAssignee, onAssignmentChanged }
         .from("PrestationSupport")
         .insert({
           IDIntervenant: user.id,
-          IDTicketClient: parseInt(ticketId)
+          IDTicketClient: parseInt(ticketId) // Convert string to number
         });
-
 
     if (insertError) {
       toast({
-        title: "Erreur d’insertion",
+        title: "Erreur d'insertion",
         description: insertError.message,
         variant: "destructive"
       });
@@ -63,7 +62,7 @@ const TicketAssignmentForm = ({ ticketId, currentAssignee, onAssignmentChanged }
         .update({
           StatutDemande: "en_cours"
         })
-        .eq("IDTicketClient", ticketId);
+        .eq("IDTicketClient", parseInt(ticketId)); // Convert string to number
 
     if (updateError) {
       toast({

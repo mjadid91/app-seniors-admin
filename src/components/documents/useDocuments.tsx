@@ -11,9 +11,8 @@ export interface Document {
   uploadDate: string;
   category: string;
   status: string;
-  postedBy?: string;        // ← Ajoute ceci
-  postedEmail?: string;     // ← Et ceci aussi
   supabaseId?: number;
+  utilisateurId?: number;
 }
 
 interface SupabaseDocument {
@@ -24,14 +23,8 @@ interface SupabaseDocument {
   DateUpload: string;
   Statut: string;
   IDCategorieDocument: number | null;
-  IDUtilisateurs: number;
-  Utilisateurs: {
-    Nom: string;
-    Prenom: string;
-    Email: string;
-  } | null;
+  IDUtilisateurs: number | null;
 }
-
 
 interface SupabaseCategorie {
   IDCategorieDocument: number;
@@ -69,43 +62,27 @@ export const useDocuments = () => {
   // Fetch documents from Supabase
   const fetchDocuments = useCallback(async () => {
     const { data, error } = await supabase
-        .from("Document")
-        .select(`
-          IDDocument,
-          Titre,
-          TypeFichier,
-          TailleFichier,
-          DateUpload,
-          Statut,
-          IDCategorieDocument,
-          IDUtilisateurs,
-          Utilisateurs (
-            Nom,
-            Prenom,
-            Email
-          )
-  `);
+      .from("Document")
+      .select("*");
     if (error) {
       toast({ title: "Erreur", description: "Impossible de charger les documents.", variant: "destructive" });
       return;
     }
 
     setDocuments(
-        (data as SupabaseDocument[]).map((doc) => ({
-          id: doc.IDDocument,
-          name: doc.Titre,
-          type: doc.TypeFichier,
-          size: doc.TailleFichier != null ? `${Number(doc.TailleFichier).toFixed(1)} MB` : "0.0 MB",
-          uploadDate: doc.DateUpload,
-          category: doc.IDCategorieDocument && catIdToName[doc.IDCategorieDocument]
-              ? catIdToName[doc.IDCategorieDocument]
-              : "",
-          status: doc.Statut,
-          postedBy: doc.Utilisateurs ? `${doc.Utilisateurs.Prenom} ${doc.Utilisateurs.Nom}` : "—",
-          postedEmail: doc.Utilisateurs?.Email ?? "",
-
-          supabaseId: doc.IDDocument
-        }))
+      (data as SupabaseDocument[]).map((doc) => ({
+        id: doc.IDDocument,
+        name: doc.Titre,
+        type: doc.TypeFichier,
+        size: doc.TailleFichier != null ? `${Number(doc.TailleFichier).toFixed(1)} MB` : "0.0 MB",
+        uploadDate: doc.DateUpload,
+        category: doc.IDCategorieDocument && catIdToName[doc.IDCategorieDocument]
+          ? catIdToName[doc.IDCategorieDocument]
+          : "",
+        status: doc.Statut,
+        supabaseId: doc.IDDocument,
+        utilisateurId: doc.IDUtilisateurs || undefined,
+      }))
     );
   }, [catIdToName, toast]);
 
@@ -120,30 +97,47 @@ export const useDocuments = () => {
     }
   }, [catIdToName, fetchDocuments]);
 
-  // Add new document (create in Supabase)
+  // Add new document (create in Supabase) - updated to handle the new interface
   const handleAddDocument = async (newDocData: Omit<Document, "id" | "supabaseId">) => {
-    const catId = catNameToId[newDocData.category];
-    const { data, error } = await supabase
-      .from("Document")
-      .insert([
-        {
-          Titre: newDocData.name,
-          TypeFichier: newDocData.type,
-          TailleFichier: parseFloat(newDocData.size),
-          DateUpload: new Date().toISOString().split('T')[0],
-          IDCategorieDocument: catId,
-          Statut: newDocData.status,
-          URLFichier: "#", // Placeholder, as file upload isn't implemented
-        },
-      ])
-      .select();
+    console.log('Adding document with data:', newDocData);
+    
+    try {
+      const catId = catNameToId[newDocData.category];
+      
+      if (!catId) {
+        toast({ title: "Erreur", description: "Catégorie non trouvée.", variant: "destructive" });
+        return;
+      }
 
-    if (error || !data) {
+      const { data, error } = await supabase
+        .from("Document")
+        .insert([
+          {
+            Titre: newDocData.name,
+            TypeFichier: newDocData.type,
+            TailleFichier: parseFloat(newDocData.size),
+            DateUpload: new Date().toISOString().split('T')[0],
+            IDCategorieDocument: catId,
+            Statut: newDocData.status,
+            IDUtilisateurs: newDocData.utilisateurId,
+            URLFichier: "#", // Placeholder, as file upload isn't implemented
+          },
+        ])
+        .select();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        toast({ title: "Erreur", description: "Création du document impossible.", variant: "destructive" });
+        return;
+      }
+
+      console.log('Document created successfully:', data);
+      toast({ title: "Document ajouté", description: `Le document "${newDocData.name}" a été ajouté.` });
+      fetchDocuments();
+    } catch (error) {
+      console.error('Error adding document:', error);
       toast({ title: "Erreur", description: "Création du document impossible.", variant: "destructive" });
-      return;
     }
-    toast({ title: "Document ajouté", description: `Le document "${newDocData.name}" a été ajouté.` });
-    fetchDocuments();
   };
 
   // Edit document

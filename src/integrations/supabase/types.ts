@@ -832,6 +832,7 @@ export type Database = {
           DateUpload: string
           IDCategorieDocument: number | null
           IDDocument: number
+          IDUtilisateurs: number | null
           Statut: string
           TailleFichier: number | null
           Titre: string
@@ -842,6 +843,7 @@ export type Database = {
           DateUpload?: string
           IDCategorieDocument?: number | null
           IDDocument?: number
+          IDUtilisateurs?: number | null
           Statut?: string
           TailleFichier?: number | null
           Titre: string
@@ -852,6 +854,7 @@ export type Database = {
           DateUpload?: string
           IDCategorieDocument?: number | null
           IDDocument?: number
+          IDUtilisateurs?: number | null
           Statut?: string
           TailleFichier?: number | null
           Titre?: string
@@ -865,6 +868,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "CategorieDocument"
             referencedColumns: ["IDCategorieDocument"]
+          },
+          {
+            foreignKeyName: "Document_IDUtilisateurs_fkey"
+            columns: ["IDUtilisateurs"]
+            isOneToOne: false
+            referencedRelation: "Utilisateurs"
+            referencedColumns: ["IDUtilisateurs"]
           },
         ]
       }
@@ -1620,6 +1630,7 @@ export type Database = {
           IDPrestation: number | null
           IDSeniors: number | null
           IDUtilisateurPayeur: number | null
+          Statut: string
           TarifPreste: number
         }
         Insert: {
@@ -1635,6 +1646,7 @@ export type Database = {
           IDPrestation?: number | null
           IDSeniors?: number | null
           IDUtilisateurPayeur?: number | null
+          Statut?: string
           TarifPreste?: number
         }
         Update: {
@@ -1650,6 +1662,7 @@ export type Database = {
           IDPrestation?: number | null
           IDSeniors?: number | null
           IDUtilisateurPayeur?: number | null
+          Statut?: string
           TarifPreste?: number
         }
         Relationships: [
@@ -1748,6 +1761,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "Prestation"
             referencedColumns: ["IDPrestation"]
+          },
+          {
+            foreignKeyName: "MiseEnRelation_Prestation_IDPrestation_fkey"
+            columns: ["IDPrestation"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2123,6 +2143,13 @@ export type Database = {
             referencedRelation: "Prestation"
             referencedColumns: ["IDPrestation"]
           },
+          {
+            foreignKeyName: "Prestation_Localisation_IDPrestation_fkey"
+            columns: ["IDPrestation"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       PrestationAidant: {
@@ -2439,6 +2466,13 @@ export type Database = {
             referencedColumns: ["IDSujetForum"]
           },
           {
+            foreignKeyName: "ReponseForum_IDSujetForum_fkey"
+            columns: ["IDSujetForum"]
+            isOneToOne: false
+            referencedRelation: "v_forum_posts_moderation"
+            referencedColumns: ["IDSujetForum"]
+          },
+          {
             foreignKeyName: "ReponseForum_IDUtilisateurs_fkey"
             columns: ["IDUtilisateurs"]
             isOneToOne: false
@@ -2625,34 +2659,55 @@ export type Database = {
         Row: {
           ActionModeration: string | null
           DateSignalement: string
-          IDContenu: number
+          IDMessageGroupe: number | null
+          IDReponseForum: number | null
           IDSignalement: number
           IDUtilisateurSignaleur: number
           Motif: string
           Traité: boolean | null
-          TypeContenu: string
         }
         Insert: {
           ActionModeration?: string | null
           DateSignalement?: string
-          IDContenu: number
+          IDMessageGroupe?: number | null
+          IDReponseForum?: number | null
           IDSignalement?: number
           IDUtilisateurSignaleur: number
           Motif: string
           Traité?: boolean | null
-          TypeContenu: string
         }
         Update: {
           ActionModeration?: string | null
           DateSignalement?: string
-          IDContenu?: number
+          IDMessageGroupe?: number | null
+          IDReponseForum?: number | null
           IDSignalement?: number
           IDUtilisateurSignaleur?: number
           Motif?: string
           Traité?: boolean | null
-          TypeContenu?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "SignalementContenu_IDMessageGroupe_fkey"
+            columns: ["IDMessageGroupe"]
+            isOneToOne: false
+            referencedRelation: "MessageGroupe"
+            referencedColumns: ["IDMessageGroupe"]
+          },
+          {
+            foreignKeyName: "SignalementContenu_IDMessageGroupe_fkey"
+            columns: ["IDMessageGroupe"]
+            isOneToOne: false
+            referencedRelation: "v_group_messages_moderation"
+            referencedColumns: ["IDMessageGroupe"]
+          },
+          {
+            foreignKeyName: "SignalementContenu_IDReponseForum_fkey"
+            columns: ["IDReponseForum"]
+            isOneToOne: false
+            referencedRelation: "ReponseForum"
+            referencedColumns: ["IDReponseForum"]
+          },
           {
             foreignKeyName: "SignalementContenu_IDUtilisateurSignaleur_fkey"
             columns: ["IDUtilisateurSignaleur"]
@@ -2772,7 +2827,8 @@ export type Database = {
       }
       SupportClient: {
         Row: {
-          DateResolution: string
+          DateEnvoi: string
+          DateResolution: string | null
           DescriptionDemande: string
           IDTicketClient: number
           IDUtilisateursClient: number | null
@@ -2781,7 +2837,8 @@ export type Database = {
           Sujet: string
         }
         Insert: {
-          DateResolution: string
+          DateEnvoi: string
+          DateResolution?: string | null
           DescriptionDemande: string
           IDTicketClient?: number
           IDUtilisateursClient?: number | null
@@ -2790,7 +2847,8 @@ export type Database = {
           Sujet: string
         }
         Update: {
-          DateResolution?: string
+          DateEnvoi?: string
+          DateResolution?: string | null
           DescriptionDemande?: string
           IDTicketClient?: number
           IDUtilisateursClient?: number | null
@@ -3058,6 +3116,13 @@ export type Database = {
             referencedRelation: "Prestation"
             referencedColumns: ["IDPrestation"]
           },
+          {
+            foreignKeyName: "VersementCommissions_IDPrestation_fkey"
+            columns: ["IDPrestation"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -3068,7 +3133,7 @@ export type Database = {
           date_creation: string | null
           evaluation: number | null
           evaluation_commentaire: string | null
-          id: string | null
+          id: number | null
           IDAidant: number | null
           IDSeniors: number | null
           senior_nom: string | null
@@ -3134,6 +3199,57 @@ export type Database = {
           utilisateur: string | null
         }
         Relationships: []
+      }
+      v_forum_posts_moderation: {
+        Row: {
+          DateCreationSujet: string | null
+          IDSujetForum: number | null
+          IDUtilisateurs: number | null
+          nbreponses: number | null
+          NomAuteur: string | null
+          NomForum: string | null
+          PrenomAuteur: string | null
+          signalements: number | null
+          TitreSujet: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "SujetForum_IDUtilisateurs_fkey"
+            columns: ["IDUtilisateurs"]
+            isOneToOne: false
+            referencedRelation: "Utilisateurs"
+            referencedColumns: ["IDUtilisateurs"]
+          },
+        ]
+      }
+      v_group_messages_moderation: {
+        Row: {
+          Contenu: string | null
+          DateEnvoi: string | null
+          IDGroupe: number | null
+          IDMessageGroupe: number | null
+          IDUtilisateurs: number | null
+          NomAuteur: string | null
+          NomGroupe: string | null
+          PrenomAuteur: string | null
+          signalements: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "MessageGroupe_IDGroupe_fkey"
+            columns: ["IDGroupe"]
+            isOneToOne: false
+            referencedRelation: "Groupe"
+            referencedColumns: ["IDGroupe"]
+          },
+          {
+            foreignKeyName: "MessageGroupe_IDUtilisateurs_fkey"
+            columns: ["IDUtilisateurs"]
+            isOneToOne: false
+            referencedRelation: "Utilisateurs"
+            referencedColumns: ["IDUtilisateurs"]
+          },
+        ]
       }
     }
     Functions: {

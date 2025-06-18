@@ -1,10 +1,11 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
 
 // Export Prestation interface for usage in other files
 export interface Prestation {
-  id: number; // ← ici
+  id: string; // Keep as string for UI consistency
   seniorNom: string;
   aidantNom: string;
   typePrestation: string;
