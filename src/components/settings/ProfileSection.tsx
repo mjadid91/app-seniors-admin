@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuthStore } from "../../stores/authStore";
 import { useUserProfile } from "../../hooks/useUserProfile";
@@ -24,19 +24,19 @@ const ProfileSection = () => {
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
   // Synchroniser formData avec le profil chargé
-  useState(() => {
+  useEffect(() => {
     if (profile && !isLoading) {
       setFormData({
-        prenom: profile.prenom,
-        nom: profile.nom,
-        email: profile.email,
-        telephone: profile.telephone,
-        languePreferee: profile.languePreferee,
-        devise: profile.devise
+        prenom: profile.prenom || "",
+        nom: profile.nom || "",
+        email: profile.email || "",
+        telephone: profile.telephone || "",
+        languePreferee: profile.languePreferee || "fr",
+        devise: profile.devise || "EUR"
       });
       setProfileImage(profile.photo || null);
     }
-  });
+  }, [profile, isLoading]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -54,7 +54,7 @@ const ProfileSection = () => {
   };
 
   const getInitials = () => {
-    return `${formData.prenom?.[0] || profile.prenom?.[0] || ''}${formData.nom?.[0] || profile.nom?.[0] || ''}`;
+    return `${formData.prenom?.[0] || profile?.prenom?.[0] || ''}${formData.nom?.[0] || profile?.nom?.[0] || ''}`;
   };
 
   if (isLoading) {
