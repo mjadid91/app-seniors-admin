@@ -8,28 +8,34 @@ import DocumentsStats from "./DocumentsStats";
 import DocumentsQuickActions from "./DocumentsQuickActions";
 import AddDocumentModal from "./AddDocumentModal";
 import EditDocumentModal from "./EditDocumentModal";
-import { useDocuments } from "./useDocuments";
+import ViewDocumentModal from "./ViewDocumentModal";
+import { useDocuments, Document } from "./useDocuments";
 
 const Documents = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [isAddDocumentModalOpen, setIsAddDocumentModalOpen] = useState(false);
   const [isEditDocumentModalOpen, setIsEditDocumentModalOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState(null);
+  const [isViewDocumentModalOpen, setIsViewDocumentModalOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   
   const {
     documents,
     categories,
     handleAddDocument,
-    handleViewDocument,
     handleEditDocument,
     handleDownloadDocument,
     handleDeleteDocument
   } = useDocuments();
 
-  const handleEditClick = (doc) => {
+  const handleEditClick = (doc: Document) => {
     setSelectedDocument(doc);
     setIsEditDocumentModalOpen(true);
+  };
+
+  const handleViewClick = (doc: Document) => {
+    setSelectedDocument(doc);
+    setIsViewDocumentModalOpen(true);
   };
 
   return (
@@ -47,7 +53,7 @@ const Documents = () => {
 
         <DocumentsTable
           documents={documents}
-          onView={handleViewDocument}
+          onView={handleViewClick}
           onEdit={handleEditClick}
           onDownload={handleDownloadDocument}
           onDelete={handleDeleteDocument}
@@ -72,6 +78,12 @@ const Documents = () => {
         document={selectedDocument}
         onEditDocument={handleEditDocument}
         categories={categories}
+      />
+
+      <ViewDocumentModal
+        isOpen={isViewDocumentModalOpen}
+        onClose={() => setIsViewDocumentModalOpen(false)}
+        document={selectedDocument}
       />
     </div>
   );
