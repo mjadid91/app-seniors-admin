@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import DocumentsHeader from "./DocumentsHeader";
 import DocumentsFilters from "./DocumentsFilters";
@@ -9,72 +8,85 @@ import DocumentsQuickActions from "./DocumentsQuickActions";
 import AddDocumentModal from "./AddDocumentModal";
 import EditDocumentModal from "./EditDocumentModal";
 import { useDocuments } from "./useDocuments";
+import ViewDocumentModal from "@/components/documents/ViewDocumentModal";
 
 const Documents = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState("all");
-  const [isAddDocumentModalOpen, setIsAddDocumentModalOpen] = useState(false);
-  const [isEditDocumentModalOpen, setIsEditDocumentModalOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState(null);
-  
-  const {
-    documents,
-    categories,
-    handleAddDocument,
-    handleViewDocument,
-    handleEditDocument,
-    handleDownloadDocument,
-    handleDeleteDocument
-  } = useDocuments();
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filterType, setFilterType] = useState("all");
+    const [isAddDocumentModalOpen, setIsAddDocumentModalOpen] = useState(false);
+    const [isEditDocumentModalOpen, setIsEditDocumentModalOpen] = useState(false);
+    const [isViewDocumentModalOpen, setIsViewDocumentModalOpen] = useState(false);
+    const [selectedDocument, setSelectedDocument] = useState(null);
 
-  const handleEditClick = (doc) => {
-    setSelectedDocument(doc);
-    setIsEditDocumentModalOpen(true);
-  };
+    const {
+        documents,
+        categories,
+        handleAddDocument,
+        handleViewDocument,
+        handleEditDocument,
+        handleDownloadDocument,
+        handleDeleteDocument,
+    } = useDocuments();
 
-  return (
-    <div className="space-y-6">
-      <DocumentsHeader onAddDocument={() => setIsAddDocumentModalOpen(true)} />
+    const handleEditClick = (doc) => {
+        setSelectedDocument(doc);
+        setIsEditDocumentModalOpen(true);
+    };
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <DocumentsFilters
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          filterType={filterType}
-          setFilterType={setFilterType}
-          categories={categories}
-        />
+    const handleViewClick = (doc) => {
+        setSelectedDocument(doc);
+        setIsViewDocumentModalOpen(true);
+    };
 
-        <DocumentsTable
-          documents={documents}
-          onView={handleViewDocument}
-          onEdit={handleEditClick}
-          onDownload={handleDownloadDocument}
-          onDelete={handleDeleteDocument}
-        />
-      </div>
+    return (
+        <div className="space-y-6">
+            <DocumentsHeader onAddDocument={() => setIsAddDocumentModalOpen(true)} />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <DocumentsUpload />
-        <DocumentsStats documents={documents} />
-        <DocumentsQuickActions />
-      </div>
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                <DocumentsFilters
+                    searchTerm={searchTerm}
+                    setSearchTerm={setSearchTerm}
+                    filterType={filterType}
+                    setFilterType={setFilterType}
+                    categories={categories}
+                />
 
-      <AddDocumentModal 
-        isOpen={isAddDocumentModalOpen}
-        onClose={() => setIsAddDocumentModalOpen(false)}
-        onAddDocument={handleAddDocument}
-      />
+                <DocumentsTable
+                    documents={documents}
+                    onView={handleViewClick}
+                    onEdit={handleEditClick}
+                    onDownload={handleDownloadDocument}
+                    onDelete={handleDeleteDocument}
+                />
+            </div>
 
-      <EditDocumentModal
-        isOpen={isEditDocumentModalOpen}
-        onClose={() => setIsEditDocumentModalOpen(false)}
-        document={selectedDocument}
-        onEditDocument={handleEditDocument}
-        categories={categories}
-      />
-    </div>
-  );
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <DocumentsUpload />
+                <DocumentsStats documents={documents} />
+                <DocumentsQuickActions />
+            </div>
+
+            <AddDocumentModal
+                isOpen={isAddDocumentModalOpen}
+                onClose={() => setIsAddDocumentModalOpen(false)}
+                onAddDocument={handleAddDocument}
+            />
+
+            <EditDocumentModal
+                isOpen={isEditDocumentModalOpen}
+                onClose={() => setIsEditDocumentModalOpen(false)}
+                document={selectedDocument}
+                onEditDocument={handleEditDocument}
+                categories={categories}
+            />
+
+            <ViewDocumentModal
+                isOpen={isViewDocumentModalOpen}
+                onClose={() => setIsViewDocumentModalOpen(false)}
+                document={selectedDocument}
+            />
+        </div>
+    );
 };
 
 export default Documents;

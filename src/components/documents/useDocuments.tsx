@@ -11,6 +11,8 @@ export interface Document {
   uploadDate: string;
   category: string;
   status: string;
+  postedBy?: string;        // ← Ajoute ceci
+  postedEmail?: string;     // ← Et ceci aussi
   supabaseId?: number;
 }
 
@@ -22,7 +24,14 @@ interface SupabaseDocument {
   DateUpload: string;
   Statut: string;
   IDCategorieDocument: number | null;
+  IDUtilisateurs: number;
+  Utilisateurs: {
+    Nom: string;
+    Prenom: string;
+    Email: string;
+  } | null;
 }
+
 
 interface SupabaseCategorie {
   IDCategorieDocument: number;
@@ -60,26 +69,43 @@ export const useDocuments = () => {
   // Fetch documents from Supabase
   const fetchDocuments = useCallback(async () => {
     const { data, error } = await supabase
-      .from("Document")
-      .select("*");
+        .from("Document")
+        .select(`
+          IDDocument,
+          Titre,
+          TypeFichier,
+          TailleFichier,
+          DateUpload,
+          Statut,
+          IDCategorieDocument,
+          IDUtilisateurs,
+          Utilisateurs (
+            Nom,
+            Prenom,
+            Email
+          )
+  `);
     if (error) {
       toast({ title: "Erreur", description: "Impossible de charger les documents.", variant: "destructive" });
       return;
     }
 
     setDocuments(
-      (data as SupabaseDocument[]).map((doc) => ({
-        id: doc.IDDocument,
-        name: doc.Titre,
-        type: doc.TypeFichier,
-        size: doc.TailleFichier != null ? `${Number(doc.TailleFichier).toFixed(1)} MB` : "0.0 MB",
-        uploadDate: doc.DateUpload,
-        category: doc.IDCategorieDocument && catIdToName[doc.IDCategorieDocument]
-          ? catIdToName[doc.IDCategorieDocument]
-          : "",
-        status: doc.Statut,
-        supabaseId: doc.IDDocument,
-      }))
+        (data as SupabaseDocument[]).map((doc) => ({
+          id: doc.IDDocument,
+          name: doc.Titre,
+          type: doc.TypeFichier,
+          size: doc.TailleFichier != null ? `${Number(doc.TailleFichier).toFixed(1)} MB` : "0.0 MB",
+          uploadDate: doc.DateUpload,
+          category: doc.IDCategorieDocument && catIdToName[doc.IDCategorieDocument]
+              ? catIdToName[doc.IDCategorieDocument]
+              : "",
+          status: doc.Statut,
+          postedBy: doc.Utilisateurs ? `${doc.Utilisateurs.Prenom} ${doc.Utilisateurs.Nom}` : "—",
+          postedEmail: doc.Utilisateurs?.Email ?? "",
+
+          supabaseId: doc.IDDocument
+        }))
     );
   }, [catIdToName, toast]);
 

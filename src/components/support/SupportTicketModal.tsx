@@ -7,7 +7,6 @@ import { User, Calendar, AlertCircle, MessageSquare } from "lucide-react";
 import TicketReplyForm from "./TicketReplyForm";
 import TicketAssignmentForm from "./TicketAssignmentForm";
 
-// CHANGED id: string --> id: number for Ticket type consistency!
 interface Ticket {
   id: number;
   sujet: string;
