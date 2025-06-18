@@ -104,7 +104,7 @@ export const useUserProfile = () => {
         console.error('Erreur lors de la sauvegarde:', error);
         toast({
           title: "Erreur",
-          description: "Impossible de sauvegarder vos modifications.",
+          description: "Échec de la mise à jour",
           variant: "destructive",
         });
         return false;
@@ -115,7 +115,7 @@ export const useUserProfile = () => {
       
       toast({
         title: "Profil mis à jour",
-        description: "Vos informations ont été enregistrées avec succès.",
+        description: "Vos infos ont bien été enregistrées.",
       });
       
       return true;
