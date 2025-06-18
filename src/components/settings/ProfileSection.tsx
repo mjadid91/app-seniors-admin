@@ -8,23 +8,39 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthStore } from "../../stores/authStore";
-import { Camera, Upload } from "lucide-react";
+import { useUserProfile } from "../../hooks/useUserProfile";
+import { Upload } from "lucide-react";
 
 const ProfileSection = () => {
   const { user } = useAuthStore();
+  const { profile, isLoading, isSaving, saveProfile } = useUserProfile();
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
-    prenom: user?.prenom || "",
-    nom: user?.nom || "",
-    email: user?.email || "",
+    prenom: "",
+    nom: "",
+    email: "",
     telephone: "",
-    langue: "fr",
+    languePreferee: "fr",
     devise: "EUR"
   });
 
-  const [profileImage, setProfileImage] = useState<string | null>(user?.photo || null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+
+  // Synchroniser formData avec le profil chargé
+  useState(() => {
+    if (profile && !isLoading) {
+      setFormData({
+        prenom: profile.prenom,
+        nom: profile.nom,
+        email: profile.email,
+        telephone: profile.telephone,
+        languePreferee: profile.languePreferee,
+        devise: profile.devise
+      });
+      setProfileImage(profile.photo || null);
+    }
+  });
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -75,22 +91,32 @@ const ProfileSection = () => {
   };
 
   const handleSave = async () => {
-    setIsLoading(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast({
-      title: "Profil mis à jour",
-      description: "Vos informations ont été enregistrées avec succès.",
+    const success = await saveProfile({
+      ...formData,
+      photo: profileImage || undefined
     });
-    
-    setIsLoading(false);
+
+    if (success) {
+      console.log('Profil sauvegardé avec succès');
+    }
   };
 
   const getInitials = () => {
-    return `${formData.prenom?.[0] || user?.prenom?.[0] || ''}${formData.nom?.[0] || user?.nom?.[0] || ''}`;
+    return `${formData.prenom?.[0] || profile.prenom?.[0] || ''}${formData.nom?.[0] || profile.nom?.[0] || ''}`;
   };
+
+  if (isLoading) {
+    return (
+      <Card className="animate-scale-in">
+        <CardContent className="p-6">
+          <div className="text-center">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-slate-600">Chargement de votre profil...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="animate-scale-in">
@@ -109,7 +135,7 @@ const ProfileSection = () => {
           <Label className="text-base font-medium">Photo de profil</Label>
           <div className="flex items-center gap-6">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={profileImage || undefined} alt="Photo de profil" />
+              <AvatarImage src={profileImage || profile.photo || undefined} alt="Photo de profil" />
               <AvatarFallback className="text-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white">
                 {getInitials()}
               </AvatarFallback>
@@ -135,7 +161,7 @@ const ProfileSection = () => {
                   </label>
                 </Button>
                 
-                {profileImage && (
+                {(profileImage || profile.photo) && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -203,7 +229,7 @@ const ProfileSection = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
             <div className="space-y-2">
               <Label>Langue</Label>
-              <Select value={formData.langue} onValueChange={(value) => handleInputChange("langue", value)}>
+              <Select value={formData.languePreferee} onValueChange={(value) => handleInputChange("languePreferee", value)}>
                 <SelectTrigger className="transition-all duration-200 hover:border-blue-300">
                   <SelectValue />
                 </SelectTrigger>
@@ -234,10 +260,10 @@ const ProfileSection = () => {
         <div className="pt-4 border-t border-slate-200">
           <Button 
             onClick={handleSave} 
-            disabled={isLoading}
+            disabled={isSaving}
             className="w-full md:w-auto transition-all duration-200 hover:scale-105"
           >
-            {isLoading ? "Enregistrement..." : "Enregistrer les modifications"}
+            {isSaving ? "Enregistrement..." : "Enregistrer les modifications"}
           </Button>
         </div>
       </CardContent>
