@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
@@ -16,7 +15,7 @@ import type { Prestation as PrestationTableType } from "./PrestationTable";
 type Prestation = PrestationTableType;
 
 const mapPrestationDBToUI = (db: PrestationDB): Prestation => ({
-  id: db.id?.toString() ?? "",
+  id: db.id.toString(), // Convert number to string for UI
   seniorNom: db.senior_nom ?? "N/A",
   aidantNom: db.aidant_nom ?? "N/A",
   typePrestation: db.type_prestation ?? "Sans titre",
@@ -24,8 +23,6 @@ const mapPrestationDBToUI = (db: PrestationDB): Prestation => ({
   tarif: typeof db.tarif === "number" ? db.tarif : 0,
   statut: db.statut ?? "en_attente",
   evaluation: db.evaluation ? Number(db.evaluation) : undefined,
-  // Tous les autres champs utiles issus de la vue : IDSeniors, IDAidant, commentaire, etc
-  ...db
 });
 
 const PrestationTracking = () => {
