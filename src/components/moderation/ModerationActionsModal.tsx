@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, Eye, EyeOff, Archive, Trash2 } from "lucide-react";
+import { AlertTriangle, Eye, EyeOff, Archive, Trash2, ShieldX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ForumPost, GroupMessage } from './types';
 import { getStatutBadgeColor } from './utils';
@@ -44,12 +44,15 @@ const ModerationActionsModal = ({ isOpen, onClose, item, type, onAction }: Moder
         'visible': 'rendu visible',
         'masque': 'masqué',
         'archive': 'archivé',
-        'supprime': 'supprimé'
+        'supprime': 'supprimé',
+        'rejeter_signalement': 'signalement rejeté'
       };
 
       toast({
         title: "Action effectuée",
-        description: `Le ${type === 'forum' ? 'sujet' : 'message'} a été ${actionLabels[action as keyof typeof actionLabels]}`,
+        description: action === 'rejeter_signalement' 
+          ? `Le signalement a été rejeté` 
+          : `Le ${type === 'forum' ? 'sujet' : 'message'} a été ${actionLabels[action as keyof typeof actionLabels]}`,
       });
 
       onClose();
@@ -118,7 +121,7 @@ const ModerationActionsModal = ({ isOpen, onClose, item, type, onAction }: Moder
             />
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <Button
               onClick={() => handleAction('visible')}
               disabled={isSubmitting || item.statut === 'visible'}
@@ -157,6 +160,16 @@ const ModerationActionsModal = ({ isOpen, onClose, item, type, onAction }: Moder
             >
               <Trash2 className="h-4 w-4" />
               Supprimer
+            </Button>
+
+            <Button
+              onClick={() => handleAction('rejeter_signalement')}
+              disabled={isSubmitting}
+              className="flex items-center gap-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+              variant="outline"
+            >
+              <ShieldX className="h-4 w-4" />
+              Rejeter signalement
             </Button>
           </div>
 
