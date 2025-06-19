@@ -46,33 +46,50 @@ export const useModerationActions = () => {
     setIsProcessing(true);
     
     try {
-      const column = type === 'forum' ? 'IDReponseForum' : 'IDMessageGroupe';
-      const table = type === 'forum' ? 'ReponseForum' : 'MessageGroupe';
-      const idColumn = type === 'forum' ? 'IDReponseForum' : 'IDMessageGroupe';
-      const contentColumn = type === 'forum' ? 'ContenuReponse' : 'Contenu';
-      
       const itemIdNum = parseInt(itemId);
       
-      // Marquer le contenu comme supprimé/masqué
-      const hideResult = await supabase
-        .from(table)
-        .update({ 
-          [contentColumn]: '[Contenu masqué par la modération]'
-        })
-        .eq(idColumn, itemIdNum);
+      // Marquer le contenu comme supprimé/masqué - use separate operations for each type
+      if (type === 'forum') {
+        const { error: hideError } = await supabase
+          .from('ReponseForum')
+          .update({ 
+            ContenuReponse: '[Contenu masqué par la modération]'
+          })
+          .eq('IDReponseForum', itemIdNum);
 
-      if (hideResult.error) throw hideResult.error;
+        if (hideError) throw hideError;
 
-      // Marquer le signalement comme traité
-      const signalResult = await supabase
-        .from('SignalementContenu')
-        .update({ 
-          Traité: true,
-          ActionModeration: 'Contenu masqué'
-        })
-        .eq(column, itemIdNum);
+        // Marquer le signalement comme traité
+        const { error: signalError } = await supabase
+          .from('SignalementContenu')
+          .update({ 
+            Traité: true,
+            ActionModeration: 'Contenu masqué'
+          })
+          .eq('IDReponseForum', itemIdNum);
 
-      if (signalResult.error) throw signalResult.error;
+        if (signalError) throw signalError;
+      } else {
+        const { error: hideError } = await supabase
+          .from('MessageGroupe')
+          .update({ 
+            Contenu: '[Contenu masqué par la modération]'
+          })
+          .eq('IDMessageGroupe', itemIdNum);
+
+        if (hideError) throw hideError;
+
+        // Marquer le signalement comme traité
+        const { error: signalError } = await supabase
+          .from('SignalementContenu')
+          .update({ 
+            Traité: true,
+            ActionModeration: 'Contenu masqué'
+          })
+          .eq('IDMessageGroupe', itemIdNum);
+
+        if (signalError) throw signalError;
+      }
 
       toast({
         title: "Contenu masqué",
