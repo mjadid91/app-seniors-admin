@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, Eye, EyeOff, Archive, Trash2, ShieldX } from "lucide-react";
+import { AlertTriangle, Eye, EyeOff, Archive, Trash2, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ForumPost, GroupMessage } from './types';
 import { getStatutBadgeColor } from './utils';
@@ -45,13 +45,13 @@ const ModerationActionsModal = ({ isOpen, onClose, item, type, onAction }: Moder
         'masque': 'masqué',
         'archive': 'archivé',
         'supprime': 'supprimé',
-        'rejeter_signalement': 'signalement rejeté'
+        'marquer_traite': 'signalement marqué comme traité'
       };
 
       toast({
         title: "Action effectuée",
-        description: action === 'rejeter_signalement' 
-          ? `Le signalement a été rejeté` 
+        description: action === 'marquer_traite' 
+          ? `Le signalement a été marqué comme traité` 
           : `Le ${type === 'forum' ? 'sujet' : 'message'} a été ${actionLabels[action as keyof typeof actionLabels]}`,
       });
 
@@ -163,13 +163,13 @@ const ModerationActionsModal = ({ isOpen, onClose, item, type, onAction }: Moder
             </Button>
 
             <Button
-              onClick={() => handleAction('rejeter_signalement')}
+              onClick={() => handleAction('marquer_traite')}
               disabled={isSubmitting}
               className="flex items-center gap-2 text-green-600 hover:text-green-700 hover:bg-green-50"
               variant="outline"
             >
-              <ShieldX className="h-4 w-4" />
-              Rejeter signalement
+              <CheckCircle className="h-4 w-4" />
+              Marquer comme traité
             </Button>
           </div>
 
