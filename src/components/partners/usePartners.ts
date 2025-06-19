@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -168,29 +167,20 @@ export const usePartners = () => {
     }
   }, [rawPartners, fetchBonsPlans]);
 
-  // Handlers (for now, only toasts and refetch; you can implement full CRUD next step if needed)
+  // Handlers - mise à jour de handleAddPartner pour être plus simple
   const handleAddPartner = async (newPartnerData: Omit<Partner, 'id'>) => {
-    const { error } = await supabase.from("Partenaire").insert({
-      RaisonSociale: newPartnerData.nom,
-      Email: newPartnerData.email,
-      Telephone: newPartnerData.telephone,
-      Adresse: newPartnerData.adresse,
-      TypePartenaire: newPartnerData.type,
+    // Cette fonction est maintenant principalement pour la mise à jour de l'état local
+    // La création réelle est gérée dans AddPartnerModal
+    toast({
+      title: "Partenaire ajouté",
+      description: `${newPartnerData.nom} a été ajouté avec succès.`,
     });
-    if (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible d'ajouter le partenaire.",
-        variant: "destructive"
-      });
-    } else {
-      toast({
-        title: "Partenaire ajouté",
-        description: `${newPartnerData.nom} a été ajouté avec succès.`,
-      });
-      fetchPartners();
-      fetchPartenaireServices();
-    }
+    
+    // Recharger les données pour avoir les informations à jour
+    await Promise.all([
+      fetchPartners(),
+      fetchPartenaireServices()
+    ]);
   };
 
   const handleContactPartner = (partner: Partner) => {

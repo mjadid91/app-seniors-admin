@@ -4,9 +4,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { usePasswordUtils } from "@/hooks/usePasswordUtils";
+import { usePartnerServices } from "@/hooks/usePartnerServices";
 import { Partner } from "./types";
 
 interface AddPartnerModalProps {
@@ -15,54 +17,189 @@ interface AddPartnerModalProps {
   onAddPartner: (partner: Omit<Partner, 'id'>) => void;
 }
 
+interface PartnerFormData {
+  // Données utilisateur
+  nom: string;
+  prenom: string;
+  email: string;
+  telephone: string;
+  
+  // Données partenaire
+  raisonSociale: string;
+  adresse: string;
+  
+  // Services sélectionnés
+  selectedServices: number[];
+}
+
 const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps) => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<PartnerFormData>({
     nom: "",
-    type: "",
+    prenom: "",
     email: "",
     telephone: "",
+    raisonSociale: "",
     adresse: "",
-    statut: "En attente",
-    services: ""
+    selectedServices: []
   });
+  
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { generatePassword, hashPassword, isGenerating } = usePasswordUtils();
+  const { services, loading: servicesLoading } = usePartnerServices();
 
-  const partnerTypes = ["Prestataire de services", "Aide à domicile", "Support technique", "Santé", "Transport"];
+  const handleServiceToggle = (serviceId: number) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedServices: prev.selectedServices.includes(serviceId)
+        ? prev.selectedServices.filter(id => id !== serviceId)
+        : [...prev.selectedServices, serviceId]
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
+      // 1. Générer et hasher le mot de passe
+      const temporaryPassword = generatePassword();
+      const hashedPassword = await hashPassword(temporaryPassword);
+      const currentDate = new Date().toISOString();
+
+      console.log('Starting partner creation process...');
+
+      // 2. Créer l'utilisateur
+      const { data: userData, error: userError } = await supabase
+        .from('Utilisateurs')
+        .insert({
+          Nom: formData.nom,
+          Prenom: formData.prenom,
+          Email: formData.email,
+          Telephone: formData.telephone,
+          DateNaissance: '1970-01-01', // Valeur par défaut
+          Adresse: formData.adresse,
+          Genre: 'Non précisé',
+          MotDePasse: hashedPassword,
+          IDCatUtilisateurs: 3, // Rôle Organisme
+          DateInscription: currentDate.split('T')[0],
+          Commentaire: 'Compte partenaire créé automatiquement',
+          DateModification: currentDate,
+          LangueSite: 'fr',
+          Photo: '',
+          EstDesactive: false,
+          EstRGPD: false
+        })
+        .select()
+        .single();
+
+      if (userError) {
+        console.error('Erreur création utilisateur:', userError);
+        throw userError;
+      }
+
+      console.log('Utilisateur créé:', userData);
+
+      // 3. Créer le partenaire
+      const { data: partenaireData, error: partenaireError } = await supabase
+        .from('Partenaire')
+        .insert({
+          RaisonSociale: formData.raisonSociale,
+          Email: formData.email,
+          Telephone: formData.telephone,
+          Adresse: formData.adresse,
+          IDCatUtilisateurs: 3
+        })
+        .select()
+        .single();
+
+      if (partenaireError) {
+        console.error('Erreur création partenaire:', partenaireError);
+        throw partenaireError;
+      }
+
+      console.log('Partenaire créé:', partenaireData);
+
+      // 4. Associer les services sélectionnés
+      if (formData.selectedServices.length > 0) {
+        const servicesAssociations = formData.selectedServices.map(serviceId => ({
+          IDPartenaire: partenaireData.IDPartenaire,
+          IDServicePartenaire: serviceId
+        }));
+
+        const { error: servicesError } = await supabase
+          .from('Partenaire_Services')
+          .insert(servicesAssociations);
+
+        if (servicesError) {
+          console.error('Erreur association services:', servicesError);
+          throw servicesError;
+        }
+
+        console.log('Services associés avec succès');
+      }
+
+      // 5. Envoyer l'email avec les identifiants
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-partner-credentials', {
+          body: {
+            email: formData.email,
+            nom: `${formData.prenom} ${formData.nom}`,
+            password: temporaryPassword,
+            raisonSociale: formData.raisonSociale
+          }
+        });
+
+        if (emailError) {
+          console.warn('Erreur envoi email:', emailError);
+          // Ne pas bloquer le processus si l'email échoue
+        }
+      } catch (emailError) {
+        console.warn('Erreur lors de l\'envoi de l\'email:', emailError);
+        // Ne pas bloquer le processus si l'email échoue
+      }
+
+      // 6. Créer l'objet Partner pour l'affichage
+      const selectedServiceNames = services
+        .filter(service => formData.selectedServices.includes(service.IDServicePartenaire))
+        .map(service => service.NomService);
+
       const newPartner: Omit<Partner, 'id'> = {
-        ...formData,
+        nom: formData.raisonSociale,
+        type: "Organisme",
+        email: formData.email,
+        telephone: formData.telephone,
+        adresse: formData.adresse,
+        statut: "Actif",
         evaluation: 0,
-        services: formData.services.split(',').map(s => s.trim()).filter(s => s.length > 0),
-        dateInscription: new Date().toISOString().split('T')[0]
+        services: selectedServiceNames,
+        dateInscription: currentDate.split('T')[0]
       };
 
       onAddPartner(newPartner);
       
       toast({
-        title: "Partenaire ajouté",
-        description: `${formData.nom} a été ajouté avec succès.`,
+        title: "Partenaire créé",
+        description: `${formData.raisonSociale} a été créé avec succès. Un email avec les identifiants a été envoyé.`,
       });
 
+      // Reset form
       setFormData({
         nom: "",
-        type: "",
+        prenom: "",
         email: "",
         telephone: "",
+        raisonSociale: "",
         adresse: "",
-        statut: "En attente",
-        services: ""
+        selectedServices: []
       });
       onClose();
-    } catch (error) {
+
+    } catch (error: any) {
+      console.error('Erreur lors de la création du partenaire:', error);
       toast({
         title: "Erreur",
-        description: "Impossible d'ajouter le partenaire.",
+        description: "Impossible de créer le partenaire. " + (error.message || ''),
         variant: "destructive"
       });
     } finally {
@@ -72,95 +209,121 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Nouveau partenaire</DialogTitle>
           <DialogDescription>
-            Ajoutez un nouveau partenaire à la plateforme.
+            Créer un nouveau compte partenaire avec utilisateur associé.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="nom">Nom du partenaire</Label>
-            <Input
-              id="nom"
-              value={formData.nom}
-              onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-              required
-            />
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Informations utilisateur */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Informations de l'utilisateur</h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="prenom">Prénom</Label>
+                <Input
+                  id="prenom"
+                  value={formData.prenom}
+                  onChange={(e) => setFormData({ ...formData, prenom: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="nom">Nom</Label>
+                <Input
+                  id="nom"
+                  value={formData.nom}
+                  onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="telephone">Téléphone</Label>
+                <Input
+                  id="telephone"
+                  value={formData.telephone}
+                  onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
+                  required
+                />
+              </div>
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="type">Type</Label>
-            <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un type" />
-              </SelectTrigger>
-              <SelectContent>
-                {partnerTypes.map(type => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
+
+          {/* Informations partenaire */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Informations du partenaire</h3>
+            
+            <div className="space-y-2">
+              <Label htmlFor="raisonSociale">Raison sociale</Label>
+              <Input
+                id="raisonSociale"
+                value={formData.raisonSociale}
+                onChange={(e) => setFormData({ ...formData, raisonSociale: e.target.value })}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="adresse">Adresse</Label>
+              <Input
+                id="adresse"
+                value={formData.adresse}
+                onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Services proposés */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Services proposés</h3>
+            
+            {servicesLoading ? (
+              <p>Chargement des services...</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded p-4">
+                {services.map((service) => (
+                  <div key={service.IDServicePartenaire} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`service-${service.IDServicePartenaire}`}
+                      checked={formData.selectedServices.includes(service.IDServicePartenaire)}
+                      onCheckedChange={() => handleServiceToggle(service.IDServicePartenaire)}
+                    />
+                    <Label 
+                      htmlFor={`service-${service.IDServicePartenaire}`}
+                      className="text-sm cursor-pointer"
+                    >
+                      {service.NomService}
+                    </Label>
+                  </div>
                 ))}
-              </SelectContent>
-            </Select>
+              </div>
+            )}
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="telephone">Téléphone</Label>
-              <Input
-                id="telephone"
-                value={formData.telephone}
-                onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
-                required
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="adresse">Adresse</Label>
-            <Input
-              id="adresse"
-              value={formData.adresse}
-              onChange={(e) => setFormData({ ...formData, adresse: e.target.value })}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="services">Services (séparés par des virgules)</Label>
-            <Textarea
-              id="services"
-              value={formData.services}
-              onChange={(e) => setFormData({ ...formData, services: e.target.value })}
-              placeholder="Ex: Ménage, Jardinage, Bricolage"
-              rows={2}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="statut">Statut</Label>
-            <Select value={formData.statut} onValueChange={(value) => setFormData({ ...formData, statut: value })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="En attente">En attente</SelectItem>
-                <SelectItem value="Actif">Actif</SelectItem>
-                <SelectItem value="Suspendu">Suspendu</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex justify-end space-x-2">
+
+          <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Ajout..." : "Ajouter"}
+            <Button type="submit" disabled={isLoading || isGenerating || servicesLoading}>
+              {isLoading ? "Création..." : "Créer le partenaire"}
             </Button>
           </div>
         </form>
