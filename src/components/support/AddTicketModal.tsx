@@ -19,10 +19,9 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    titre: "",
+    sujet: "",
     description: "",
     clientId: "",
-    supportId: "",
     priorite: "Moyenne"
   });
 
@@ -40,36 +39,20 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
     }
   });
 
-  // Récupérer les agents support (IDCatUtilisateurs = 8)
-  const { data: supportAgents = [] } = useQuery({
-    queryKey: ['support-agents'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('Utilisateurs')
-        .select('IDUtilisateurs, Nom, Prenom')
-        .eq('IDCatUtilisateurs', 8)
-        .order('Nom');
-      
-      if (error) throw error;
-      return data;
-    }
-  });
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
       const { error } = await supabase
-        .from('TicketClient')
+        .from('SupportClient')
         .insert({
-          TitreTicket: formData.titre,
-          DescriptionProbleme: formData.description,
+          Sujet: formData.sujet,
+          DescriptionDemande: formData.description,
           IDUtilisateursClient: parseInt(formData.clientId),
-          IDUtilisateursSupport: formData.supportId ? parseInt(formData.supportId) : null,
-          PrioriteTicket: formData.priorite,
-          StatutTicket: 'Ouvert',
-          DateCreation: new Date().toISOString()
+          Priorite: formData.priorite,
+          StatutDemande: 'Ouvert',
+          DateEnvoi: new Date().toISOString().split('T')[0]
         });
 
       if (error) throw error;
@@ -82,10 +65,9 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
       onSuccess();
       onClose();
       setFormData({
-        titre: "",
+        sujet: "",
         description: "",
         clientId: "",
-        supportId: "",
         priorite: "Moyenne"
       });
     } catch (error) {
@@ -109,10 +91,10 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Titre du ticket</label>
+            <label className="block text-sm font-medium mb-1">Sujet du ticket</label>
             <Input
-              value={formData.titre}
-              onChange={(e) => setFormData(prev => ({ ...prev, titre: e.target.value }))}
+              value={formData.sujet}
+              onChange={(e) => setFormData(prev => ({ ...prev, sujet: e.target.value }))}
               required
             />
           </div>
@@ -136,22 +118,6 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
                 {clients.map((client) => (
                   <SelectItem key={client.IDUtilisateurs} value={client.IDUtilisateurs.toString()}>
                     {client.Prenom} {client.Nom}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Agent support</label>
-            <Select value={formData.supportId} onValueChange={(value) => setFormData(prev => ({ ...prev, supportId: value }))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un agent support" />
-              </SelectTrigger>
-              <SelectContent>
-                {supportAgents.map((agent) => (
-                  <SelectItem key={agent.IDUtilisateurs} value={agent.IDUtilisateurs.toString()}>
-                    {agent.Prenom} {agent.Nom}
                   </SelectItem>
                 ))}
               </SelectContent>

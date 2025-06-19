@@ -20,11 +20,8 @@ const AddForumSubjectModal = ({ isOpen, onClose, onSuccess }: AddForumSubjectMod
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     titre: "",
-    description: "",
-    categorie: "",
     auteurId: "",
-    forumId: "",
-    estPublic: true
+    forumId: ""
   });
 
   // Récupérer les utilisateurs
@@ -64,10 +61,10 @@ const AddForumSubjectModal = ({ isOpen, onClose, onSuccess }: AddForumSubjectMod
         .from('SujetForum')
         .insert({
           TitreSujet: formData.titre,
-          ContenuSujet: formData.description,
           IDUtilisateurs: parseInt(formData.auteurId),
           IDForum: parseInt(formData.forumId),
-          DateCreation: new Date().toISOString().split('T')[0]
+          DateCreationSujet: new Date().toISOString().split('T')[0],
+          NbVues: 0
         });
 
       if (error) throw error;
@@ -81,11 +78,8 @@ const AddForumSubjectModal = ({ isOpen, onClose, onSuccess }: AddForumSubjectMod
       onClose();
       setFormData({
         titre: "",
-        description: "",
-        categorie: "",
         auteurId: "",
-        forumId: "",
-        estPublic: true
+        forumId: ""
       });
     } catch (error) {
       console.error('Erreur lors de la création du sujet:', error);
@@ -112,15 +106,6 @@ const AddForumSubjectModal = ({ isOpen, onClose, onSuccess }: AddForumSubjectMod
             <Input
               value={formData.titre}
               onChange={(e) => setFormData(prev => ({ ...prev, titre: e.target.value }))}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Contenu</label>
-            <Textarea
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               required
             />
           </div>
