@@ -48,7 +48,11 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
   const { generatePassword, hashPassword, isGenerating } = usePasswordUtils();
   const { services, loading: servicesLoading } = usePartnerServices();
 
+  console.log('Services chargés:', services);
+  console.log('Services loading:', servicesLoading);
+
   const handleServiceToggle = (serviceId: number) => {
+    console.log('Toggle service:', serviceId);
     setFormData(prev => ({
       ...prev,
       selectedServices: prev.selectedServices.includes(serviceId)
@@ -296,33 +300,53 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
             <h3 className="text-lg font-medium">Services proposés</h3>
             
             {servicesLoading ? (
-              <p>Chargement des services...</p>
+              <div className="flex items-center justify-center p-4">
+                <p className="text-sm text-muted-foreground">Chargement des services...</p>
+              </div>
+            ) : services.length === 0 ? (
+              <div className="flex items-center justify-center p-4 border rounded bg-muted/50">
+                <p className="text-sm text-muted-foreground">Aucun service disponible</p>
+              </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border rounded p-4">
-                {services.map((service) => (
-                  <div key={service.IDServicePartenaire} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`service-${service.IDServicePartenaire}`}
-                      checked={formData.selectedServices.includes(service.IDServicePartenaire)}
-                      onCheckedChange={() => handleServiceToggle(service.IDServicePartenaire)}
-                    />
-                    <Label 
-                      htmlFor={`service-${service.IDServicePartenaire}`}
-                      className="text-sm cursor-pointer"
-                    >
-                      {service.NomService}
-                    </Label>
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Sélectionnez les services proposés par ce partenaire :
+                </p>
+                <div className="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto border rounded-md p-4 bg-background">
+                  {services.map((service) => (
+                    <div key={service.IDServicePartenaire} className="flex items-center space-x-3">
+                      <Checkbox
+                        id={`service-${service.IDServicePartenaire}`}
+                        checked={formData.selectedServices.includes(service.IDServicePartenaire)}
+                        onCheckedChange={() => handleServiceToggle(service.IDServicePartenaire)}
+                      />
+                      <Label 
+                        htmlFor={`service-${service.IDServicePartenaire}`}
+                        className="text-sm font-normal cursor-pointer flex-1"
+                      >
+                        {service.NomService}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+                
+                {formData.selectedServices.length > 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    {formData.selectedServices.length} service(s) sélectionné(s)
                   </div>
-                ))}
+                )}
               </div>
             )}
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex justify-end space-x-2 pt-4 border-t">
             <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button type="submit" disabled={isLoading || isGenerating || servicesLoading}>
+            <Button 
+              type="submit" 
+              disabled={isLoading || isGenerating || servicesLoading}
+            >
               {isLoading ? "Création..." : "Créer le partenaire"}
             </Button>
           </div>
