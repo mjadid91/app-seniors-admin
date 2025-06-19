@@ -9,6 +9,7 @@ import { AlertTriangle, Eye, EyeOff, Archive, Trash2, CheckCircle } from "lucide
 import { useToast } from "@/hooks/use-toast";
 import { ForumPost, GroupMessage } from './types';
 import { getStatutBadgeColor } from './utils';
+import { markSignalementAsTraited } from '@/hooks/useSignalements';
 
 interface ModerationActionsModalProps {
   isOpen: boolean;
@@ -38,7 +39,12 @@ const ModerationActionsModal = ({ isOpen, onClose, item, type, onAction }: Moder
     setIsSubmitting(true);
     
     try {
-      await onAction(item.id, action, reason);
+      // Si c'est l'action "marquer comme traité", on met à jour les signalements
+      if (action === 'marquer_traite') {
+        await markSignalementAsTraited(type, item.id);
+      } else {
+        await onAction(item.id, action, reason);
+      }
       
       const actionLabels = {
         'visible': 'rendu visible',
