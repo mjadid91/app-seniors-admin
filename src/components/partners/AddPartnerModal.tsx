@@ -1,14 +1,16 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { usePasswordUtils } from "@/hooks/usePasswordUtils";
+import { usePartnerServices } from "@/hooks/usePartnerServices";
 import { Partner } from "./types";
-import { X, Plus } from "lucide-react";
+import { X } from "lucide-react";
 
 interface AddPartnerModalProps {
   isOpen: boolean;
@@ -27,8 +29,8 @@ interface PartnerFormData {
   raisonSociale: string;
   adresse: string;
   
-  // Services saisis manuellement
-  services: string[];
+  // Services sélectionnés
+  selectedServiceIds: number[];
 }
 
 const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps) => {
@@ -39,36 +41,28 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
     telephone: "",
     raisonSociale: "",
     adresse: "",
-    services: []
+    selectedServiceIds: []
   });
   
-  const [newService, setNewService] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { generatePassword, hashPassword, isGenerating } = usePasswordUtils();
+  const { services, loading: servicesLoading, refetch: refetchServices } = usePartnerServices();
 
-  const handleAddService = () => {
-    if (newService.trim() && !formData.services.includes(newService.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        services: [...prev.services, newService.trim()]
-      }));
-      setNewService("");
+  // Refetch services when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      refetchServices();
     }
-  };
+  }, [isOpen, refetchServices]);
 
-  const handleRemoveService = (serviceToRemove: string) => {
+  const handleServiceToggle = (serviceId: number, checked: boolean) => {
     setFormData(prev => ({
       ...prev,
-      services: prev.services.filter(service => service !== serviceToRemove)
+      selectedServiceIds: checked 
+        ? [...prev.selectedServiceIds, serviceId]
+        : prev.selectedServiceIds.filter(id => id !== serviceId)
     }));
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddService();
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -134,29 +128,11 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
 
       console.log('Partenaire créé:', partenaireData);
 
-      // 4. Créer et associer les services saisis
-      if (formData.services.length > 0) {
-        // Créer les nouveaux services dans ServicePartenaire
-        const servicesData = formData.services.map(serviceName => ({
-          NomService: serviceName
-        }));
-
-        const { data: createdServices, error: servicesCreationError } = await supabase
-          .from('ServicePartenaire')
-          .insert(servicesData)
-          .select();
-
-        if (servicesCreationError) {
-          console.error('Erreur création services:', servicesCreationError);
-          throw servicesCreationError;
-        }
-
-        console.log('Services créés:', createdServices);
-
-        // Associer les services au partenaire
-        const servicesAssociations = createdServices.map(service => ({
+      // 4. Associer les services sélectionnés
+      if (formData.selectedServiceIds.length > 0) {
+        const servicesAssociations = formData.selectedServiceIds.map(serviceId => ({
           IDPartenaire: partenaireData.IDPartenaire,
-          IDServicePartenaire: service.IDServicePartenaire
+          IDServicePartenaire: serviceId
         }));
 
         const { error: associationError } = await supabase
@@ -184,14 +160,16 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
 
         if (emailError) {
           console.warn('Erreur envoi email:', emailError);
-          // Ne pas bloquer le processus si l'email échoue
         }
       } catch (emailError) {
         console.warn('Erreur lors de l\'envoi de l\'email:', emailError);
-        // Ne pas bloquer le processus si l'email échoue
       }
 
       // 6. Créer l'objet Partner pour l'affichage
+      const selectedServiceNames = services
+        .filter(service => formData.selectedServiceIds.includes(service.IDServicePartenaire))
+        .map(service => service.NomService);
+
       const newPartner: Omit<Partner, 'id'> = {
         nom: formData.raisonSociale,
         type: "Organisme",
@@ -200,7 +178,7 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
         adresse: formData.adresse,
         statut: "Actif",
         evaluation: 0,
-        services: formData.services,
+        services: selectedServiceNames,
         dateInscription: currentDate.split('T')[0]
       };
 
@@ -219,9 +197,8 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
         telephone: "",
         raisonSociale: "",
         adresse: "",
-        services: []
+        selectedServiceIds: []
       });
-      setNewService("");
       onClose();
 
     } catch (error: any) {
@@ -324,60 +301,45 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Services proposés</h3>
             
-            <div className="space-y-3">
+            {servicesLoading ? (
+              <p className="text-sm text-muted-foreground">Chargement des services...</p>
+            ) : services.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Saisissez les services proposés par ce partenaire :
+                Aucun service disponible. Utilisez le bouton "Ajouter un service" pour en créer.
               </p>
-              
-              {/* Ajout de nouveau service */}
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Nom du service"
-                  value={newService}
-                  onChange={(e) => setNewService(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="flex-1"
-                />
-                <Button
-                  type="button"
-                  onClick={handleAddService}
-                  disabled={!newService.trim()}
-                  size="sm"
-                  className="shrink-0"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* Liste des services ajoutés */}
-              {formData.services.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Services ajoutés :</p>
-                  <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-3 bg-muted/50">
-                    {formData.services.map((service, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between bg-background px-3 py-2 rounded border"
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Sélectionnez les services proposés par ce partenaire :
+                </p>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-40 overflow-y-auto border rounded-md p-4">
+                  {services.map((service) => (
+                    <div key={service.IDServicePartenaire} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`service-${service.IDServicePartenaire}`}
+                        checked={formData.selectedServiceIds.includes(service.IDServicePartenaire)}
+                        onCheckedChange={(checked) => 
+                          handleServiceToggle(service.IDServicePartenaire, checked as boolean)
+                        }
+                      />
+                      <Label 
+                        htmlFor={`service-${service.IDServicePartenaire}`}
+                        className="text-sm font-normal cursor-pointer"
                       >
-                        <span className="text-sm">{service}</span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveService(service)}
-                          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {formData.services.length} service(s) ajouté(s)
-                  </div>
+                        {service.NomService}
+                      </Label>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
+
+                {formData.selectedServiceIds.length > 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    {formData.selectedServiceIds.length} service(s) sélectionné(s)
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end space-x-2 pt-4 border-t">
