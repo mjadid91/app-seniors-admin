@@ -634,6 +634,38 @@ export type Database = {
           },
         ]
       }
+      ConsentementCookies: {
+        Row: {
+          DateConsentement: string
+          IDConsentement: number
+          IDUtilisateurs: number | null
+          Statut: boolean
+          TypeCookie: string
+        }
+        Insert: {
+          DateConsentement?: string
+          IDConsentement?: number
+          IDUtilisateurs?: number | null
+          Statut?: boolean
+          TypeCookie: string
+        }
+        Update: {
+          DateConsentement?: string
+          IDConsentement?: number
+          IDUtilisateurs?: number | null
+          Statut?: boolean
+          TypeCookie?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ConsentementCookies_IDUtilisateurs_fkey"
+            columns: ["IDUtilisateurs"]
+            isOneToOne: false
+            referencedRelation: "Utilisateurs"
+            referencedColumns: ["IDUtilisateurs"]
+          },
+        ]
+      }
       ContactUrgence: {
         Row: {
           Email: string
@@ -734,6 +766,54 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "LogementSenior"
             referencedColumns: ["IDLogementSenior"]
+          },
+        ]
+      }
+      DemandeRGPD: {
+        Row: {
+          DateDemande: string
+          DateEcheance: string | null
+          DateTraitement: string | null
+          IDDemandeRGPD: number
+          IDUtilisateurs: number | null
+          Statut: string
+          TraitePar: number | null
+          TypeDemande: string
+        }
+        Insert: {
+          DateDemande?: string
+          DateEcheance?: string | null
+          DateTraitement?: string | null
+          IDDemandeRGPD?: number
+          IDUtilisateurs?: number | null
+          Statut?: string
+          TraitePar?: number | null
+          TypeDemande: string
+        }
+        Update: {
+          DateDemande?: string
+          DateEcheance?: string | null
+          DateTraitement?: string | null
+          IDDemandeRGPD?: number
+          IDUtilisateurs?: number | null
+          Statut?: string
+          TraitePar?: number | null
+          TypeDemande?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "DemandeRGPD_IDUtilisateurs_fkey"
+            columns: ["IDUtilisateurs"]
+            isOneToOne: false
+            referencedRelation: "Utilisateurs"
+            referencedColumns: ["IDUtilisateurs"]
+          },
+          {
+            foreignKeyName: "DemandeRGPD_TraitePar_fkey"
+            columns: ["TraitePar"]
+            isOneToOne: false
+            referencedRelation: "Utilisateurs"
+            referencedColumns: ["IDUtilisateurs"]
           },
         ]
       }
@@ -913,6 +993,30 @@ export type Database = {
             referencedColumns: ["IDSeniors"]
           },
         ]
+      }
+      DocumentRGPD: {
+        Row: {
+          DateMiseAJour: string
+          IDDocumentRGPD: number
+          Titre: string
+          TypeDoc: string
+          URLFichier: string
+        }
+        Insert: {
+          DateMiseAJour?: string
+          IDDocumentRGPD?: number
+          Titre: string
+          TypeDoc: string
+          URLFichier: string
+        }
+        Update: {
+          DateMiseAJour?: string
+          IDDocumentRGPD?: number
+          Titre?: string
+          TypeDoc?: string
+          URLFichier?: string
+        }
+        Relationships: []
       }
       Domaine: {
         Row: {

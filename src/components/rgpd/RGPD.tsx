@@ -3,72 +3,69 @@ import { Shield, FileText, Users, AlertTriangle, CheckCircle, Clock, Search, Dow
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import ProcessRequestModal from "./ProcessRequestModal";
-
-interface DataRequest {
-  id: number;
-  type: string;
-  user: string;
-  email: string;
-  date: string;
-  status: string;
-  deadline: string;
-}
+import { 
+  useDemandesRGPD, 
+  useConsentementsCookies, 
+  useDocumentsRGPD,
+  useTraiterDemandeRGPD,
+  type DemandeRGPD 
+} from "@/hooks/useSupabaseRGPD";
 
 const RGPD = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<DataRequest | null>(null);
-  const [dataRequests, setDataRequests] = useState<DataRequest[]>([
-    {
-      id: 1,
-      type: "Accès aux données",
-      user: "Marie Dubois",
-      email: "marie.dubois@email.fr",
-      date: "2024-01-15",
-      status: "Traité",
-      deadline: "2024-02-14"
-    },
-    {
-      id: 2,
-      type: "Suppression de données",
-      user: "Jean Martin",
-      email: "jean.martin@email.fr",
-      date: "2024-01-12",
-      status: "En cours",
-      deadline: "2024-02-11"
-    },
-    {
-      id: 3,
-      type: "Rectification",
-      user: "Sophie Laurent",
-      email: "sophie.laurent@email.fr",
-      date: "2024-01-10",
-      status: "En attente",
-      deadline: "2024-02-09"
-    }
-  ]);
-
+  const [selectedRequest, setSelectedRequest] = useState<DemandeRGPD | null>(null);
   const { toast } = useToast();
 
+  // Hooks pour récupérer les données
+  const { data: demandesRGPD = [], isLoading: loadingDemandes } = useDemandesRGPD();
+  const { data: consentements = [], isLoading: loadingConsentements } = useConsentementsCookies();
+  const { data: documents = [], isLoading: loadingDocuments } = useDocumentsRGPD();
+  const traiterDemandeMutation = useTraiterDemandeRGPD();
+
+  // Calculer les statistiques des consentements
   const consentStats = {
-    total: 1234,
-    accepted: 987,
-    refused: 156,
-    pending: 91
+    total: consentements.length,
+    accepted: consentements.filter(c => c.Statut === true).length,
+    refused: consentements.filter(c => c.Statut === false).length,
+    pending: 0 // Les consentements sont soit acceptés soit refusés
   };
 
-  const handleProcessRequest = (request: DataRequest) => {
+  // Statistiques par type de cookie
+  const cookieStats = {
+    essentiel: consentements.filter(c => c.TypeCookie === 'Essentiel').length,
+    analytique: consentements.filter(c => c.TypeCookie === 'Analytique' && c.Statut).length,
+    publicitaire: consentements.filter(c => c.TypeCookie === 'Publicitaire' && c.Statut).length,
+  };
+
+  const handleProcessRequest = (request: DemandeRGPD) => {
     setSelectedRequest(request);
     setIsProcessModalOpen(true);
   };
 
-  const handleRequestProcess = (requestId: number, status: string, response: string) => {
-    setDataRequests(prev => 
-      prev.map(req => 
-        req.id === requestId ? { ...req, status } : req
-      )
-    );
+  const handleRequestProcess = async (requestId: number, status: string, response: string) => {
+    try {
+      await traiterDemandeMutation.mutateAsync({
+        demandeId: requestId,
+        statut: status,
+        traitePar: 1 // TODO: Utiliser l'ID de l'utilisateur connecté
+      });
+      
+      toast({
+        title: "Demande traitée",
+        description: "La demande RGPD a été mise à jour avec succès"
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de traiter la demande",
+        variant: "destructive"
+      });
+    }
   };
+
+  // Calculer le taux de conformité
+  const conformiteRate = Math.min(98, 85 + (documents.length * 2)); // Simulation
 
   return (
     <div className="space-y-6">
@@ -134,7 +131,7 @@ const RGPD = () => {
                   <div className="flex items-center gap-3">
                     <CheckCircle className="h-8 w-8 text-green-600" />
                     <div>
-                      <p className="text-2xl font-bold text-green-600">98%</p>
+                      <p className="text-2xl font-bold text-green-600">{conformiteRate}%</p>
                       <p className="text-sm text-green-700">Conformité générale</p>
                     </div>
                   </div>
@@ -152,7 +149,9 @@ const RGPD = () => {
                   <div className="flex items-center gap-3">
                     <Clock className="h-8 w-8 text-yellow-600" />
                     <div>
-                      <p className="text-2xl font-bold text-yellow-600">{dataRequests.filter(r => r.status === 'En cours').length}</p>
+                      <p className="text-2xl font-bold text-yellow-600">
+                        {demandesRGPD.filter(d => d.Statut === 'En cours').length}
+                      </p>
                       <p className="text-sm text-yellow-700">Demandes en cours</p>
                     </div>
                   </div>
@@ -161,13 +160,20 @@ const RGPD = () => {
                   <div className="flex items-center gap-3">
                     <AlertTriangle className="h-8 w-8 text-red-600" />
                     <div>
-                      <p className="text-2xl font-bold text-red-600">2</p>
+                      <p className="text-2xl font-bold text-red-600">
+                        {demandesRGPD.filter(d => {
+                          const echeance = new Date(d.DateEcheance || '');
+                          const today = new Date();
+                          return echeance < today && d.Statut !== 'Traité';
+                        }).length}
+                      </p>
                       <p className="text-sm text-red-700">Alertes</p>
                     </div>
                   </div>
                 </div>
               </div>
 
+              {/* ... keep existing code (grid with status and recent actions) */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="border border-slate-200 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-slate-800 mb-4">Statut de conformité</h3>
@@ -194,27 +200,17 @@ const RGPD = () => {
                 <div className="border border-slate-200 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-slate-800 mb-4">Actions récentes</h3>
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                      <FileText className="h-5 w-5 text-blue-600" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Politique mise à jour</p>
-                        <p className="text-xs text-slate-500">Il y a 2 jours</p>
+                    {documents.slice(0, 3).map((doc) => (
+                      <div key={doc.IDDocumentRGPD} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{doc.Titre}</p>
+                          <p className="text-xs text-slate-500">
+                            Mis à jour le {new Date(doc.DateMiseAJour).toLocaleDateString('fr-FR')}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                      <Users className="h-5 w-5 text-green-600" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Consentement traité</p>
-                        <p className="text-xs text-slate-500">Il y a 3 jours</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                      <Shield className="h-5 w-5 text-purple-600" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">Audit de sécurité</p>
-                        <p className="text-xs text-slate-500">Il y a 1 semaine</p>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -235,56 +231,62 @@ const RGPD = () => {
                 <Button variant="outline">Filtrer</Button>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-slate-200">
-                      <th className="text-left py-3 px-4 font-medium text-slate-600">Utilisateur</th>
-                      <th className="text-left py-3 px-4 font-medium text-slate-600">Type de demande</th>
-                      <th className="text-left py-3 px-4 font-medium text-slate-600">Date de demande</th>
-                      <th className="text-left py-3 px-4 font-medium text-slate-600">Échéance</th>
-                      <th className="text-left py-3 px-4 font-medium text-slate-600">Statut</th>
-                      <th className="text-left py-3 px-4 font-medium text-slate-600">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dataRequests.map((request) => (
-                      <tr key={request.id} className="border-b border-slate-100 hover:bg-slate-50">
-                        <td className="py-4 px-4">
-                          <div>
-                            <p className="font-medium text-slate-800">{request.user}</p>
-                            <p className="text-sm text-slate-500">{request.email}</p>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4">{request.type}</td>
-                        <td className="py-4 px-4">{new Date(request.date).toLocaleDateString('fr-FR')}</td>
-                        <td className="py-4 px-4">{new Date(request.deadline).toLocaleDateString('fr-FR')}</td>
-                        <td className="py-4 px-4">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
-                            request.status === 'Traité' 
-                              ? 'bg-green-100 text-green-700' 
-                              : request.status === 'En cours'
-                              ? 'bg-blue-100 text-blue-700'
-                              : 'bg-yellow-100 text-yellow-700'
-                          }`}>
-                            {request.status}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleProcessRequest(request)}
-                            disabled={request.status === 'Traité'}
-                          >
-                            {request.status === 'Traité' ? 'Traité' : 'Traiter'}
-                          </Button>
-                        </td>
+              {loadingDemandes ? (
+                <div className="text-center py-8">Chargement des demandes...</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-slate-200">
+                        <th className="text-left py-3 px-4 font-medium text-slate-600">Utilisateur</th>
+                        <th className="text-left py-3 px-4 font-medium text-slate-600">Type de demande</th>
+                        <th className="text-left py-3 px-4 font-medium text-slate-600">Date de demande</th>
+                        <th className="text-left py-3 px-4 font-medium text-slate-600">Échéance</th>
+                        <th className="text-left py-3 px-4 font-medium text-slate-600">Statut</th>
+                        <th className="text-left py-3 px-4 font-medium text-slate-600">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {demandesRGPD.map((demande) => (
+                        <tr key={demande.IDDemandeRGPD} className="border-b border-slate-100 hover:bg-slate-50">
+                          <td className="py-4 px-4">
+                            <div>
+                              <p className="font-medium text-slate-800">{demande.user_nom}</p>
+                              <p className="text-sm text-slate-500">{demande.user_email}</p>
+                            </div>
+                          </td>
+                          <td className="py-4 px-4">{demande.TypeDemande}</td>
+                          <td className="py-4 px-4">{new Date(demande.DateDemande).toLocaleDateString('fr-FR')}</td>
+                          <td className="py-4 px-4">
+                            {demande.DateEcheance ? new Date(demande.DateEcheance).toLocaleDateString('fr-FR') : 'Non définie'}
+                          </td>
+                          <td className="py-4 px-4">
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              demande.Statut === 'Traité' 
+                                ? 'bg-green-100 text-green-700' 
+                                : demande.Statut === 'En cours'
+                                ? 'bg-blue-100 text-blue-700'
+                                : 'bg-yellow-100 text-yellow-700'
+                            }`}>
+                              {demande.Statut}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleProcessRequest(demande)}
+                              disabled={demande.Statut === 'Traité'}
+                            >
+                              {demande.Statut === 'Traité' ? 'Traité' : 'Traiter'}
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
 
@@ -298,17 +300,21 @@ const RGPD = () => {
                 <div className="bg-white border border-slate-200 rounded-lg p-6">
                   <h3 className="font-semibold text-slate-800 mb-2">Acceptés</h3>
                   <p className="text-3xl font-bold text-green-600">{consentStats.accepted}</p>
-                  <p className="text-sm text-slate-500">{((consentStats.accepted / consentStats.total) * 100).toFixed(1)}%</p>
+                  <p className="text-sm text-slate-500">
+                    {consentStats.total > 0 ? ((consentStats.accepted / consentStats.total) * 100).toFixed(1) : 0}%
+                  </p>
                 </div>
                 <div className="bg-white border border-slate-200 rounded-lg p-6">
                   <h3 className="font-semibold text-slate-800 mb-2">Refusés</h3>
                   <p className="text-3xl font-bold text-red-600">{consentStats.refused}</p>
-                  <p className="text-sm text-slate-500">{((consentStats.refused / consentStats.total) * 100).toFixed(1)}%</p>
+                  <p className="text-sm text-slate-500">
+                    {consentStats.total > 0 ? ((consentStats.refused / consentStats.total) * 100).toFixed(1) : 0}%
+                  </p>
                 </div>
                 <div className="bg-white border border-slate-200 rounded-lg p-6">
                   <h3 className="font-semibold text-slate-800 mb-2">En attente</h3>
                   <p className="text-3xl font-bold text-yellow-600">{consentStats.pending}</p>
-                  <p className="text-sm text-slate-500">{((consentStats.pending / consentStats.total) * 100).toFixed(1)}%</p>
+                  <p className="text-sm text-slate-500">0%</p>
                 </div>
               </div>
 
@@ -327,14 +333,18 @@ const RGPD = () => {
                       <h4 className="font-medium text-slate-800">Cookies analytiques</h4>
                       <p className="text-sm text-slate-500">Aide à comprendre l'utilisation du site</p>
                     </div>
-                    <div className="text-blue-600 font-medium">87% accepté</div>
+                    <div className="text-blue-600 font-medium">
+                      {consentements.filter(c => c.TypeCookie === 'Analytique').length} consentements
+                    </div>
                   </div>
                   <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
                     <div>
                       <h4 className="font-medium text-slate-800">Cookies publicitaires</h4>
                       <p className="text-sm text-slate-500">Personnalisation des publicités</p>
                     </div>
-                    <div className="text-yellow-600 font-medium">45% accepté</div>
+                    <div className="text-yellow-600 font-medium">
+                      {consentements.filter(c => c.TypeCookie === 'Publicitaire').length} consentements
+                    </div>
                   </div>
                 </div>
               </div>
@@ -347,27 +357,20 @@ const RGPD = () => {
                 <div className="bg-white border border-slate-200 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-slate-800 mb-4">Documents légaux</h3>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 border border-slate-200 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-blue-600" />
-                        <span className="font-medium">Politique de confidentialité</span>
+                    {documents.map((doc) => (
+                      <div key={doc.IDDocumentRGPD} className="flex items-center justify-between p-3 border border-slate-200 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-5 w-5 text-blue-600" />
+                          <span className="font-medium">{doc.Titre}</span>
+                        </div>
+                        <Button size="sm" variant="outline">Modifier</Button>
                       </div>
-                      <Button size="sm" variant="outline">Modifier</Button>
-                    </div>
-                    <div className="flex items-center justify-between p-3 border border-slate-200 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-blue-600" />
-                        <span className="font-medium">Conditions d'utilisation</span>
+                    ))}
+                    {documents.length === 0 && (
+                      <div className="text-center text-slate-500 py-4">
+                        Aucun document disponible
                       </div>
-                      <Button size="sm" variant="outline">Modifier</Button>
-                    </div>
-                    <div className="flex items-center justify-between p-3 border border-slate-200 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <FileText className="h-5 w-5 text-blue-600" />
-                        <span className="font-medium">Politique de cookies</span>
-                      </div>
-                      <Button size="sm" variant="outline">Modifier</Button>
-                    </div>
+                    )}
                   </div>
                 </div>
 
@@ -377,21 +380,21 @@ const RGPD = () => {
                     <div className="p-3 bg-slate-50 rounded-lg">
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-medium text-slate-800">Gestion des utilisateurs</span>
-                        <span className="text-xs text-slate-500">Mise à jour: 12/01/2024</span>
+                        <span className="text-xs text-slate-500">Actif</span>
                       </div>
                       <p className="text-sm text-slate-600">Traitement des données personnelles des utilisateurs</p>
                     </div>
                     <div className="p-3 bg-slate-50 rounded-lg">
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-medium text-slate-800">Service de prestations</span>
-                        <span className="text-xs text-slate-500">Mise à jour: 10/01/2024</span>
+                        <span className="text-xs text-slate-500">Actif</span>
                       </div>
                       <p className="text-sm text-slate-600">Données liées aux prestations et partenaires</p>
                     </div>
                     <div className="p-3 bg-slate-50 rounded-lg">
                       <div className="flex justify-between items-start mb-2">
                         <span className="font-medium text-slate-800">Support client</span>
-                        <span className="text-xs text-slate-500">Mise à jour: 08/01/2024</span>
+                        <span className="text-xs text-slate-500">Actif</span>
                       </div>
                       <p className="text-sm text-slate-600">Communications et tickets de support</p>
                     </div>

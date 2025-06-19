@@ -6,21 +6,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-
-interface DataRequest {
-  id: number;
-  type: string;
-  user: string;
-  email: string;
-  date: string;
-  status: string;
-  deadline: string;
-}
+import { type DemandeRGPD } from "@/hooks/useSupabaseRGPD";
 
 interface ProcessRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
-  request: DataRequest | null;
+  request: DemandeRGPD | null;
   onProcessRequest: (requestId: number, status: string, response: string) => void;
 }
 
@@ -37,11 +28,11 @@ const ProcessRequestModal = ({ isOpen, onClose, request, onProcessRequest }: Pro
     setIsLoading(true);
 
     try {
-      onProcessRequest(request.id, status, response);
+      await onProcessRequest(request.IDDemandeRGPD, status, response);
       
       toast({
         title: "Demande traitée",
-        description: `La demande de ${request.user} a été ${status.toLowerCase()}.`,
+        description: `La demande de ${request.user_nom} a été ${status.toLowerCase()}.`,
       });
 
       setResponse("");
@@ -66,18 +57,19 @@ const ProcessRequestModal = ({ isOpen, onClose, request, onProcessRequest }: Pro
         <DialogHeader>
           <DialogTitle>Traiter la demande RGPD</DialogTitle>
           <DialogDescription>
-            Demande de {request.user} - {request.type}
+            Demande de {request.user_nom} - {request.TypeDemande}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="bg-slate-50 p-4 rounded-lg">
             <h4 className="font-medium mb-2">Détails de la demande</h4>
             <div className="space-y-1 text-sm">
-              <p><strong>Utilisateur:</strong> {request.user}</p>
-              <p><strong>Email:</strong> {request.email}</p>
-              <p><strong>Type:</strong> {request.type}</p>
-              <p><strong>Date de demande:</strong> {new Date(request.date).toLocaleDateString('fr-FR')}</p>
-              <p><strong>Échéance:</strong> {new Date(request.deadline).toLocaleDateString('fr-FR')}</p>
+              <p><strong>Utilisateur:</strong> {request.user_nom}</p>
+              <p><strong>Email:</strong> {request.user_email}</p>
+              <p><strong>Type:</strong> {request.TypeDemande}</p>
+              <p><strong>Date de demande:</strong> {new Date(request.DateDemande).toLocaleDateString('fr-FR')}</p>
+              <p><strong>Échéance:</strong> {request.DateEcheance ? new Date(request.DateEcheance).toLocaleDateString('fr-FR') : 'Non définie'}</p>
+              <p><strong>Statut actuel:</strong> {request.Statut}</p>
             </div>
           </div>
           
