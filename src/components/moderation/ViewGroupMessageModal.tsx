@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { User, Calendar, Users, MessageCircle } from "lucide-react";
+import { User, Calendar, Users, MessageCircle, Shield } from "lucide-react";
 import { GroupMessage } from './types';
 import { getStatutBadgeColor } from './utils';
 
@@ -11,10 +11,17 @@ interface ViewGroupMessageModalProps {
   isOpen: boolean;
   onClose: () => void;
   message: GroupMessage | null;
+  onModerate?: (message: GroupMessage) => void;
 }
 
-const ViewGroupMessageModal = ({ isOpen, onClose, message }: ViewGroupMessageModalProps) => {
+const ViewGroupMessageModal = ({ isOpen, onClose, message, onModerate }: ViewGroupMessageModalProps) => {
   if (!message) return null;
+
+  const handleModerate = () => {
+    if (onModerate) {
+      onModerate(message);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -90,7 +97,8 @@ const ViewGroupMessageModal = ({ isOpen, onClose, message }: ViewGroupMessageMod
             <Button variant="outline" onClick={onClose}>
               Fermer
             </Button>
-            <Button>
+            <Button onClick={handleModerate} className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
               Modérer le message
             </Button>
           </div>

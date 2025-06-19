@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { User, Calendar, MessageSquare, Eye } from "lucide-react";
+import { User, Calendar, MessageSquare, Shield } from "lucide-react";
 import { ForumPost } from './types';
 import { getStatutBadgeColor } from './utils';
 
@@ -11,10 +11,17 @@ interface ViewForumPostModalProps {
   isOpen: boolean;
   onClose: () => void;
   post: ForumPost | null;
+  onModerate?: (post: ForumPost) => void;
 }
 
-const ViewForumPostModal = ({ isOpen, onClose, post }: ViewForumPostModalProps) => {
+const ViewForumPostModal = ({ isOpen, onClose, post, onModerate }: ViewForumPostModalProps) => {
   if (!post) return null;
+
+  const handleModerate = () => {
+    if (onModerate) {
+      onModerate(post);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -92,7 +99,8 @@ const ViewForumPostModal = ({ isOpen, onClose, post }: ViewForumPostModalProps) 
             <Button variant="outline" onClick={onClose}>
               Fermer
             </Button>
-            <Button>
+            <Button onClick={handleModerate} className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
               Modérer le sujet
             </Button>
           </div>
