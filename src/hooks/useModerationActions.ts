@@ -49,27 +49,30 @@ export const useModerationActions = () => {
       const column = type === 'forum' ? 'IDReponseForum' : 'IDMessageGroupe';
       const table = type === 'forum' ? 'ReponseForum' : 'MessageGroupe';
       const idColumn = type === 'forum' ? 'IDReponseForum' : 'IDMessageGroupe';
+      const contentColumn = type === 'forum' ? 'ContenuReponse' : 'Contenu';
+      
+      const itemIdNum = parseInt(itemId);
       
       // Marquer le contenu comme supprimé/masqué
-      const { error: hideError } = await supabase
+      const hideResult = await supabase
         .from(table)
         .update({ 
-          ContenuReponse: '[Contenu masqué par la modération]'
+          [contentColumn]: '[Contenu masqué par la modération]'
         })
-        .eq(idColumn, parseInt(itemId));
+        .eq(idColumn, itemIdNum);
 
-      if (hideError) throw hideError;
+      if (hideResult.error) throw hideResult.error;
 
       // Marquer le signalement comme traité
-      const { error: signalError } = await supabase
+      const signalResult = await supabase
         .from('SignalementContenu')
         .update({ 
           Traité: true,
           ActionModeration: 'Contenu masqué'
         })
-        .eq(column, parseInt(itemId));
+        .eq(column, itemIdNum);
 
-      if (signalError) throw signalError;
+      if (signalResult.error) throw signalResult.error;
 
       toast({
         title: "Contenu masqué",
