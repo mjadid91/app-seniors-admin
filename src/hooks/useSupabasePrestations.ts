@@ -2,9 +2,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-// Structure adaptée à la vue "prestations_dashboard_view"
 export interface PrestationDB {
-  id: number; // Changed from string to number to match database
+  id: number;
   type_prestation: string;
   date_creation: string;
   tarif: number;
