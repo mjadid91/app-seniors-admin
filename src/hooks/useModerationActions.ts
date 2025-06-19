@@ -29,7 +29,7 @@ export const useModerationActions = () => {
       });
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors du traitement:', error);
       toast({
         title: "Erreur",
@@ -77,7 +77,7 @@ export const useModerationActions = () => {
       });
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors du masquage:', error);
       toast({
         title: "Erreur",

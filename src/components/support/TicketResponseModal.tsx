@@ -31,21 +31,26 @@ const TicketResponseModal = ({ isOpen, onClose, ticketId, clientEmail, onSuccess
           StatutDemande: 'En_cours',
           DateTraitement: new Date().toISOString().split('T')[0]
         })
-        .eq('IDSupportClient', parseInt(ticketId));
+        .eq('IDTicketClient', parseInt(ticketId));
 
       if (updateError) throw updateError;
 
       // Appeler la fonction edge pour envoyer l'email
-      const { error: emailError } = await supabase.functions.invoke('send-ticket-response', {
-        body: {
-          to: clientEmail,
-          ticketId: ticketId,
-          response: response
-        }
-      });
+      try {
+        const { error: emailError } = await supabase.functions.invoke('send-ticket-response', {
+          body: {
+            to: clientEmail,
+            ticketId: ticketId,
+            response: response
+          }
+        });
 
-      if (emailError) {
-        console.error('Erreur lors de l\'envoi de l\'email:', emailError);
+        if (emailError) {
+          console.error('Erreur lors de l\'envoi de l\'email:', emailError);
+          // Ne pas bloquer le processus si l'email échoue
+        }
+      } catch (emailErr) {
+        console.error('Erreur lors de l\'appel de la fonction email:', emailErr);
         // Ne pas bloquer le processus si l'email échoue
       }
 
@@ -57,7 +62,7 @@ const TicketResponseModal = ({ isOpen, onClose, ticketId, clientEmail, onSuccess
       onSuccess();
       onClose();
       setResponse("");
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors de l\'envoi de la réponse:', error);
       toast({
         title: "Erreur",

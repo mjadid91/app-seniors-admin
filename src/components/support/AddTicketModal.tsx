@@ -81,7 +81,7 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
         const { error: prestationError } = await supabase
           .from('PrestationSupport')
           .insert({
-            IDTicketClient: ticketData.IDSupportClient,
+            IDTicketClient: ticketData.IDTicketClient,
             IDIntervenant: parseInt(formData.agentId)
           });
 
@@ -102,7 +102,7 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
         priorite: "Normale",
         agentId: ""
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors de la création du ticket:', error);
       toast({
         title: "Erreur",
@@ -147,7 +147,7 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
                 <SelectValue placeholder="Sélectionner un client" />
               </SelectTrigger>
               <SelectContent>
-                {clients.map((client) => (
+                {clients.map((client: any) => (
                   <SelectItem key={client.IDUtilisateurs} value={client.IDUtilisateurs.toString()}>
                     {client.Prenom} {client.Nom} ({client.Email})
                   </SelectItem>
@@ -163,7 +163,7 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
                 <SelectValue placeholder="Sélectionner un agent" />
               </SelectTrigger>
               <SelectContent>
-                {supportAgents.map((agent) => (
+                {supportAgents.map((agent: any) => (
                   <SelectItem key={agent.IDUtilisateurs} value={agent.IDUtilisateurs.toString()}>
                     {agent.Prenom} {agent.Nom} ({agent.Email})
                   </SelectItem>
