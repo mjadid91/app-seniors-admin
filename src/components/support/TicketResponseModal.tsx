@@ -14,7 +14,6 @@ interface TicketResponseModalProps {
   onSuccess: () => void;
 }
 
-// Créer une table temporaire pour les réponses de tickets
 const TicketResponseModal = ({ isOpen, onClose, ticketId, clientEmail, onSuccess }: TicketResponseModalProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,13 +24,16 @@ const TicketResponseModal = ({ isOpen, onClose, ticketId, clientEmail, onSuccess
     setIsSubmitting(true);
 
     try {
-      // Pour l'instant, on log juste la réponse car la table ReponseTicket n'existe pas
-      console.log('Réponse ticket:', {
-        ticketId: parseInt(ticketId),
-        response: response,
-        date: new Date().toISOString(),
-        responderId: 1 // À adapter selon l'utilisateur connecté
-      });
+      // Mettre à jour le statut du ticket
+      const { error: updateError } = await supabase
+        .from('SupportClient')
+        .update({ 
+          StatutDemande: 'En_cours',
+          DateTraitement: new Date().toISOString().split('T')[0]
+        })
+        .eq('IDSupportClient', parseInt(ticketId));
+
+      if (updateError) throw updateError;
 
       // Appeler la fonction edge pour envoyer l'email
       const { error: emailError } = await supabase.functions.invoke('send-ticket-response', {

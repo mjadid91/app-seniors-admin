@@ -21,11 +21,11 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
   const [formData, setFormData] = useState({
     titre: "",
     description: "",
-    tarifIndicatif: "",
-    idDomaine: ""
+    domaineId: "",
+    tarifIndicatif: ""
   });
 
-  // Récupérer les domaines disponibles
+  // Récupérer les domaines
   const { data: domaines = [] } = useQuery({
     queryKey: ['domaines'],
     queryFn: async () => {
@@ -49,14 +49,15 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
         .insert({
           Titre: formData.titre,
           Description: formData.description,
-          TarifIndicatif: parseFloat(formData.tarifIndicatif) || 0,
-          IDDomaine: formData.idDomaine ? parseInt(formData.idDomaine) : null
+          IDDomaine: parseInt(formData.domaineId),
+          TarifIndicatif: parseFloat(formData.tarifIndicatif),
+          DateCreation: new Date().toISOString().split('T')[0]
         });
 
       if (error) throw error;
 
       toast({
-        title: "Prestation ajoutée",
+        title: "Prestation créée",
         description: "La prestation a été créée avec succès"
       });
 
@@ -65,8 +66,8 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
       setFormData({
         titre: "",
         description: "",
-        tarifIndicatif: "",
-        idDomaine: ""
+        domaineId: "",
+        tarifIndicatif: ""
       });
     } catch (error) {
       console.error('Erreur lors de la création de la prestation:', error);
@@ -89,7 +90,7 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Titre</label>
+            <label className="block text-sm font-medium mb-1">Titre de la prestation</label>
             <Input
               value={formData.titre}
               onChange={(e) => setFormData(prev => ({ ...prev, titre: e.target.value }))}
@@ -107,19 +108,8 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Tarif indicatif (€)</label>
-            <Input
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.tarifIndicatif}
-              onChange={(e) => setFormData(prev => ({ ...prev, tarifIndicatif: e.target.value }))}
-            />
-          </div>
-
-          <div>
             <label className="block text-sm font-medium mb-1">Domaine</label>
-            <Select value={formData.idDomaine} onValueChange={(value) => setFormData(prev => ({ ...prev, idDomaine: value }))}>
+            <Select value={formData.domaineId} onValueChange={(value) => setFormData(prev => ({ ...prev, domaineId: value }))}>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un domaine" />
               </SelectTrigger>
@@ -131,6 +121,17 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Tarif indicatif (€)</label>
+            <Input
+              type="number"
+              step="0.01"
+              value={formData.tarifIndicatif}
+              onChange={(e) => setFormData(prev => ({ ...prev, tarifIndicatif: e.target.value }))}
+              required
+            />
           </div>
 
           <div className="flex justify-end gap-3 pt-4">

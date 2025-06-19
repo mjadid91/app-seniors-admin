@@ -22,16 +22,32 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
     sujet: "",
     description: "",
     clientId: "",
-    priorite: "Moyenne"
+    priorite: "Normale",
+    agentId: ""
   });
 
-  // Récupérer les utilisateurs clients
+  // Récupérer tous les utilisateurs clients
   const { data: clients = [] } = useQuery({
     queryKey: ['clients'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('Utilisateurs')
-        .select('IDUtilisateurs, Nom, Prenom')
+        .select('IDUtilisateurs, Nom, Prenom, Email')
+        .order('Nom');
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  // Récupérer les agents de support (IDCatUtilisateurs = 8)
+  const { data: supportAgents = [] } = useQuery({
+    queryKey: ['support-agents'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('Utilisateurs')
+        .select('IDUtilisateurs, Nom, Prenom, Email')
+        .eq('IDCatUtilisateurs', 8)
         .order('Nom');
       
       if (error) throw error;
@@ -44,7 +60,8 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
+      // Créer le ticket dans SupportClient
+      const { data: ticketData, error: ticketError } = await supabase
         .from('SupportClient')
         .insert({
           Sujet: formData.sujet,
@@ -53,9 +70,23 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
           Priorite: formData.priorite,
           StatutDemande: 'Ouvert',
           DateEnvoi: new Date().toISOString().split('T')[0]
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (ticketError) throw ticketError;
+
+      // Si un agent est sélectionné, créer l'entrée dans PrestationSupport
+      if (formData.agentId && ticketData) {
+        const { error: prestationError } = await supabase
+          .from('PrestationSupport')
+          .insert({
+            IDTicketClient: ticketData.IDSupportClient,
+            IDIntervenant: parseInt(formData.agentId)
+          });
+
+        if (prestationError) throw prestationError;
+      }
 
       toast({
         title: "Ticket créé",
@@ -68,7 +99,8 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
         sujet: "",
         description: "",
         clientId: "",
-        priorite: "Moyenne"
+        priorite: "Normale",
+        agentId: ""
       });
     } catch (error) {
       console.error('Erreur lors de la création du ticket:', error);
@@ -117,7 +149,23 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
               <SelectContent>
                 {clients.map((client) => (
                   <SelectItem key={client.IDUtilisateurs} value={client.IDUtilisateurs.toString()}>
-                    {client.Prenom} {client.Nom}
+                    {client.Prenom} {client.Nom} ({client.Email})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Agent de support (optionnel)</label>
+            <Select value={formData.agentId} onValueChange={(value) => setFormData(prev => ({ ...prev, agentId: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un agent" />
+              </SelectTrigger>
+              <SelectContent>
+                {supportAgents.map((agent) => (
+                  <SelectItem key={agent.IDUtilisateurs} value={agent.IDUtilisateurs.toString()}>
+                    {agent.Prenom} {agent.Nom} ({agent.Email})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -132,7 +180,7 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Faible">Faible</SelectItem>
-                <SelectItem value="Moyenne">Moyenne</SelectItem>
+                <SelectItem value="Normale">Normale</SelectItem>
                 <SelectItem value="Haute">Haute</SelectItem>
                 <SelectItem value="Urgente">Urgente</SelectItem>
               </SelectContent>
