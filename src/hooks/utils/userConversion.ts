@@ -17,13 +17,12 @@ export const convertSupabaseUserToAppUser = (
 };
 
 export const getCategoryFromRole = (role: User['role']): number => {
-  // Cette fonction devrait être remplacée par une recherche dans les catégories réelles
-  // Pour l'instant, on garde une correspondance par défaut
+  // Correspondance corrigée avec les vraies valeurs IDCatUtilisateurs
   switch (role) {
     case 'administrateur': return 5;
     case 'moderateur': return 6;
-    case 'support': return 4;
     case 'visualisateur': return 7;
-    default: return 7;
+    case 'support': return 8;
+    default: return 7; // Visualisateur par défaut
   }
 };

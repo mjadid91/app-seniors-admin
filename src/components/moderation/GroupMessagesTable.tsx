@@ -1,12 +1,14 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, Trash2 } from "lucide-react";
+import { Eye, EyeOff, Trash2, Archive } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { GroupMessage } from './types';
 import { getStatutBadgeColor } from './utils';
 import ViewGroupMessageModal from './ViewGroupMessageModal';
+import ModerationActionsModal from './ModerationActionsModal';
 
 interface GroupMessagesTableProps {
   groupMessages: GroupMessage[];
@@ -20,6 +22,7 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
   const { toast } = useToast();
   const [selectedMessage, setSelectedMessage] = useState<GroupMessage | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
 
   const handleVoirMessage = (message: GroupMessage) => {
     setSelectedMessage(message);
@@ -29,6 +32,25 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
       description: `Ouverture du message de ${message.auteur}`,
     });
     console.log("Voir message:", message);
+  };
+
+  const handleModerateMessage = (message: GroupMessage) => {
+    setSelectedMessage(message);
+    setIsModerationModalOpen(true);
+  };
+
+  const handleModerationAction = async (messageId: string, action: string, reason?: string) => {
+    console.log(`Action de modération: ${action} sur le message ${messageId}`, { reason });
+    
+    if (action === 'supprime') {
+      setGroupMessages(prev => prev.filter(m => m.id !== messageId));
+    } else if ((allowedStatuts as readonly string[]).includes(action)) {
+      setGroupMessages(prev =>
+        prev.map(m =>
+          m.id === messageId ? { ...m, statut: action as GroupMessageStatut } : m
+        )
+      );
+    }
   };
 
   const handleStatutChange = (messageId: string, statut: string) => {
@@ -53,7 +75,7 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
     setGroupMessages(prev => prev.filter(m => m.id !== message.id));
     toast({
       title: "Message supprimé",
-      description: `Le message de ${message.auteur} a été supprimé`,
+      description: `Le message de ${message.auteur} a été supprimé définitivement`,
       variant: "destructive"
     });
   };
@@ -62,17 +84,17 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Messages de groupes</CardTitle>
+          <CardTitle>Messages de groupe</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-200">
-                  <th className="text-left py-3 px-4 font-medium text-slate-700">Contenu</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700">Auteur</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700">Groupe</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700">Date</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Contenu</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700">Signalements</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700">Statut</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700">Actions</th>
@@ -82,13 +104,17 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
                 {groupMessages.map((message) => (
                   <tr key={message.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                     <td className="py-4 px-4">
-                      <p className="text-slate-800 max-w-xs truncate">{message.contenu}</p>
+                      <p className="font-medium text-slate-800">{message.auteur}</p>
                       <p className="text-sm text-slate-500">ID: {message.id}</p>
                     </td>
-                    <td className="py-4 px-4 text-slate-600">{message.auteur}</td>
                     <td className="py-4 px-4 text-slate-600">{message.groupe}</td>
                     <td className="py-4 px-4 text-slate-600">
                       {new Date(message.dateEnvoi).toLocaleDateString('fr-FR')}
+                    </td>
+                    <td className="py-4 px-4">
+                      <p className="text-slate-600 truncate max-w-xs">
+                        {message.contenu}
+                      </p>
                     </td>
                     <td className="py-4 px-4">
                       {message.signalements > 0 ? (
@@ -145,6 +171,15 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
         message={selectedMessage}
+        onModerate={handleModerateMessage}
+      />
+
+      <ModerationActionsModal
+        isOpen={isModerationModalOpen}
+        onClose={() => setIsModerationModalOpen(false)}
+        item={selectedMessage}
+        type="group"
+        onAction={handleModerationAction}
       />
     </>
   );

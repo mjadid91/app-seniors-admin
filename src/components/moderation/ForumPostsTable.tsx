@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ForumPost } from './types';
 import { getStatutBadgeColor } from './utils';
 import ViewForumPostModal from './ViewForumPostModal';
+import ModerationActionsModal from './ModerationActionsModal';
 
 interface ForumPostsTableProps {
   forumPosts: ForumPost[];
@@ -20,6 +22,7 @@ const ForumPostsTable = ({ forumPosts, setForumPosts }: ForumPostsTableProps) =>
   const { toast } = useToast();
   const [selectedPost, setSelectedPost] = useState<ForumPost | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
 
   const handleVoirPost = (post: ForumPost) => {
     setSelectedPost(post);
@@ -29,6 +32,25 @@ const ForumPostsTable = ({ forumPosts, setForumPosts }: ForumPostsTableProps) =>
       description: `Ouverture du sujet "${post.titre}"`,
     });
     console.log("Voir sujet:", post);
+  };
+
+  const handleModeratePost = (post: ForumPost) => {
+    setSelectedPost(post);
+    setIsModerationModalOpen(true);
+  };
+
+  const handleModerationAction = async (postId: string, action: string, reason?: string) => {
+    console.log(`Action de modération: ${action} sur le post ${postId}`, { reason });
+    
+    if (action === 'supprime') {
+      setForumPosts(prev => prev.filter(p => p.id !== postId));
+    } else if ((allowedStatuts as readonly string[]).includes(action)) {
+      setForumPosts(prev =>
+        prev.map(p =>
+          p.id === postId ? { ...p, statut: action as ForumPostStatut } : p
+        )
+      );
+    }
   };
 
   const handleStatutChange = (postId: string, statut: string) => {
@@ -161,6 +183,15 @@ const ForumPostsTable = ({ forumPosts, setForumPosts }: ForumPostsTableProps) =>
         isOpen={isViewModalOpen}
         onClose={() => setIsViewModalOpen(false)}
         post={selectedPost}
+        onModerate={handleModeratePost}
+      />
+
+      <ModerationActionsModal
+        isOpen={isModerationModalOpen}
+        onClose={() => setIsModerationModalOpen(false)}
+        item={selectedPost}
+        type="forum"
+        onAction={handleModerationAction}
       />
     </>
   );
