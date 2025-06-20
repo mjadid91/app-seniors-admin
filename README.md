@@ -75,8 +75,8 @@ Une application d'administration complète pour la plateforme AppSeniors, permet
 
 1. **Cloner le repository**
 ```bash
-git clone <YOUR_GIT_URL>
-cd <YOUR_PROJECT_NAME>
+git clone https://github.com/mjadid91/app-seniors-admin.git
+cd app-seniors-admin
 ```
 
 2. **Installer les dépendances**
