@@ -14,8 +14,8 @@ export const useSupportTicketMutations = () => {
       const { data, error } = await supabase
         .from("SupportClient")
         .update({
-          statut: "resolu",
-          date_resolution: new Date().toISOString()
+          StatutDemande: "resolu",
+          DateResolution: new Date().toISOString()
         })
         .eq("IDTicketClient", parseInt(ticketId))
         .select();
