@@ -11,16 +11,22 @@ export const useSupportTicketMutations = () => {
     mutationFn: async ({ ticketId, resolutionNote }: { ticketId: string; resolutionNote?: string }) => {
       console.log("Résolution du ticket:", { ticketId, resolutionNote });
       
-      // Utilisons une fonction RPC ou une approche différente si la table directe n'est pas accessible
-      // Pour l'instant, on simule la mise à jour réussie
-      // TODO: Implémenter la vraie logique de mise à jour une fois que la table correcte est identifiée
-      
-      console.log("Simulation de la résolution du ticket:", ticketId);
-      
-      // Simulation d'un délai pour imiter l'API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      return { id: ticketId, statut: "resolu", dateResolution: new Date().toISOString() };
+      const { data, error } = await supabase
+        .from("SupportClient")
+        .update({
+          statut: "resolu",
+          date_resolution: new Date().toISOString()
+        })
+        .eq("IDTicketClient", parseInt(ticketId))
+        .select();
+
+      if (error) {
+        console.error("Erreur lors de la résolution du ticket:", error);
+        throw new Error(error.message);
+      }
+
+      console.log("Ticket résolu avec succès:", data);
+      return data;
     },
     onSuccess: () => {
       // Rafraîchir les données des tickets
