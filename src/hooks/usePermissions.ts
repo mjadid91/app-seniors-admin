@@ -1,3 +1,4 @@
+
 import { useAuthStore } from '../stores/authStore';
 
 // Définition des permissions par rôle
@@ -33,8 +34,9 @@ export const PERMISSIONS = {
 // Type pour les permissions
 type Permission = typeof PERMISSIONS[keyof typeof PERMISSIONS];
 
-// Mapping des permissions par rôle
+// Mapping des permissions par rôle selon vos spécifications
 const ROLE_PERMISSIONS = {
+  // Admin (IDCatUtilisateur = 5) : accès complet à tout
   administrateur: [
     PERMISSIONS.VIEW_DASHBOARD,
     PERMISSIONS.VIEW_USERS,
@@ -60,6 +62,7 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.DELETE_CONTENT,
     PERMISSIONS.HIDE_CONTENT,
   ],
+  // Modérateur (IDCatUtilisateur = 6) : uniquement accès à la modération
   moderateur: [
     PERMISSIONS.VIEW_DASHBOARD,
     PERMISSIONS.VIEW_MODERATION,
@@ -67,12 +70,13 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.DELETE_CONTENT,
     PERMISSIONS.HIDE_CONTENT,
   ],
+  // Support (IDCatUtilisateur = 8) : uniquement accès au support
   support: [
     PERMISSIONS.VIEW_DASHBOARD,
     PERMISSIONS.VIEW_SUPPORT,
     PERMISSIONS.MANAGE_SUPPORT,
-    PERMISSIONS.VIEW_SENIORS,
   ],
+  // Visualisateur (IDCatUtilisateur = 7) : accès en lecture seule à toutes les pages
   visualisateur: [
     PERMISSIONS.VIEW_DASHBOARD,
     PERMISSIONS.VIEW_USERS,
@@ -84,14 +88,19 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.VIEW_PARTNERS,
     PERMISSIONS.VIEW_RGPD,
     PERMISSIONS.VIEW_FINANCES,
+    // Aucune permission de gestion/modification pour le visualisateur
   ],
 };
 
-// Pages accessibles par rôle
+// Pages accessibles par rôle selon vos spécifications
 export const ACCESSIBLE_PAGES = {
+  // Admin : toutes les pages
   administrateur: ['dashboard', 'users', 'seniors', 'prestations', 'moderation', 'support', 'documents', 'partners', 'rgpd', 'finances'],
+  // Modérateur : uniquement dashboard et modération
   moderateur: ['dashboard', 'moderation'],
-  support: ['dashboard', 'support', 'seniors'],
+  // Support : uniquement dashboard et support
+  support: ['dashboard', 'support'],
+  // Visualisateur : toutes les pages en lecture seule
   visualisateur: ['dashboard', 'users', 'seniors', 'prestations', 'moderation', 'support', 'documents', 'partners', 'rgpd', 'finances'],
 };
 

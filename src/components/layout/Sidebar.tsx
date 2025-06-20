@@ -61,6 +61,38 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
       : "text-slate-600 hover:bg-slate-50 hover:text-slate-800 cursor-pointer";
   };
 
+  // Fonction pour obtenir le badge couleur selon le rôle
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case 'administrateur':
+        return "bg-blue-500";
+      case 'moderateur':
+        return "bg-orange-500";
+      case 'support':
+        return "bg-purple-500";
+      case 'visualisateur':
+        return "bg-gray-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
+  // Fonction pour obtenir l'icône selon le rôle
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'administrateur':
+        return '👑';
+      case 'moderateur':
+        return '🛡️';
+      case 'support':
+        return '🎧';
+      case 'visualisateur':
+        return '👁️';
+      default:
+        return '👤';
+    }
+  };
+
   return (
     <div className="w-64 bg-white shadow-lg border-r border-slate-200 flex flex-col">
       <div className="p-6 border-b border-slate-200">
@@ -112,13 +144,11 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
               {user?.prenom} {user?.nom}
             </p>
             <div className="flex items-center gap-2">
+              <span className="text-xs">{getRoleIcon(user?.role || '')}</span>
               <p className="text-xs text-slate-500 capitalize">{user?.role}</p>
               <div className={cn(
                 "w-2 h-2 rounded-full",
-                user?.role === 'administrateur' && "bg-blue-500",
-                user?.role === 'moderateur' && "bg-orange-500",
-                user?.role === 'support' && "bg-purple-500",
-                user?.role === 'visualisateur' && "bg-gray-500"
+                getRoleBadgeColor(user?.role || '')
               )}></div>
             </div>
           </div>

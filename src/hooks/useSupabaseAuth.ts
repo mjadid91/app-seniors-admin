@@ -40,11 +40,11 @@ export const useSupabaseAuth = () => {
         return { success: false, error: 'Utilisateur non trouvé dans la base de données' };
       }
 
-      // Vérifier que l'utilisateur a une catégorie autorisée (5, 6, 7, 8)
-      const allowedCategories = [5, 6, 7, 8];
+      // Vérifier que l'utilisateur a une catégorie autorisée selon vos spécifications
+      const allowedCategories = [5, 6, 7, 8]; // Admin, Modérateur, Visualisateur, Support
       if (!allowedCategories.includes(userData.IDCatUtilisateurs)) {
         console.error('Catégorie d\'utilisateur non autorisée:', userData.IDCatUtilisateurs);
-        return { success: false, error: 'Vous n\'êtes pas autorisé à accéder à cette application' };
+        return { success: false, error: 'Vous n\'êtes pas autorisé à accéder à cette application d\'administration' };
       }
 
       // Vérifier le mot de passe (comparaison exacte)
@@ -53,7 +53,7 @@ export const useSupabaseAuth = () => {
         return { success: false, error: 'Email ou mot de passe incorrect' };
       }
 
-      // Créer l'utilisateur de l'application
+      // Créer l'utilisateur de l'application avec le bon rôle
       const role = getRoleFromCategory(userData.IDCatUtilisateurs);
       console.log('Rôle attribué:', role, 'pour la catégorie:', userData.IDCatUtilisateurs);
 

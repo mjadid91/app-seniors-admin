@@ -92,36 +92,29 @@ export const useUserCategories = () => {
     return category?.IDCatUtilisateurs || null;
   }, [categories]);
 
-  // Fonction pour déterminer le rôle basé sur les flags d'une catégorie
+  // Fonction pour déterminer le rôle basé sur l'ID de catégorie selon vos spécifications
   const getRoleFromCategory = useCallback((categoryId: number): 'administrateur' | 'moderateur' | 'support' | 'visualisateur' => {
     console.log('getRoleFromCategory appelée avec categoryId:', categoryId);
-    console.log('Categories disponibles:', categories);
     
-    const category = categories.find(cat => cat.IDCatUtilisateurs === categoryId);
-    if (!category) {
-      console.warn('Category not found for ID:', categoryId, 'Available categories:', categories);
-      return 'visualisateur';
+    // Mapping selon vos spécifications
+    switch (categoryId) {
+      case 5: // Admin
+        console.log('Rôle: administrateur');
+        return 'administrateur';
+      case 6: // Modérateur
+        console.log('Rôle: moderateur');
+        return 'moderateur';
+      case 8: // Support
+        console.log('Rôle: support');
+        return 'support';
+      case 7: // Visualisateur
+        console.log('Rôle: visualisateur');
+        return 'visualisateur';
+      default:
+        console.log('ID de catégorie non reconnu:', categoryId, 'Attribution du rôle visualisateur par défaut');
+        return 'visualisateur';
     }
-
-    console.log('Category trouvée:', category);
-
-    if (category.EstAdministrateur) {
-      console.log('Rôle: administrateur');
-      return 'administrateur';
-    }
-    if (category.EstModerateur) {
-      console.log('Rôle: moderateur');
-      return 'moderateur';
-    }
-    if (category.EstSupport) {
-      console.log('Rôle: support');
-      return 'support';
-    }
-    
-    // Pour toute autre catégorie autorisée, attribuer visualisateur par défaut
-    console.log('Rôle par défaut: visualisateur');
-    return 'visualisateur';
-  }, [categories]);
+  }, []);
 
   return {
     categories,
