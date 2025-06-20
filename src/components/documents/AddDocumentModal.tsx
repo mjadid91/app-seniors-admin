@@ -37,7 +37,6 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
-  const [catNameToId, setCatNameToId] = useState<Record<string, number>>({});
   const [users, setUsers] = useState<{ id: number; fullName: string }[]>([]);
   const { toast } = useToast();
 
@@ -60,12 +59,7 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
         return;
       }
 
-      const nameToId: Record<string, number> = {};
-      setCategories(data.map((cat) => {
-        nameToId[cat.NomCategorie] = cat.IDCategorieDocument;
-        return cat.NomCategorie;
-      }));
-      setCatNameToId(nameToId);
+      setCategories(data.map((cat) => cat.NomCategorie));
     } catch (error) {
       console.error('Erreur lors du chargement des catégories:', error);
       toast({ title: "Erreur", description: "Échec du chargement des catégories.", variant: "destructive" });
@@ -115,35 +109,7 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
     setIsLoading(true);
 
     try {
-      // Insérer le document dans la base de données
-      const catId = catNameToId[formData.category];
-      const { data, error } = await supabase
-        .from("Document")
-        .insert([
-          {
-            Titre: formData.name,
-            TypeFichier: file ? file.name.split('.').pop()?.toUpperCase() || 'PDF' : 'PDF',
-            TailleFichier: file ? parseFloat((file.size / 1024 / 1024).toFixed(1)) : 0,
-            DateUpload: new Date().toISOString().split('T')[0],
-            IDCategorieDocument: catId,
-            Statut: formData.status,
-            IDUtilisateurs: parseInt(formData.utilisateurId),
-            URLFichier: "#", // Placeholder pour l'URL du fichier
-          },
-        ])
-        .select();
-
-      if (error) {
-        console.error('Erreur lors de l\'insertion:', error);
-        toast({
-          title: "Erreur",
-          description: "Impossible d'ajouter le document à la base de données.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Créer l'objet document pour le callback
+      // Créer l'objet document pour le callback (pas d'insertion directe ici)
       const newDocument: Omit<Document, 'id'> = {
         name: formData.name,
         type: file ? file.name.split('.').pop()?.toUpperCase() || 'PDF' : 'PDF',
@@ -154,12 +120,8 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
         utilisateurId: parseInt(formData.utilisateurId)
       };
 
-      onAddDocument(newDocument);
-
-      toast({
-        title: "Document ajouté",
-        description: `${formData.name} a été ajouté avec succès.`,
-      });
+      // Appeler le callback qui se charge de l'insertion via useDocuments
+      await onAddDocument(newDocument);
 
       // Réinitialiser le formulaire
       setFormData({
