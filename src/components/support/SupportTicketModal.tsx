@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Calendar, AlertCircle, MessageSquare, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useAuthStore } from "@/stores/authStore";
 import TicketReplyForm from "./TicketReplyForm";
 import TicketAssignmentForm from "./TicketAssignmentForm";
 import ResolveTicketModal from "./ResolveTicketModal";
@@ -31,11 +31,26 @@ interface SupportTicketModalProps {
 
 const SupportTicketModal = ({ isOpen, onClose, ticket, onTicketUpdated }: SupportTicketModalProps) => {
   const { isAdmin, isSupport } = usePermissions();
+  const { user } = useAuthStore();
   const [isResolveModalOpen, setIsResolveModalOpen] = useState(false);
 
   if (!ticket) return null;
 
-  const canResolve = (isAdmin() || isSupport()) && ticket.statut !== 'resolu';
+  // Vérifier si l'utilisateur peut résoudre le ticket
+  const canResolve = () => {
+    if (ticket.statut === 'resolu') return false;
+    
+    // L'admin peut toujours résoudre
+    if (isAdmin()) return true;
+    
+    // Le support peut résoudre seulement s'il est assigné au ticket
+    if (isSupport() && user) {
+      const currentUserFullName = `${user.prenom} ${user.nom}`;
+      return ticket.assigneA === currentUserFullName;
+    }
+    
+    return false;
+  };
 
   const getStatutBadgeColor = (statut: string) => {
     switch (statut) {
@@ -197,7 +212,7 @@ const SupportTicketModal = ({ isOpen, onClose, ticket, onTicketUpdated }: Suppor
 
             <div className="flex justify-between gap-3 pt-4 border-t">
               <div>
-                {canResolve && (
+                {canResolve() && (
                   <Button
                     onClick={() => setIsResolveModalOpen(true)}
                     className="bg-green-600 hover:bg-green-700"
