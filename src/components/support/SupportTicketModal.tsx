@@ -12,6 +12,7 @@ import TicketResolutionInfo from "./TicketResolutionInfo";
 import TicketDescription from "./TicketDescription";
 import TicketActions from "./TicketActions";
 import { useTicketPermissions } from "@/hooks/useTicketPermissions";
+import { useSupportTicketMutations } from "@/hooks/useSupportTicketMutations";
 
 interface Ticket {
   id: number;
@@ -34,6 +35,7 @@ interface SupportTicketModalProps {
 const SupportTicketModal = ({ isOpen, onClose, ticket, onTicketUpdated }: SupportTicketModalProps) => {
   const [isResolveModalOpen, setIsResolveModalOpen] = useState(false);
   const { canResolve } = useTicketPermissions(ticket || { statut: 'a_traiter' });
+  const { resolveTicket, isResolving } = useSupportTicketMutations();
 
   if (!ticket) return null;
 
@@ -51,15 +53,26 @@ const SupportTicketModal = ({ isOpen, onClose, ticket, onTicketUpdated }: Suppor
     console.log("Réponse soumise pour le ticket", ticket.id);
   };
 
-  const handleResolveTicket = (ticketId: string, resolutionNote?: string) => {
-    if (onTicketUpdated) {
-      onTicketUpdated({
-        ...ticket,
-        statut: 'resolu',
-        dateResolution: new Date().toISOString()
-      });
+  const handleResolveTicket = async (ticketId: string, resolutionNote?: string) => {
+    console.log("Tentative de résolution du ticket:", { ticketId, resolutionNote });
+    
+    try {
+      await resolveTicket({ ticketId, resolutionNote });
+      
+      // Mettre à jour l'état local si une fonction de callback est fournie
+      if (onTicketUpdated) {
+        onTicketUpdated({
+          ...ticket,
+          statut: 'resolu',
+          dateResolution: new Date().toISOString()
+        });
+      }
+      
+      // Fermer la modale de résolution
+      setIsResolveModalOpen(false);
+    } catch (error) {
+      console.error("Erreur lors de la résolution:", error);
     }
-    console.log(`Ticket ${ticketId} résolu`, { resolutionNote });
   };
 
   return (

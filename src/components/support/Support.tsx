@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -98,6 +97,16 @@ const Support = () => {
       title: "Ticket assigné (mock)",
       description: `Le ticket ${ticket.id} serait assigné (fonction à implémenter).`,
     });
+  };
+
+  const handleTicketUpdated = (updatedTicket: Ticket) => {
+    // Refetch les données pour s'assurer que la liste est à jour
+    refetch();
+    
+    // Mettre à jour le ticket sélectionné si c'est le même
+    if (selectedTicket && selectedTicket.id === updatedTicket.id) {
+      setSelectedTicket(updatedTicket);
+    }
   };
 
   if (isLoading) {
@@ -279,10 +288,10 @@ const Support = () => {
       </Card>
 
       <SupportTicketModal
-          isOpen={isTicketModalOpen}
-          onClose={() => setIsTicketModalOpen(false)}
-          ticket={selectedTicket}
-          onTicketUpdated={() => refetch()} // ← callback appelé après assignation
+        isOpen={isTicketModalOpen}
+        onClose={() => setIsTicketModalOpen(false)}
+        ticket={selectedTicket}
+        onTicketUpdated={handleTicketUpdated}
       />
     </div>
   );
