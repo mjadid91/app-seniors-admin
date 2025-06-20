@@ -1,13 +1,8 @@
 
-import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import DocumentFormFields from "./DocumentFormFields";
+import { useDocumentForm } from "./useDocumentForm";
 
 interface Document {
   id: number;
@@ -27,82 +22,24 @@ interface AddDocumentModalProps {
 }
 
 const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalProps) => {
-  const [formData, setFormData] = useState({
-    name: "",
-    category: "",
-    status: "Brouillon",
-    description: "",
-    utilisateurId: ""
-  });
-  const [file, setFile] = useState<File | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [users, setUsers] = useState<{ id: number; fullName: string }[]>([]);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    if (isOpen) {
-      loadCategories();
-      loadUsers();
-    }
-  }, [isOpen, toast]);
-
-  // Charger les catégories
-  const loadCategories = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("CategorieDocument")
-        .select("IDCategorieDocument, NomCategorie");
-
-      if (error) {
-        toast({ title: "Erreur", description: "Échec du chargement des catégories.", variant: "destructive" });
-        return;
-      }
-
-      setCategories(data.map((cat) => cat.NomCategorie));
-    } catch (error) {
-      console.error('Erreur lors du chargement des catégories:', error);
-      toast({ title: "Erreur", description: "Échec du chargement des catégories.", variant: "destructive" });
-    }
-  };
-
-  // Charger les utilisateurs
-  const loadUsers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("Utilisateurs")
-        .select("IDUtilisateurs, Nom, Prenom");
-
-      if (error) {
-        toast({ title: "Erreur", description: "Échec du chargement des utilisateurs.", variant: "destructive" });
-        return;
-      }
-
-      setUsers(data.map(user => ({
-        id: user.IDUtilisateurs,
-        fullName: `${user.Prenom} ${user.Nom}`
-      })));
-    } catch (error) {
-      console.error('Erreur lors du chargement des utilisateurs:', error);
-      toast({ title: "Erreur", description: "Échec du chargement des utilisateurs.", variant: "destructive" });
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
-    }
-  };
+  const {
+    formData,
+    setFormData,
+    file,
+    setFile,
+    isLoading,
+    setIsLoading,
+    categories,
+    users,
+    resetForm,
+    validateForm,
+    toast
+  } = useDocumentForm(isOpen);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.category || !formData.utilisateurId) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez remplir tous les champs obligatoires.",
-        variant: "destructive"
-      });
+    if (!validateForm()) {
       return;
     }
 
@@ -124,14 +61,7 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
       await onAddDocument(newDocument);
 
       // Réinitialiser le formulaire
-      setFormData({
-        name: "",
-        category: "",
-        status: "Brouillon",
-        description: "",
-        utilisateurId: ""
-      });
-      setFile(null);
+      resetForm();
       onClose();
     } catch (error) {
       console.error('Erreur lors de l\'ajout du document:', error);
@@ -155,79 +85,13 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nom du document *</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="utilisateur">Utilisateur concerné *</Label>
-            <Select value={formData.utilisateurId} onValueChange={(value) => setFormData({ ...formData, utilisateurId: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choisir un utilisateur" />
-              </SelectTrigger>
-              <SelectContent>
-                {users.map(user => (
-                  <SelectItem key={user.id} value={user.id.toString()}>
-                    {user.fullName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="category">Catégorie *</Label>
-            <Select value={formData.category} onValueChange={(value) => setFormData({ ...formData, category: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner une catégorie" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map(category => (
-                  <SelectItem key={category} value={category}>{category}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="status">Statut</Label>
-            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Brouillon">Brouillon</SelectItem>
-                <SelectItem value="Publié">Publié</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="file">Fichier</Label>
-            <Input
-              id="file"
-              type="file"
-              onChange={handleFileChange}
-              accept=".pdf,.doc,.docx,.txt"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description">Description (optionnel)</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={3}
-              placeholder="Description du document..."
-            />
-          </div>
+          <DocumentFormFields
+            formData={formData}
+            categories={categories}
+            users={users}
+            onFormDataChange={setFormData}
+            onFileChange={setFile}
+          />
           
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={onClose}>
