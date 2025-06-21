@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuthStore } from "../../stores/authStore";
 import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
 import { AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -15,6 +17,7 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { setUser, setAuthenticated } = useAuthStore();
   const { signIn, user, isAuthenticated } = useSupabaseAuth();
+  const navigate = useNavigate();
 
   // On laisse la page d'accueil gérer la redirection automatiquement
 

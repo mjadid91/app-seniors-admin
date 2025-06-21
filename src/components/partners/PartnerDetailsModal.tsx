@@ -50,7 +50,15 @@ const PartnerDetailsModal = ({ isOpen, onClose, partner }: PartnerDetailsModalPr
                 <label className="text-sm font-medium text-slate-700">Date d'inscription</label>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-slate-500" />
-                  <p className="text-slate-900">{new Date(partner.dateInscription).toLocaleDateString('fr-FR')}</p>
+                  <p className="text-slate-900">
+                    {partner.dateInscription
+                        ? new Date(partner.dateInscription).toLocaleDateString("fr-FR", {
+                          day: "2-digit",
+                          month: "long",
+                          year: "numeric",
+                        })
+                        : "Date inconnue"}
+                  </p>
                 </div>
               </div>
               <div>
@@ -83,7 +91,7 @@ const PartnerDetailsModal = ({ isOpen, onClose, partner }: PartnerDetailsModalPr
                 <label className="text-sm font-medium text-slate-700">Nombre de prestations</label>
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-slate-500" />
-                  <p className="text-slate-900">12 prestations réalisées</p>
+                  <p className="text-slate-900">Nb prestations réalisées</p>
                 </div>
               </div>
             </div>

@@ -110,16 +110,19 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
 
       // 3. Créer le partenaire
       const { data: partenaireData, error: partenaireError } = await supabase
-        .from('Partenaire')
-        .insert({
-          RaisonSociale: formData.raisonSociale,
-          Email: formData.email,
-          Telephone: formData.telephone,
-          Adresse: formData.adresse,
-          IDCatUtilisateurs: 3
-        })
-        .select()
-        .single();
+          .from('Partenaire')
+          .insert({
+            RaisonSociale: formData.raisonSociale,
+            Email: formData.email,
+            Telephone: formData.telephone,
+            Adresse: formData.adresse,
+            IDCatUtilisateurs: 3,
+            DateInscription: currentDate
+          })
+          .select()
+          .single();
+
+
 
       if (partenaireError) {
         console.error('Erreur création partenaire:', partenaireError);

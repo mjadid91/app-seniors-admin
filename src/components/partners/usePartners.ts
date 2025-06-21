@@ -12,6 +12,7 @@ type DBPartner = {
   Adresse: string;
   // TypePartenaire can be used as "type" if needed
   TypePartenaire?: string;
+  DateInscription?: string;
 };
 
 type DBServicePartenaire = {
@@ -109,10 +110,10 @@ export const usePartners = () => {
         email: p.Email,
         telephone: p.Telephone,
         adresse: p.Adresse,
-        statut: "Actif", // No field, so always "Actif"
-        evaluation: 5,   // No evaluation field
+        statut: "Actif",
+        evaluation: 5,
         services: serviceNames,
-        dateInscription: "", // Not available in schema
+        dateInscription: p.DateInscription || "",
       };
     });
     setPartners(buildPartners);
