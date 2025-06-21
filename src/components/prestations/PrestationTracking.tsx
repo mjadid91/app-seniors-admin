@@ -6,10 +6,15 @@ import PrestationStatsCards from "./PrestationStatsCards";
 import PrestationFilters from "./PrestationFilters";
 import PrestationTable from "./PrestationTable";
 import PrestationDetailsModal from "./PrestationDetailsModal";
+import AddPrestationModal from "./AddPrestationModal"; // ✅ à ajouter
 import { useSupabasePrestations, PrestationDB } from "../../hooks/useSupabasePrestations";
+import { Button } from "@/components/ui/button";
+import AddDomaineModal from "./AddDomaineModal";
 
-// Import the Prestation type for consistency
+
+// Import type pour type safety
 import type { Prestation as PrestationTableType } from "./PrestationTable";
+
 
 // Use the same type everywhere in this component
 type Prestation = PrestationTableType;
@@ -30,6 +35,10 @@ const PrestationTracking = () => {
   const [selectedStatut, setSelectedStatut] = useState<Prestation["statut"] | "tous">("tous");
   const [selectedPrestation, setSelectedPrestation] = useState<Prestation | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // ✅
+  const [isAddDomaineModalOpen, setIsAddDomaineModalOpen] = useState(false);
+
+
   const { toast } = useToast();
 
   // Map DB data to UI data (ensures compatibility)
@@ -89,51 +98,88 @@ const PrestationTracking = () => {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-800">
-            Suivi des prestations
-          </h2>
-          <p className="text-slate-600 mt-1">
-            Supervision des prestations entre seniors et aidants
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm text-slate-600">
-            <Calendar className="h-4 w-4" />
-            Total: {filteredPrestations.length} prestations
+      <div className="space-y-6 animate-fade-in">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-3xl font-bold text-slate-800">Suivi des prestations</h2>
+            <p className="text-slate-600 mt-1">
+              Supervision des prestations entre seniors et aidants
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 text-sm text-slate-600">
+              <Calendar className="h-4 w-4" />
+              <span>Total : {filteredPrestations.length} prestations</span>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Ajouter une prestation
+              </Button>
+              <Button
+                  onClick={() => setIsAddDomaineModalOpen(true)}
+                  className="bg-gray-600 hover:bg-gray-700 text-white"
+              >
+                Ajouter un domaine
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <PrestationStatsCards prestations={mappedPrestations} />
+        {/* Statistiques */}
+        <PrestationStatsCards prestations={mappedPrestations} />
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Liste des prestations</CardTitle>
-            <PrestationFilters
-              selectedStatut={selectedStatut}
-              onStatutChange={handleStatutChange}
+        {/* Tableau */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Liste des prestations</CardTitle>
+              <PrestationFilters
+                  selectedStatut={selectedStatut}
+                  onStatutChange={handleStatutChange}
+              />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <PrestationTable
+                prestations={filteredPrestations}
+                onVoirPrestation={handleVoirPrestation}
             />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <PrestationTable
-            prestations={filteredPrestations}
-            onVoirPrestation={handleVoirPrestation}
-          />
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      <PrestationDetailsModal
-        isOpen={isDetailsModalOpen}
-        onClose={() => setIsDetailsModalOpen(false)}
-        prestation={selectedPrestation}
-      />
-    </div>
+        {/* Modals */}
+        <PrestationDetailsModal
+            isOpen={isDetailsModalOpen}
+            onClose={() => setIsDetailsModalOpen(false)}
+            prestation={selectedPrestation}
+        />
+
+        <AddPrestationModal
+            isOpen={isAddModalOpen}
+            onClose={() => setIsAddModalOpen(false)}
+            onSuccess={() => {
+              setIsAddModalOpen(false);
+              // Optionnel : refetch data
+            }}
+        />
+
+        <AddDomaineModal
+            isOpen={isAddDomaineModalOpen}
+            onClose={() => setIsAddDomaineModalOpen(false)}
+            onSuccess={() => {
+              setIsAddDomaineModalOpen(false);
+              // Optionnel : refetch data
+            }}
+        />
+      </div>
   );
+
 };
 
 export default PrestationTracking;
