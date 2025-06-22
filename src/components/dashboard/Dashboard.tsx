@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -61,7 +60,7 @@ const Dashboard = () => {
     },
   ];
 
-  // Actions rapides : routes à adapter si besoin
+  // Actions rapides : routes mises à jour
   const quickActions = [
     {
       icon: Users,

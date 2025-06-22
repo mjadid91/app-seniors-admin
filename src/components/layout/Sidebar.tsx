@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "../../stores/authStore";
 import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
@@ -15,53 +14,49 @@ import {
   ShieldCheck,
   DollarSign
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-
-interface SidebarProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
-}
+import { useNavigate, useLocation } from "react-router-dom";
 
 const menuItems = [
-  { id: "dashboard", label: "Tableau de bord", icon: LayoutDashboard },
-  { id: "users", label: "Utilisateurs", icon: Users },
-  { id: "prestations", label: "Prestations", icon: Calendar },
-  { id: "moderation", label: "Modération", icon: Shield },
-  { id: "support", label: "Support", icon: Headphones },
-  { id: "documents", label: "Documents", icon: FileText },
-  { id: "partners", label: "Partenaires", icon: Building2 },
-  { id: "rgpd", label: "RGPD", icon: ShieldCheck },
-  { id: "finances", label: "Finances", icon: DollarSign },
+  { id: "dashboard", label: "Tableau de bord", icon: LayoutDashboard, path: "/dashboard" },
+  { id: "users", label: "Utilisateurs", icon: Users, path: "/users" },
+  { id: "prestations", label: "Prestations", icon: Calendar, path: "/prestations" },
+  { id: "moderation", label: "Modération", icon: Shield, path: "/moderation" },
+  { id: "support", label: "Support", icon: Headphones, path: "/support" },
+  { id: "documents", label: "Documents", icon: FileText, path: "/documents" },
+  { id: "partners", label: "Partenaires", icon: Building2, path: "/partners" },
+  { id: "rgpd", label: "RGPD", icon: ShieldCheck, path: "/rgpd" },
+  { id: "finances", label: "Finances", icon: DollarSign, path: "/finances" },
 ];
 
-const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
+const Sidebar = () => {
   const { user } = useAuthStore();
   const { signOut } = useSupabaseAuth();
   const { canAccessPage } = usePermissions();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleTabChange = (tabId: string) => {
-    if (canAccessPage(tabId)) {
-      setActiveTab(tabId);
+  const handleNavigation = (item: typeof menuItems[0]) => {
+    if (canAccessPage(item.id)) {
+      navigate(item.path);
     }
   };
 
   const handleLogout = () => {
     signOut();
-    navigate("/"); // Redirige vers la page de connexion
+    navigate("/");
   };
 
-  const getItemStyle = (itemId: string) => {
-    if (!canAccessPage(itemId)) {
+  const getItemStyle = (item: typeof menuItems[0]) => {
+    if (!canAccessPage(item.id)) {
       return "text-slate-400 cursor-not-allowed opacity-50";
     }
 
-    return activeTab === itemId
+    const isActive = location.pathname === item.path;
+    return isActive
       ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-sm"
       : "text-slate-600 hover:bg-slate-50 hover:text-slate-800 cursor-pointer";
   };
 
-  // Fonction pour obtenir le badge couleur selon le rôle
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'administrateur':
@@ -77,7 +72,6 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
     }
   };
 
-  // Fonction pour obtenir l'icône selon le rôle
   const getRoleIcon = (role: string) => {
     switch (role) {
       case 'administrateur':
@@ -114,11 +108,11 @@ const Sidebar = ({ activeTab, setActiveTab }: SidebarProps) => {
           return (
             <button
               key={item.id}
-              onClick={() => handleTabChange(item.id)}
+              onClick={() => handleNavigation(item)}
               disabled={!isAccessible}
               className={cn(
                 "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-all duration-200",
-                getItemStyle(item.id)
+                getItemStyle(item)
               )}
             >
               <Icon className="h-5 w-5 flex-shrink-0" />
