@@ -17,6 +17,7 @@ import DocumentsPage from "./pages/DocumentsPage";
 import PartnersPage from "./pages/PartnersPage";
 import RGPDPage from "./pages/RGPDPage";
 import FinancesPage from "./pages/FinancesPage";
+import LoginPage from "./components/auth/LoginPage";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/connexion" element={<LoginPage />} />
           <Route path="/settings" element={<Settings />} />
           
           {/* Dashboard routes with shared layout */}

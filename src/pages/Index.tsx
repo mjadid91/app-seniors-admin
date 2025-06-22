@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import LoginPage from "../components/auth/LoginPage";
 import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import { useAuthStore } from "../stores/authStore";
 
@@ -21,6 +20,9 @@ const Index = () => {
       // Rediriger vers dashboard si authentifié
       if (isAuthenticated && user) {
         navigate("/dashboard");
+      } else {
+        // Rediriger vers la page de connexion si non authentifié
+        navigate("/connexion");
       }
     }
   }, [user, isAuthenticated, loading, setUser, setAuthenticated, navigate]);
@@ -37,12 +39,7 @@ const Index = () => {
     );
   }
 
-  // Si non authentifié : affiche login
-  if (!isAuthenticated || !user) {
-    return <LoginPage />;
-  }
-
-  // Si authentifié, la redirection vers /dashboard se fait dans useEffect
+  // Cette page ne devrait jamais afficher de contenu car elle redirige toujours
   return null;
 };
 

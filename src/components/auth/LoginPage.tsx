@@ -9,7 +9,6 @@ import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
 import { AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,7 +18,12 @@ const LoginPage = () => {
   const { signIn, user, isAuthenticated } = useSupabaseAuth();
   const navigate = useNavigate();
 
-  // On laisse la page d'accueil gérer la redirection automatiquement
+  // Rediriger vers dashboard si déjà authentifié
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,8 +41,9 @@ const LoginPage = () => {
 
       if (!result.success) {
         setError(result.error || "Erreur de connexion");
+      } else {
+        // La redirection sera gérée par useEffect quand l'état d'auth changera
       }
-      // NE PLUS NAVIGUER DIRECTEMENT. On laisse la logique d'état globale s'occuper du changement de page
     } catch (err) {
       setError("Une erreur est survenue lors de la connexion");
     } finally {
