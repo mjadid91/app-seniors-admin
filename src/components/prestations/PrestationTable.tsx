@@ -1,7 +1,6 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Eye, Edit } from "lucide-react";
 
 // Export Prestation interface for usage in other files
 export interface Prestation {
@@ -15,13 +14,13 @@ export interface Prestation {
   evaluation?: number;
 }
 
-
 interface PrestationTableProps {
   prestations: Prestation[];
   onVoirPrestation: (prestation: Prestation) => void;
+  onEditPrestation: (prestation: Prestation) => void;
 }
 
-const PrestationTable = ({ prestations, onVoirPrestation }: PrestationTableProps) => {
+const PrestationTable = ({ prestations, onVoirPrestation, onEditPrestation }: PrestationTableProps) => {
   const getStatutBadgeColor = (statut: string) => {
     switch (statut) {
       case 'en_attente': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
@@ -99,14 +98,24 @@ const PrestationTable = ({ prestations, onVoirPrestation }: PrestationTableProps
                 )}
               </td>
               <td className="py-4 px-4">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => onVoirPrestation(prestation)}
-                  title="Voir détails"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => onVoirPrestation(prestation)}
+                    title="Voir détails"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => onEditPrestation(prestation)}
+                    title="Modifier"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </div>
               </td>
             </tr>
           ))}

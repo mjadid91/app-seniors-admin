@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
@@ -6,15 +7,14 @@ import PrestationStatsCards from "./PrestationStatsCards";
 import PrestationFilters from "./PrestationFilters";
 import PrestationTable from "./PrestationTable";
 import PrestationDetailsModal from "./PrestationDetailsModal";
-import AddPrestationModal from "./AddPrestationModal"; // ✅ à ajouter
+import EditPrestationModal from "./EditPrestationModal";
+import AddPrestationModal from "./AddPrestationModal";
 import { useSupabasePrestations, PrestationDB } from "../../hooks/useSupabasePrestations";
 import { Button } from "@/components/ui/button";
 import AddDomaineModal from "./AddDomaineModal";
 
-
 // Import type pour type safety
 import type { Prestation as PrestationTableType } from "./PrestationTable";
-
 
 // Use the same type everywhere in this component
 type Prestation = PrestationTableType;
@@ -31,13 +31,13 @@ const mapPrestationDBToUI = (db: PrestationDB): Prestation => ({
 });
 
 const PrestationTracking = () => {
-  const { data: prestations = [], isLoading, error } = useSupabasePrestations();
+  const { data: prestations = [], isLoading, error, refetch } = useSupabasePrestations();
   const [selectedStatut, setSelectedStatut] = useState<Prestation["statut"] | "tous">("tous");
   const [selectedPrestation, setSelectedPrestation] = useState<Prestation | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false); // ✅
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isAddDomaineModalOpen, setIsAddDomaineModalOpen] = useState(false);
-
 
   const { toast } = useToast();
 
@@ -58,6 +58,24 @@ const PrestationTracking = () => {
       description: `Ouverture de la prestation ${prestation.id} : ${prestation.typePrestation}`,
     });
     console.log("Voir prestation:", prestation);
+  };
+
+  const handleEditPrestation = (prestation: Prestation) => {
+    setSelectedPrestation(prestation);
+    setIsEditModalOpen(true);
+    toast({
+      title: "Modification de la prestation",
+      description: `Modification de la prestation ${prestation.id} : ${prestation.typePrestation}`,
+    });
+    console.log("Modifier prestation:", prestation);
+  };
+
+  const handleEditSuccess = () => {
+    refetch(); // Recharger les données après modification
+    toast({
+      title: "Succès",
+      description: "La prestation a été modifiée avec succès",
+    });
   };
 
   // *** FIX: add type-safe wrapper for setSelectedStatut ***
@@ -149,6 +167,7 @@ const PrestationTracking = () => {
             <PrestationTable
                 prestations={filteredPrestations}
                 onVoirPrestation={handleVoirPrestation}
+                onEditPrestation={handleEditPrestation}
             />
           </CardContent>
         </Card>
@@ -160,12 +179,19 @@ const PrestationTracking = () => {
             prestation={selectedPrestation}
         />
 
+        <EditPrestationModal
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            prestation={selectedPrestation}
+            onSuccess={handleEditSuccess}
+        />
+
         <AddPrestationModal
             isOpen={isAddModalOpen}
             onClose={() => setIsAddModalOpen(false)}
             onSuccess={() => {
               setIsAddModalOpen(false);
-              // Optionnel : refetch data
+              refetch();
             }}
         />
 
@@ -174,12 +200,11 @@ const PrestationTracking = () => {
             onClose={() => setIsAddDomaineModalOpen(false)}
             onSuccess={() => {
               setIsAddDomaineModalOpen(false);
-              // Optionnel : refetch data
+              refetch();
             }}
         />
       </div>
   );
-
 };
 
 export default PrestationTracking;
