@@ -2083,6 +2083,7 @@ export type Database = {
       Partenaire: {
         Row: {
           Adresse: string
+          DateInscription: string
           Email: string
           IDCatUtilisateurs: number | null
           IDPartenaire: number
@@ -2091,6 +2092,7 @@ export type Database = {
         }
         Insert: {
           Adresse: string
+          DateInscription?: string
           Email: string
           IDCatUtilisateurs?: number | null
           IDPartenaire?: number
@@ -2099,6 +2101,7 @@ export type Database = {
         }
         Update: {
           Adresse?: string
+          DateInscription?: string
           Email?: string
           IDCatUtilisateurs?: number | null
           IDPartenaire?: number
