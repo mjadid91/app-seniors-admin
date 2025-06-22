@@ -156,15 +156,63 @@ export const useUserCrud = (
   // Fonction pour supprimer un utilisateur
   const deleteUser = async (userId: string): Promise<void> => {
     try {
+      const userIdInt = parseInt(userId);
+      
+      // D'abord, supprimer les références dans les tables liées
+      console.log('Suppression des références de l\'utilisateur:', userIdInt);
+      
+      // Supprimer les langues de l'utilisateur
+      const { error: langueError } = await supabase
+        .from('Langue_Utilisateurs')
+        .delete()
+        .eq('IDUtilisateurs', userIdInt);
+      
+      if (langueError) {
+        console.warn('Erreur lors de la suppression des langues:', langueError);
+      }
+      
+      // Supprimer les devises de l'utilisateur
+      const { error: deviseError } = await supabase
+        .from('Devise_Utilisateurs')
+        .delete()
+        .eq('IDUtilisateurs', userIdInt);
+      
+      if (deviseError) {
+        console.warn('Erreur lors de la suppression des devises:', deviseError);
+      }
+      
+      // Supprimer l'entrée Senior si elle existe
+      const { error: seniorError } = await supabase
+        .from('Seniors')
+        .delete()
+        .eq('IDUtilisateurSenior', userIdInt);
+      
+      if (seniorError) {
+        console.warn('Erreur lors de la suppression du profil Senior:', seniorError);
+      }
+      
+      // Supprimer l'entrée Aidant si elle existe
+      const { error: aidantError } = await supabase
+        .from('Aidant')
+        .delete()
+        .eq('IDUtilisateurs', userIdInt);
+      
+      if (aidantError) {
+        console.warn('Erreur lors de la suppression du profil Aidant:', aidantError);
+      }
+      
+      // Enfin, supprimer l'utilisateur principal
       const { error: deleteError } = await supabase
         .from('Utilisateurs')
         .delete()
-        .eq('IDUtilisateurs', parseInt(userId));
+        .eq('IDUtilisateurs', userIdInt);
 
       if (deleteError) {
+        console.error('Erreur lors de la suppression de l\'utilisateur:', deleteError);
         throw deleteError;
       }
 
+      console.log('Utilisateur supprimé avec succès');
       setUsers(users.filter(user => user.id !== userId));
     } catch (err) {
       console.error('Erreur lors de la suppression de l\'utilisateur:', err);
