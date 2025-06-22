@@ -110,12 +110,15 @@ export const useSupabaseAuth = () => {
       setLoading(false);
     };
 
-    initializeAuth();
-  }, []);
+    // Attendre que les catégories soient chargées avant d'initialiser l'auth
+    if (!categoriesLoading) {
+      initializeAuth();
+    }
+  }, [categoriesLoading]);
 
   // Sauvegarder l'état d'authentification
   useEffect(() => {
-    if (!loading) {
+    if (!loading && !categoriesLoading) {
       const authData = {
         state: {
           user,
@@ -132,7 +135,7 @@ export const useSupabaseAuth = () => {
         console.log('Session supprimée du localStorage');
       }
     }
-  }, [user, isAuthenticated, loading]);
+  }, [user, isAuthenticated, loading, categoriesLoading]);
 
   return {
     user,

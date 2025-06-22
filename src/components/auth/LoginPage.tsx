@@ -21,6 +21,7 @@ const LoginPage = () => {
   // Rediriger vers dashboard si déjà authentifié
   useEffect(() => {
     if (isAuthenticated && user) {
+      console.log('LoginPage: User already authenticated, redirecting to dashboard');
       navigate("/dashboard");
     }
   }, [isAuthenticated, user, navigate]);
@@ -37,11 +38,13 @@ const LoginPage = () => {
     }
 
     try {
+      console.log('LoginPage: Attempting login for:', email);
       const result = await signIn(email.trim(), password);
 
       if (!result.success) {
         setError(result.error || "Erreur de connexion");
       } else {
+        console.log('LoginPage: Login successful, auth state will be handled by useSupabaseAuth');
         // La redirection sera gérée par useEffect quand l'état d'auth changera
       }
     } catch (err) {

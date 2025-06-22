@@ -13,15 +13,18 @@ const Index = () => {
   // Synchroniser l'état d'authentification avec le store global
   useEffect(() => {
     if (!loading) {
+      console.log('Index: Synchronizing auth state', { user, isAuthenticated });
       setUser(user);
       setAuthenticated(isAuthenticated);
       setIsInitializing(false);
       
       // Rediriger vers dashboard si authentifié
       if (isAuthenticated && user) {
+        console.log('Index: Redirecting to dashboard');
         navigate("/dashboard");
       } else {
         // Rediriger vers la page de connexion si non authentifié
+        console.log('Index: Redirecting to login');
         navigate("/connexion");
       }
     }
