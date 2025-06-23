@@ -11,6 +11,22 @@ Je vous montrerai chaque page de l'interface, à quoi elle sert, comment elle fo
 
 ---
 
+## 0. Page de Connexion
+### Description
+La page de connexion permet aux administrateurs, modérateurs, support, etc., d’accéder à la plateforme AppSeniors Admin de manière sécurisée.
+
+### Fonctionnalités principales
+- Authentification via Supabase
+- Gestion des rôles (Admin, Modérateur, Support)
+- Redirection vers le tableau de bord après connexion réussie
+- Gestion des erreurs de connexion
+
+### Code principal
+**Fichiers principaux :**
+- `src/components/auth/LoginPage.tsx` - Composant de la page de connexion
+- `src/hooks/useSupabaseAuth.ts` - Hook pour l'authentification Supabase
+- `src/components/auth/ProtectedRoute.tsx` - Si l’utilisateur n’est pas connecté, il est redirigé automatiquement vers la page /login grâce au composant ProtectedRoute
+- `src/stores/authStore.ts` - Le système utilise Zustand pour stocker l’état de l’utilisateur connecté
 ## 1. Tableau de bord (Dashboard)
 
 ### Description

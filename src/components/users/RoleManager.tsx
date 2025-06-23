@@ -122,13 +122,6 @@ const RoleManager = ({ user, onRoleChange }: RoleManagerProps) => {
               </Select>
             </div>
 
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">Permissions du rôle {selectedRole}</h4>
-              <div className="text-sm text-blue-700">
-                {getRoleDescription(selectedRole)}
-              </div>
-            </div>
-
             <div className="flex justify-end gap-2 pt-4">
               <Button variant="outline" onClick={() => setIsOpen(false)}>
                 Annuler

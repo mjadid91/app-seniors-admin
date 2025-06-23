@@ -128,29 +128,6 @@ const PartnerDetailsModal = ({ isOpen, onClose, partner }: PartnerDetailsModalPr
             </div>
           </div>
 
-          {/* Statistiques récentes */}
-          <div className="bg-slate-50 rounded-lg p-4">
-            <h3 className="font-semibold text-slate-800 mb-3">Statistiques récentes</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-blue-600">8</p>
-                <p className="text-sm text-slate-600">Ce mois</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-green-600">95%</p>
-                <p className="text-sm text-slate-600">Satisfaction</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-purple-600">2.5h</p>
-                <p className="text-sm text-slate-600">Temps moyen</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-orange-600">€450</p>
-                <p className="text-sm text-slate-600">CA mensuel</p>
-              </div>
-            </div>
-          </div>
-
           {/* Actions */}
           <div className="flex justify-end space-x-2 pt-4 border-t border-slate-200">
             <Button variant="outline" onClick={onClose}>
