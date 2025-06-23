@@ -2,13 +2,16 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, MessageSquare, Flag } from "lucide-react";
 import { ForumPost, GroupMessage } from './types';
 import ModerationStats from './ModerationStats';
 import ForumPostsTable from './ForumPostsTable';
 import GroupMessagesTable from './GroupMessagesTable';
 import AddForumSubjectModal from './AddForumSubjectModal';
 import AddForumModal from './AddForumModal';
+import AddGroupModal from '@/components/groups/AddGroupModal';
+import AddGroupMessageModal from './AddGroupMessageModal';
+import AddSignalementModal from './AddSignalementModal';
 // Import the new hooks
 import { useForumPosts } from './useForumPosts';
 import { useGroupMessages } from './useGroupMessages';
@@ -36,6 +39,9 @@ const Moderation = () => {
   // Modal states
   const [showAddSubjectModal, setShowAddSubjectModal] = useState(false);
   const [showAddForumModal, setShowAddForumModal] = useState(false);
+  const [showAddGroupModal, setShowAddGroupModal] = useState(false);
+  const [showAddGroupMessageModal, setShowAddGroupMessageModal] = useState(false);
+  const [showAddSignalementModal, setShowAddSignalementModal] = useState(false);
 
   // Derive final lists to display (local edits have priority)
   const displayedForumPosts =
@@ -51,6 +57,18 @@ const Moderation = () => {
     // Les forums sont utilisés dans le modal de sujet, on pourrait aussi refetch ici
   };
 
+  const handleGroupSuccess = () => {
+    console.log("Groupe créé avec succès");
+  };
+
+  const handleGroupMessageSuccess = () => {
+    console.log("Message de groupe ajouté avec succès");
+  };
+
+  const handleSignalementSuccess = () => {
+    console.log("Signalement créé avec succès");
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
@@ -59,14 +77,26 @@ const Moderation = () => {
           <p className="text-slate-600 mt-1">Gestion des contenus des forums et groupes</p>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button onClick={() => setShowAddForumModal(true)} variant="outline" size="sm">
             <Plus className="h-4 w-4 mr-1" />
             Nouveau Forum
           </Button>
-          <Button onClick={() => setShowAddSubjectModal(true)} size="sm">
+          <Button onClick={() => setShowAddSubjectModal(true)} variant="outline" size="sm">
             <Plus className="h-4 w-4 mr-1" />
             Nouveau Sujet
+          </Button>
+          <Button onClick={() => setShowAddGroupModal(true)} variant="outline" size="sm">
+            <Plus className="h-4 w-4 mr-1" />
+            Nouveau Groupe
+          </Button>
+          <Button onClick={() => setShowAddGroupMessageModal(true)} variant="outline" size="sm">
+            <MessageSquare className="h-4 w-4 mr-1" />
+            Message Groupe
+          </Button>
+          <Button onClick={() => setShowAddSignalementModal(true)} variant="outline" size="sm">
+            <Flag className="h-4 w-4 mr-1" />
+            Signalement
           </Button>
         </div>
       </div>
@@ -117,6 +147,24 @@ const Moderation = () => {
         isOpen={showAddForumModal}
         onClose={() => setShowAddForumModal(false)}
         onSuccess={handleForumSuccess}
+      />
+
+      <AddGroupModal
+        isOpen={showAddGroupModal}
+        onClose={() => setShowAddGroupModal(false)}
+        onSuccess={handleGroupSuccess}
+      />
+
+      <AddGroupMessageModal
+        isOpen={showAddGroupMessageModal}
+        onClose={() => setShowAddGroupMessageModal(false)}
+        onSuccess={handleGroupMessageSuccess}
+      />
+
+      <AddSignalementModal
+        isOpen={showAddSignalementModal}
+        onClose={() => setShowAddSignalementModal(false)}
+        onSuccess={handleSignalementSuccess}
       />
     </div>
   );
