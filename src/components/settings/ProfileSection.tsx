@@ -17,8 +17,11 @@ const ProfileSection = () => {
     nom: "",
     email: "",
     telephone: "",
-    languePreferee: "fr",
-    devise: "EUR"
+    languePreferee: "Français",
+    langueId: 1,
+    devise: "Euro (€)",
+    deviseId: 1,
+    niveauLangue: 5
   });
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -26,23 +29,29 @@ const ProfileSection = () => {
   // Synchroniser formData avec le profil chargé
   useEffect(() => {
     if (profile && !isLoading) {
+      console.log('Synchronisation du profil avec le formulaire:', profile);
       setFormData({
         prenom: profile.prenom || "",
         nom: profile.nom || "",
         email: profile.email || "",
         telephone: profile.telephone || "",
-        languePreferee: profile.languePreferee || "fr",
-        devise: profile.devise || "EUR"
+        languePreferee: profile.languePreferee || "Français",
+        langueId: profile.langueId || 1,
+        devise: profile.devise || "Euro (€)",
+        deviseId: profile.deviseId || 1,
+        niveauLangue: profile.niveauLangue || 5
       });
       setProfileImage(profile.photo || null);
     }
   }, [profile, isLoading]);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | number) => {
+    console.log('Changement de champ:', field, value);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSave = async () => {
+    console.log('Sauvegarde du profil avec les données:', formData);
     const success = await saveProfile({
       ...formData,
       photo: profileImage || undefined
@@ -88,6 +97,14 @@ const ProfileSection = () => {
           onSave={handleSave}
           isSaving={isSaving}
         />
+
+        {/* Section de debug pour vérifier les données */}
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg text-xs">
+          <p><strong>Debug - Données actuelles :</strong></p>
+          <p>Langue ID: {formData.langueId} - {formData.languePreferee}</p>
+          <p>Devise ID: {formData.deviseId} - {formData.devise}</p>
+          <p>Niveau langue: {formData.niveauLangue}</p>
+        </div>
       </CardContent>
     </Card>
   );

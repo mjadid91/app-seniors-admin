@@ -11,7 +11,10 @@ interface UserProfile {
   telephone: string;
   photo?: string;
   languePreferee: string;
+  langueId: number;
   devise: string;
+  deviseId: number;
+  niveauLangue: number;
 }
 
 export const useUserProfile = () => {
@@ -23,8 +26,11 @@ export const useUserProfile = () => {
     email: '',
     telephone: '',
     photo: '',
-    languePreferee: 'fr',
-    devise: 'EUR'
+    languePreferee: 'Français',
+    langueId: 1,
+    devise: 'Euro (€)',
+    deviseId: 1,
+    niveauLangue: 5
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -35,40 +41,79 @@ export const useUserProfile = () => {
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      console.log('Chargement du profil pour l\'utilisateur ID:', user.id);
+      
+      // Charger les données utilisateur de base
+      const { data: userData, error: userError } = await supabase
         .from('Utilisateurs')
         .select(`
           Nom,
           Prenom,
           Email,
           Telephone,
-          Photo,
-          LangueSite
+          Photo
         `)
         .eq('IDUtilisateurs', parseInt(user.id))
         .single();
 
-      if (error) {
-        console.error('Erreur lors du chargement du profil:', error);
+      if (userError) {
+        console.error('Erreur lors du chargement des données utilisateur:', userError);
         toast({
           title: "Erreur",
-          description: "Impossible de charger votre profil.",
+          description: "Impossible de charger vos informations de base.",
           variant: "destructive",
         });
         return;
       }
 
-      if (data) {
-        setProfile({
-          nom: data.Nom || '',
-          prenom: data.Prenom || '',
-          email: data.Email || '',
-          telephone: data.Telephone || '',
-          photo: data.Photo || '',
-          languePreferee: data.LangueSite || 'fr',
-          devise: 'EUR'
-        });
+      // Charger la langue de l'utilisateur
+      const { data: langueData, error: langueError } = await supabase
+        .from('Langue_Utilisateurs')
+        .select(`
+          IDLangue,
+          NiveauLangue,
+          Langue:IDLangue (
+            Titre
+          )
+        `)
+        .eq('IDUtilisateurs', parseInt(user.id))
+        .single();
+
+      if (langueError && langueError.code !== 'PGRST116') {
+        console.error('Erreur lors du chargement de la langue:', langueError);
       }
+
+      // Charger la devise de l'utilisateur
+      const { data: deviseData, error: deviseError } = await supabase
+        .from('Devise_Utilisateurs')
+        .select(`
+          IDDevise,
+          Devise:IDDevise (
+            Titre
+          )
+        `)
+        .eq('IDUtilisateurs', parseInt(user.id))
+        .single();
+
+      if (deviseError && deviseError.code !== 'PGRST116') {
+        console.error('Erreur lors du chargement de la devise:', deviseError);
+      }
+
+      console.log('Données chargées:', { userData, langueData, deviseData });
+
+      setProfile({
+        nom: userData?.Nom || '',
+        prenom: userData?.Prenom || '',
+        email: userData?.Email || '',
+        telephone: userData?.Telephone || '',
+        photo: userData?.Photo || '',
+        languePreferee: langueData?.Langue?.Titre || 'Français',
+        langueId: langueData?.IDLangue || 1,
+        devise: deviseData?.Devise?.Titre || 'Euro (€)',
+        deviseId: deviseData?.IDDevise || 1,
+        niveauLangue: langueData?.NiveauLangue || 5
+      });
+
     } catch (error) {
       console.error('Erreur lors du chargement:', error);
       toast({
@@ -87,7 +132,10 @@ export const useUserProfile = () => {
 
     setIsSaving(true);
     try {
-      const { error } = await supabase
+      console.log('Sauvegarde du profil:', updatedProfile);
+      
+      // Mettre à jour les données utilisateur de base
+      const { error: userError } = await supabase
         .from('Utilisateurs')
         .update({
           Nom: updatedProfile.nom,
@@ -95,19 +143,92 @@ export const useUserProfile = () => {
           Email: updatedProfile.email,
           Telephone: updatedProfile.telephone,
           Photo: updatedProfile.photo,
-          LangueSite: updatedProfile.languePreferee,
           DateModification: new Date().toISOString()
         })
         .eq('IDUtilisateurs', parseInt(user.id));
 
-      if (error) {
-        console.error('Erreur lors de la sauvegarde:', error);
+      if (userError) {
+        console.error('Erreur lors de la mise à jour utilisateur:', userError);
         toast({
           title: "Erreur",
-          description: "Échec de la mise à jour",
+          description: "Échec de la mise à jour des informations de base",
           variant: "destructive",
         });
         return false;
+      }
+
+      // Gérer la langue si elle a changé
+      if (updatedProfile.langueId !== undefined) {
+        // Vérifier si une entrée existe déjà
+        const { data: existingLangue } = await supabase
+          .from('Langue_Utilisateurs')
+          .select('IDUtilisateurs')
+          .eq('IDUtilisateurs', parseInt(user.id))
+          .single();
+
+        if (existingLangue) {
+          // Mettre à jour
+          const { error: langueUpdateError } = await supabase
+            .from('Langue_Utilisateurs')
+            .update({
+              IDLangue: updatedProfile.langueId,
+              NiveauLangue: updatedProfile.niveauLangue || 5
+            })
+            .eq('IDUtilisateurs', parseInt(user.id));
+
+          if (langueUpdateError) {
+            console.error('Erreur mise à jour langue:', langueUpdateError);
+          }
+        } else {
+          // Insérer
+          const { error: langueInsertError } = await supabase
+            .from('Langue_Utilisateurs')
+            .insert({
+              IDUtilisateurs: parseInt(user.id),
+              IDLangue: updatedProfile.langueId,
+              NiveauLangue: updatedProfile.niveauLangue || 5
+            });
+
+          if (langueInsertError) {
+            console.error('Erreur insertion langue:', langueInsertError);
+          }
+        }
+      }
+
+      // Gérer la devise si elle a changé
+      if (updatedProfile.deviseId !== undefined) {
+        // Vérifier si une entrée existe déjà
+        const { data: existingDevise } = await supabase
+          .from('Devise_Utilisateurs')
+          .select('IDUtilisateurs')
+          .eq('IDUtilisateurs', parseInt(user.id))
+          .single();
+
+        if (existingDevise) {
+          // Mettre à jour
+          const { error: deviseUpdateError } = await supabase
+            .from('Devise_Utilisateurs')
+            .update({
+              IDDevise: updatedProfile.deviseId
+            })
+            .eq('IDUtilisateurs', parseInt(user.id));
+
+          if (deviseUpdateError) {
+            console.error('Erreur mise à jour devise:', deviseUpdateError);
+          }
+        } else {
+          // Insérer
+          const { error: deviseInsertError } = await supabase
+            .from('Devise_Utilisateurs')
+            .insert({
+              IDUtilisateurs: parseInt(user.id),
+              IDDevise: updatedProfile.deviseId
+            });
+
+          if (deviseInsertError) {
+            console.error('Erreur insertion devise:', deviseInsertError);
+          }
+        }
       }
 
       // Mettre à jour l'état local

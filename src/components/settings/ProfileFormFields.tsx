@@ -2,6 +2,8 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useSupabaseLangues } from "@/hooks/useSupabaseLangues";
+import { useSupabaseDevises } from "@/hooks/useSupabaseDevises";
 
 interface ProfileFormData {
   prenom: string;
@@ -9,15 +11,37 @@ interface ProfileFormData {
   email: string;
   telephone: string;
   languePreferee: string;
+  langueId: number;
   devise: string;
+  deviseId: number;
+  niveauLangue: number;
 }
 
 interface ProfileFormFieldsProps {
   formData: ProfileFormData;
-  onInputChange: (field: string, value: string) => void;
+  onInputChange: (field: string, value: string | number) => void;
 }
 
 const ProfileFormFields = ({ formData, onInputChange }: ProfileFormFieldsProps) => {
+  const { langues, loading: loadingLangues } = useSupabaseLangues();
+  const { devises, loading: loadingDevises } = useSupabaseDevises();
+
+  const handleLangueChange = (langueId: string) => {
+    const langue = langues.find(l => l.IDLangue.toString() === langueId);
+    if (langue) {
+      onInputChange("langueId", parseInt(langueId));
+      onInputChange("languePreferee", langue.Titre);
+    }
+  };
+
+  const handleDeviseChange = (deviseId: string) => {
+    const devise = devises.find(d => d.IDDevise.toString() === deviseId);
+    if (devise) {
+      onInputChange("deviseId", parseInt(deviseId));
+      onInputChange("devise", devise.Titre);
+    }
+  };
+
   return (
     <div className="border-t border-slate-200 pt-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -67,33 +91,72 @@ const ProfileFormFields = ({ formData, onInputChange }: ProfileFormFieldsProps) 
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <div className="space-y-2">
-          <Label>Langue</Label>
-          <Select value={formData.languePreferee} onValueChange={(value) => onInputChange("languePreferee", value)}>
-            <SelectTrigger className="transition-all duration-200 hover:border-blue-300">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="fr">Français</SelectItem>
-              <SelectItem value="en">English</SelectItem>
-              <SelectItem value="es">Español</SelectItem>
-            </SelectContent>
-          </Select>
+          <Label>Langue préférée</Label>
+          {loadingLangues ? (
+            <div className="text-sm text-gray-500">Chargement des langues...</div>
+          ) : (
+            <Select 
+              value={formData.langueId?.toString() || ""} 
+              onValueChange={handleLangueChange}
+            >
+              <SelectTrigger className="transition-all duration-200 hover:border-blue-300">
+                <SelectValue placeholder="Sélectionner une langue" />
+              </SelectTrigger>
+              <SelectContent>
+                {langues.map((langue) => (
+                  <SelectItem key={langue.IDLangue} value={langue.IDLangue.toString()}>
+                    {langue.Titre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         <div className="space-y-2">
           <Label>Devise</Label>
-          <Select value={formData.devise} onValueChange={(value) => onInputChange("devise", value)}>
+          {loadingDevises ? (
+            <div className="text-sm text-gray-500">Chargement des devises...</div>
+          ) : (
+            <Select 
+              value={formData.deviseId?.toString() || ""} 
+              onValueChange={handleDeviseChange}
+            >
+              <SelectTrigger className="transition-all duration-200 hover:border-blue-300">
+                <SelectValue placeholder="Sélectionner une devise" />
+              </SelectTrigger>
+              <SelectContent>
+                {devises.map((devise) => (
+                  <SelectItem key={devise.IDDevise} value={devise.IDDevise.toString()}>
+                    {devise.Titre}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+      </div>
+
+      {formData.langueId && (
+        <div className="space-y-2 mt-4">
+          <Label>Niveau de langue</Label>
+          <Select 
+            value={formData.niveauLangue?.toString() || "5"} 
+            onValueChange={(value) => onInputChange("niveauLangue", parseInt(value))}
+          >
             <SelectTrigger className="transition-all duration-200 hover:border-blue-300">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="EUR">Euro (€)</SelectItem>
-              <SelectItem value="USD">Dollar ($)</SelectItem>
-              <SelectItem value="GBP">Livre (£)</SelectItem>
+              <SelectItem value="1">Débutant</SelectItem>
+              <SelectItem value="2">Élémentaire</SelectItem>
+              <SelectItem value="3">Intermédiaire</SelectItem>
+              <SelectItem value="4">Avancé</SelectItem>
+              <SelectItem value="5">Natif/Courant</SelectItem>
             </SelectContent>
           </Select>
         </div>
-      </div>
+      )}
     </div>
   );
 };
