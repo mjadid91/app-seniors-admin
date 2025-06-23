@@ -120,9 +120,8 @@ const LoginPage = () => {
             <div className="mt-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-xs text-blue-800 font-medium mb-2">Informations importantes :</p>
               <div className="text-xs text-blue-700 space-y-1">
-                <div><strong>Seuls les administrateurs, modérateurs et support</strong> peuvent se connecter</div>
+                <div><strong>Seuls les administrateurs, modérateurs, support et visualisateur</strong> peuvent se connecter</div>
                 <div>Utilisez l'email et mot de passe exacts de votre compte</div>
-                <div>Catégories autorisées : 5, 6, 7, 8</div>
               </div>
             </div>
           </CardContent>
