@@ -1,170 +1,156 @@
 
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, MessageSquare, Flag } from "lucide-react";
-import { ForumPost, GroupMessage } from './types';
-import ModerationStats from './ModerationStats';
-import ForumPostsTable from './ForumPostsTable';
-import GroupMessagesTable from './GroupMessagesTable';
-import AddForumSubjectModal from './AddForumSubjectModal';
-import AddForumModal from './AddForumModal';
-import AddGroupModal from '@/components/groups/AddGroupModal';
-import AddGroupMessageModal from './AddGroupMessageModal';
-import AddSignalementModal from './AddSignalementModal';
-// Import the new hooks
-import { useForumPosts } from './useForumPosts';
-import { useGroupMessages } from './useGroupMessages';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Users, MessageSquare, FileText, AlertTriangle, UserPlus, MessageCircle, Plus, UserCheck } from "lucide-react";
+import ModerationStats from "./ModerationStats";
+import ForumPostsTable from "./ForumPostsTable";
+import GroupMessagesTable from "./GroupMessagesTable";
+import AddForumModal from "./AddForumModal";
+import AddForumSubjectModal from "./AddForumSubjectModal";
+import AddGroupModal from "../groups/AddGroupModal";
+import AddGroupMessageModal from "./AddGroupMessageModal";
+import AddSignalementModal from "./AddSignalementModal";
+import AddGroupMembersModal from "./AddGroupMembersModal";
 
 const Moderation = () => {
-  // Load forum posts from DB
-  const {
-    data: forumPosts = [],
-    isLoading: forumLoading,
-    error: forumError,
-    refetch: refetchForumPosts
-  } = useForumPosts();
+  const [isAddForumModalOpen, setIsAddForumModalOpen] = useState(false);
+  const [isAddForumSubjectModalOpen, setIsAddForumSubjectModalOpen] = useState(false);
+  const [isAddGroupModalOpen, setIsAddGroupModalOpen] = useState(false);
+  const [isAddGroupMessageModalOpen, setIsAddGroupMessageModalOpen] = useState(false);
+  const [isAddSignalementModalOpen, setIsAddSignalementModalOpen] = useState(false);
+  const [isAddGroupMembersModalOpen, setIsAddGroupMembersModalOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Load group messages from DB
-  const {
-    data: groupMessages = [],
-    isLoading: groupsLoading,
-    error: groupsError,
-  } = useGroupMessages();
-
-  // State for updating in memory the status changes locally after moderation
-  const [localForumPosts, setLocalForumPosts] = useState<ForumPost[]>([]);
-  const [localGroupMessages, setLocalGroupMessages] = useState<GroupMessage[]>([]);
-
-  // Modal states
-  const [showAddSubjectModal, setShowAddSubjectModal] = useState(false);
-  const [showAddForumModal, setShowAddForumModal] = useState(false);
-  const [showAddGroupModal, setShowAddGroupModal] = useState(false);
-  const [showAddGroupMessageModal, setShowAddGroupMessageModal] = useState(false);
-  const [showAddSignalementModal, setShowAddSignalementModal] = useState(false);
-
-  // Derive final lists to display (local edits have priority)
-  const displayedForumPosts =
-    localForumPosts.length > 0 ? localForumPosts : forumPosts;
-  const displayedGroupMessages =
-    localGroupMessages.length > 0 ? localGroupMessages : groupMessages;
-
-  const handleSubjectSuccess = () => {
-    refetchForumPosts();
-  };
-
-  const handleForumSuccess = () => {
-    // Les forums sont utilisés dans le modal de sujet, on pourrait aussi refetch ici
-  };
-
-  const handleGroupSuccess = () => {
-    console.log("Groupe créé avec succès");
-  };
-
-  const handleGroupMessageSuccess = () => {
-    console.log("Message de groupe ajouté avec succès");
-  };
-
-  const handleSignalementSuccess = () => {
-    console.log("Signalement créé avec succès");
+  const handleSuccess = () => {
+    setRefreshTrigger(prev => prev + 1);
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-800">Modération</h2>
-          <p className="text-slate-600 mt-1">Gestion des contenus des forums et groupes</p>
-        </div>
-        
-        <div className="flex gap-2 flex-wrap">
-          <Button onClick={() => setShowAddForumModal(true)} variant="outline" size="sm">
-            <Plus className="h-4 w-4 mr-1" />
-            Nouveau Forum
-          </Button>
-          <Button onClick={() => setShowAddSubjectModal(true)} variant="outline" size="sm">
-            <Plus className="h-4 w-4 mr-1" />
-            Nouveau Sujet
-          </Button>
-          <Button onClick={() => setShowAddGroupModal(true)} variant="outline" size="sm">
-            <Plus className="h-4 w-4 mr-1" />
-            Nouveau Groupe
-          </Button>
-          <Button onClick={() => setShowAddGroupMessageModal(true)} variant="outline" size="sm">
-            <MessageSquare className="h-4 w-4 mr-1" />
-            Message Groupe
-          </Button>
-          <Button onClick={() => setShowAddSignalementModal(true)} variant="outline" size="sm">
-            <Flag className="h-4 w-4 mr-1" />
-            Signalement
-          </Button>
-        </div>
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-900">Modération</h1>
       </div>
 
       <ModerationStats />
 
-      <Tabs defaultValue="forums" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="forums">Forums</TabsTrigger>
-          <TabsTrigger value="groupes">Groupes</TabsTrigger>
+      <Tabs defaultValue="forums" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="forums" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Forums
+          </TabsTrigger>
+          <TabsTrigger value="groupes" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Groupes
+          </TabsTrigger>
+          <TabsTrigger value="signalements" className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            Signalements
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="forums">
-          {forumLoading ? (
-            <div className="p-4 text-center text-slate-500">Chargement des sujets…</div>
-          ) : forumError ? (
-            <div className="p-4 text-center text-red-500">Erreur de chargement</div>
-          ) : (
-            <ForumPostsTable 
-              forumPosts={displayedForumPosts} 
-              setForumPosts={setLocalForumPosts} 
-            />
-          )}
+        <TabsContent value="forums" className="space-y-4">
+          <div className="flex gap-2 flex-wrap">
+            <Button 
+              onClick={() => setIsAddForumModalOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Ajouter un forum
+            </Button>
+            <Button 
+              onClick={() => setIsAddForumSubjectModalOpen(true)}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <FileText className="h-4 w-4" />
+              Ajouter un sujet
+            </Button>
+          </div>
+          <ForumPostsTable key={refreshTrigger} />
         </TabsContent>
 
-        <TabsContent value="groupes">
-          {groupsLoading ? (
-            <div className="p-4 text-center text-slate-500">Chargement des messages…</div>
-          ) : groupsError ? (
-            <div className="p-4 text-center text-red-500">Erreur de chargement</div>
-          ) : (
-            <GroupMessagesTable 
-              groupMessages={displayedGroupMessages} 
-              setGroupMessages={setLocalGroupMessages} 
-            />
-          )}
+        <TabsContent value="groupes" className="space-y-4">
+          <div className="flex gap-2 flex-wrap">
+            <Button 
+              onClick={() => setIsAddGroupModalOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Ajouter un groupe
+            </Button>
+            <Button 
+              onClick={() => setIsAddGroupMessageModalOpen(true)}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Ajouter un message
+            </Button>
+            <Button 
+              onClick={() => setIsAddGroupMembersModalOpen(true)}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <UserCheck className="h-4 w-4" />
+              Ajouter des membres
+            </Button>
+          </div>
+          <GroupMessagesTable key={refreshTrigger} />
+        </TabsContent>
+
+        <TabsContent value="signalements" className="space-y-4">
+          <div className="flex gap-2 flex-wrap">
+            <Button 
+              onClick={() => setIsAddSignalementModalOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Ajouter un signalement
+            </Button>
+          </div>
+          <div className="text-center py-8 text-gray-500">
+            Section des signalements - À implémenter
+          </div>
         </TabsContent>
       </Tabs>
 
       {/* Modals */}
-      <AddForumSubjectModal
-        isOpen={showAddSubjectModal}
-        onClose={() => setShowAddSubjectModal(false)}
-        onSuccess={handleSubjectSuccess}
+      <AddForumModal
+        isOpen={isAddForumModalOpen}
+        onClose={() => setIsAddForumModalOpen(false)}
+        onSuccess={handleSuccess}
       />
 
-      <AddForumModal
-        isOpen={showAddForumModal}
-        onClose={() => setShowAddForumModal(false)}
-        onSuccess={handleForumSuccess}
+      <AddForumSubjectModal
+        isOpen={isAddForumSubjectModalOpen}
+        onClose={() => setIsAddForumSubjectModalOpen(false)}
+        onSuccess={handleSuccess}
       />
 
       <AddGroupModal
-        isOpen={showAddGroupModal}
-        onClose={() => setShowAddGroupModal(false)}
-        onSuccess={handleGroupSuccess}
+        isOpen={isAddGroupModalOpen}
+        onClose={() => setIsAddGroupModalOpen(false)}
+        onSuccess={handleSuccess}
       />
 
       <AddGroupMessageModal
-        isOpen={showAddGroupMessageModal}
-        onClose={() => setShowAddGroupMessageModal(false)}
-        onSuccess={handleGroupMessageSuccess}
+        isOpen={isAddGroupMessageModalOpen}
+        onClose={() => setIsAddGroupMessageModalOpen(false)}
+        onSuccess={handleSuccess}
       />
 
       <AddSignalementModal
-        isOpen={showAddSignalementModal}
-        onClose={() => setShowAddSignalementModal(false)}
-        onSuccess={handleSignalementSuccess}
+        isOpen={isAddSignalementModalOpen}
+        onClose={() => setIsAddSignalementModalOpen(false)}
+        onSuccess={handleSuccess}
+      />
+
+      <AddGroupMembersModal
+        isOpen={isAddGroupMembersModalOpen}
+        onClose={() => setIsAddGroupMembersModalOpen(false)}
+        onSuccess={handleSuccess}
       />
     </div>
   );
