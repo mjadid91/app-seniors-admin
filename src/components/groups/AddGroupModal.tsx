@@ -56,7 +56,8 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess }: AddGroupModalProps) => {
 
       const nextId = maxIdData && maxIdData.length > 0 ? maxIdData[0].IDGroupe + 1 : 1;
 
-      const { error } = await supabase
+      // Créer le groupe
+      const { error: groupError } = await supabase
         .from('Groupe')
         .insert({
           IDGroupe: nextId,
@@ -66,11 +67,21 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess }: AddGroupModalProps) => {
           DateCreation: new Date().toISOString().split('T')[0]
         });
 
-      if (error) throw error;
+      if (groupError) throw groupError;
+
+      // Ajouter automatiquement le créateur comme membre du groupe
+      const { error: memberError } = await supabase
+        .from('Utilisateurs_Groupe')
+        .insert({
+          IDGroupe: nextId,
+          IDUtilisateurs: parseInt(formData.createurId)
+        });
+
+      if (memberError) throw memberError;
 
       toast({
         title: "Groupe créé",
-        description: "Le groupe a été créé avec succès"
+        description: "Le groupe a été créé avec succès et le créateur a été ajouté comme membre"
       });
 
       onSuccess();

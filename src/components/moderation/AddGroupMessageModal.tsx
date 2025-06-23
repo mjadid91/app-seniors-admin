@@ -23,20 +23,6 @@ const AddGroupMessageModal = ({ isOpen, onClose, onSuccess }: AddGroupMessageMod
     groupeId: ""
   });
 
-  // Récupérer les utilisateurs
-  const { data: utilisateurs = [] } = useQuery({
-    queryKey: ['utilisateurs'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('Utilisateurs')
-        .select('IDUtilisateurs, Nom, Prenom')
-        .order('Nom');
-      
-      if (error) throw error;
-      return data;
-    }
-  });
-
   // Récupérer les groupes
   const { data: groupes = [] } = useQuery({
     queryKey: ['groupes'],
@@ -51,11 +37,53 @@ const AddGroupMessageModal = ({ isOpen, onClose, onSuccess }: AddGroupMessageMod
     }
   });
 
+  // Récupérer les membres du groupe sélectionné
+  const { data: membresGroupe = [] } = useQuery({
+    queryKey: ['membres-groupe', formData.groupeId],
+    queryFn: async () => {
+      if (!formData.groupeId) return [];
+      
+      const { data, error } = await supabase
+        .from('Utilisateurs_Groupe')
+        .select(`
+          IDUtilisateurs,
+          Utilisateurs!inner(IDUtilisateurs, Nom, Prenom)
+        `)
+        .eq('IDGroupe', parseInt(formData.groupeId));
+      
+      if (error) throw error;
+      return data.map(item => ({
+        IDUtilisateurs: item.Utilisateurs.IDUtilisateurs,
+        Nom: item.Utilisateurs.Nom,
+        Prenom: item.Utilisateurs.Prenom
+      }));
+    },
+    enabled: !!formData.groupeId
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
+      // Vérifier que l'auteur est bien membre du groupe
+      const { data: isMember } = await supabase
+        .from('Utilisateurs_Groupe')
+        .select('IDUtilisateurs')
+        .eq('IDGroupe', parseInt(formData.groupeId))
+        .eq('IDUtilisateurs', parseInt(formData.auteurId))
+        .single();
+
+      if (!isMember) {
+        toast({
+          title: "Erreur",
+          description: "L'auteur doit être membre du groupe",
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       // Get the next available ID to avoid conflicts
       const { data: maxIdData, error: maxIdError } = await supabase
         .from('MessageGroupe')
@@ -105,6 +133,15 @@ const AddGroupMessageModal = ({ isOpen, onClose, onSuccess }: AddGroupMessageMod
     }
   };
 
+  // Réinitialiser l'auteur quand le groupe change
+  const handleGroupeChange = (value: string) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      groupeId: value,
+      auteurId: "" // Réinitialiser l'auteur
+    }));
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
@@ -115,7 +152,7 @@ const AddGroupMessageModal = ({ isOpen, onClose, onSuccess }: AddGroupMessageMod
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Groupe</label>
-            <Select value={formData.groupeId} onValueChange={(value) => setFormData(prev => ({ ...prev, groupeId: value }))}>
+            <Select value={formData.groupeId} onValueChange={handleGroupeChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un groupe" />
               </SelectTrigger>
@@ -130,15 +167,19 @@ const AddGroupMessageModal = ({ isOpen, onClose, onSuccess }: AddGroupMessageMod
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Auteur</label>
-            <Select value={formData.auteurId} onValueChange={(value) => setFormData(prev => ({ ...prev, auteurId: value }))}>
+            <label className="block text-sm font-medium mb-1">Auteur (membres du groupe uniquement)</label>
+            <Select 
+              value={formData.auteurId} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, auteurId: value }))}
+              disabled={!formData.groupeId}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un auteur" />
+                <SelectValue placeholder={formData.groupeId ? "Sélectionner un auteur" : "Sélectionner d'abord un groupe"} />
               </SelectTrigger>
               <SelectContent>
-                {utilisateurs.map((utilisateur) => (
-                  <SelectItem key={utilisateur.IDUtilisateurs} value={utilisateur.IDUtilisateurs.toString()}>
-                    {utilisateur.Prenom} {utilisateur.Nom}
+                {membresGroupe.map((membre) => (
+                  <SelectItem key={membre.IDUtilisateurs} value={membre.IDUtilisateurs.toString()}>
+                    {membre.Prenom} {membre.Nom}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -159,7 +200,7 @@ const AddGroupMessageModal = ({ isOpen, onClose, onSuccess }: AddGroupMessageMod
             <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting || !formData.groupeId || !formData.auteurId}>
               {isSubmitting ? "Ajout..." : "Ajouter"}
             </Button>
           </div>

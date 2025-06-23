@@ -24,20 +24,6 @@ const AddSignalementModal = ({ isOpen, onClose, onSuccess }: AddSignalementModal
     description: ""
   });
 
-  // Récupérer les utilisateurs
-  const { data: utilisateurs = [] } = useQuery({
-    queryKey: ['utilisateurs'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('Utilisateurs')
-        .select('IDUtilisateurs, Nom, Prenom')
-        .order('Nom');
-      
-      if (error) throw error;
-      return data;
-    }
-  });
-
   // Récupérer les messages de groupe avec auteur et groupe
   const { data: messages = [] } = useQuery({
     queryKey: ['messages-groupe'],
@@ -47,6 +33,7 @@ const AddSignalementModal = ({ isOpen, onClose, onSuccess }: AddSignalementModal
         .select(`
           IDMessageGroupe,
           Contenu,
+          IDGroupe,
           Utilisateurs!inner(Nom, Prenom),
           Groupe!inner(Titre)
         `)
@@ -57,11 +44,71 @@ const AddSignalementModal = ({ isOpen, onClose, onSuccess }: AddSignalementModal
     }
   });
 
+  // Récupérer les membres du groupe du message sélectionné
+  const { data: membresGroupe = [] } = useQuery({
+    queryKey: ['membres-groupe-signalement', formData.messageId],
+    queryFn: async () => {
+      if (!formData.messageId) return [];
+      
+      // D'abord, récupérer le groupe du message
+      const { data: messageData, error: messageError } = await supabase
+        .from('MessageGroupe')
+        .select('IDGroupe')
+        .eq('IDMessageGroupe', parseInt(formData.messageId))
+        .single();
+
+      if (messageError || !messageData) return [];
+
+      // Ensuite, récupérer les membres de ce groupe
+      const { data, error } = await supabase
+        .from('Utilisateurs_Groupe')
+        .select(`
+          IDUtilisateurs,
+          Utilisateurs!inner(IDUtilisateurs, Nom, Prenom)
+        `)
+        .eq('IDGroupe', messageData.IDGroupe);
+      
+      if (error) throw error;
+      return data.map(item => ({
+        IDUtilisateurs: item.Utilisateurs.IDUtilisateurs,
+        Nom: item.Utilisateurs.Nom,
+        Prenom: item.Utilisateurs.Prenom
+      }));
+    },
+    enabled: !!formData.messageId
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
+      // Vérifier que le signaleur est bien membre du groupe du message
+      const { data: messageData } = await supabase
+        .from('MessageGroupe')
+        .select('IDGroupe')
+        .eq('IDMessageGroupe', parseInt(formData.messageId))
+        .single();
+
+      if (messageData) {
+        const { data: isMember } = await supabase
+          .from('Utilisateurs_Groupe')
+          .select('IDUtilisateurs')
+          .eq('IDGroupe', messageData.IDGroupe)
+          .eq('IDUtilisateurs', parseInt(formData.signaleurId))
+          .single();
+
+        if (!isMember) {
+          toast({
+            title: "Erreur",
+            description: "Le signaleur doit être membre du groupe",
+            variant: "destructive"
+          });
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       // Get the next available ID to avoid conflicts
       const { data: maxIdData, error: maxIdError } = await supabase
         .from('SignalementContenu')
@@ -113,6 +160,15 @@ const AddSignalementModal = ({ isOpen, onClose, onSuccess }: AddSignalementModal
     }
   };
 
+  // Réinitialiser le signaleur quand le message change
+  const handleMessageChange = (value: string) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      messageId: value,
+      signaleurId: "" // Réinitialiser le signaleur
+    }));
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
@@ -123,7 +179,7 @@ const AddSignalementModal = ({ isOpen, onClose, onSuccess }: AddSignalementModal
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Message à signaler</label>
-            <Select value={formData.messageId} onValueChange={(value) => setFormData(prev => ({ ...prev, messageId: value }))}>
+            <Select value={formData.messageId} onValueChange={handleMessageChange}>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un message" />
               </SelectTrigger>
@@ -138,15 +194,19 @@ const AddSignalementModal = ({ isOpen, onClose, onSuccess }: AddSignalementModal
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Signaleur</label>
-            <Select value={formData.signaleurId} onValueChange={(value) => setFormData(prev => ({ ...prev, signaleurId: value }))}>
+            <label className="block text-sm font-medium mb-1">Signaleur (membres du groupe uniquement)</label>
+            <Select 
+              value={formData.signaleurId} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, signaleurId: value }))}
+              disabled={!formData.messageId}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un signaleur" />
+                <SelectValue placeholder={formData.messageId ? "Sélectionner un signaleur" : "Sélectionner d'abord un message"} />
               </SelectTrigger>
               <SelectContent>
-                {utilisateurs.map((utilisateur) => (
-                  <SelectItem key={utilisateur.IDUtilisateurs} value={utilisateur.IDUtilisateurs.toString()}>
-                    {utilisateur.Prenom} {utilisateur.Nom}
+                {membresGroupe.map((membre) => (
+                  <SelectItem key={membre.IDUtilisateurs} value={membre.IDUtilisateurs.toString()}>
+                    {membre.Prenom} {membre.Nom}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -184,7 +244,7 @@ const AddSignalementModal = ({ isOpen, onClose, onSuccess }: AddSignalementModal
             <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting || !formData.messageId || !formData.signaleurId}>
               {isSubmitting ? "Création..." : "Créer"}
             </Button>
           </div>
