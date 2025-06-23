@@ -56,9 +56,23 @@ const AddForumSubjectModal = ({ isOpen, onClose, onSuccess }: AddForumSubjectMod
     setIsSubmitting(true);
 
     try {
+      // First, get the next available ID to avoid conflicts
+      const { data: maxIdData, error: maxIdError } = await supabase
+        .from('SujetForum')
+        .select('IDSujetForum')
+        .order('IDSujetForum', { ascending: false })
+        .limit(1);
+
+      if (maxIdError) {
+        console.error('Error getting max ID:', maxIdError);
+      }
+
+      const nextId = maxIdData && maxIdData.length > 0 ? maxIdData[0].IDSujetForum + 1 : 1;
+
       const { error } = await supabase
         .from('SujetForum')
         .insert({
+          IDSujetForum: nextId,
           TitreSujet: formData.titre,
           IDUtilisateurs: parseInt(formData.auteurId),
           IDForum: parseInt(formData.forumId),
