@@ -43,9 +43,23 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess }: AddGroupModalProps) => {
     setIsSubmitting(true);
 
     try {
+      // Get the next available ID to avoid conflicts
+      const { data: maxIdData, error: maxIdError } = await supabase
+        .from('Groupe')
+        .select('IDGroupe')
+        .order('IDGroupe', { ascending: false })
+        .limit(1);
+
+      if (maxIdError) {
+        console.error('Error getting max ID:', maxIdError);
+      }
+
+      const nextId = maxIdData && maxIdData.length > 0 ? maxIdData[0].IDGroupe + 1 : 1;
+
       const { error } = await supabase
         .from('Groupe')
         .insert({
+          IDGroupe: nextId,
           Titre: formData.titre,
           Description: formData.description,
           IDUtilisateursCreateur: parseInt(formData.createurId),
