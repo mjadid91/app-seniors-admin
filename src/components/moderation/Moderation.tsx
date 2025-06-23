@@ -12,6 +12,8 @@ import AddGroupModal from "../groups/AddGroupModal";
 import AddGroupMessageModal from "./AddGroupMessageModal";
 import AddSignalementModal from "./AddSignalementModal";
 import AddGroupMembersModal from "./AddGroupMembersModal";
+import { useForumPosts } from "./useForumPosts";
+import { useGroupMessages } from "./useGroupMessages";
 
 const Moderation = () => {
   const [isAddForumModalOpen, setIsAddForumModalOpen] = useState(false);
@@ -22,8 +24,14 @@ const Moderation = () => {
   const [isAddGroupMembersModalOpen, setIsAddGroupMembersModalOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  // Fetch forum posts and group messages
+  const { data: forumPosts = [], refetch: refetchForumPosts } = useForumPosts();
+  const { data: groupMessages = [], refetch: refetchGroupMessages } = useGroupMessages();
+
   const handleSuccess = () => {
     setRefreshTrigger(prev => prev + 1);
+    refetchForumPosts();
+    refetchGroupMessages();
   };
 
   return (
@@ -68,7 +76,10 @@ const Moderation = () => {
               Ajouter un sujet
             </Button>
           </div>
-          <ForumPostsTable key={refreshTrigger} />
+          <ForumPostsTable 
+            forumPosts={forumPosts}
+            setForumPosts={() => {}} // This will be handled by React Query refetch
+          />
         </TabsContent>
 
         <TabsContent value="groupes" className="space-y-4">
@@ -97,7 +108,10 @@ const Moderation = () => {
               Ajouter des membres
             </Button>
           </div>
-          <GroupMessagesTable key={refreshTrigger} />
+          <GroupMessagesTable 
+            groupMessages={groupMessages}
+            setGroupMessages={() => {}} // This will be handled by React Query refetch
+          />
         </TabsContent>
 
         <TabsContent value="signalements" className="space-y-4">
