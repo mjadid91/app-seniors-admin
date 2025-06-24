@@ -6,6 +6,7 @@ import { Users, MessageSquare, FileText, AlertTriangle, UserPlus, MessageCircle,
 import ModerationStats from "./ModerationStats";
 import ForumPostsTable from "./ForumPostsTable";
 import GroupMessagesTable from "./GroupMessagesTable";
+import SignalementsTable from "./SignalementsTable";
 import AddForumModal from "./AddForumModal";
 import AddForumSubjectModal from "./AddForumSubjectModal";
 import AddGroupModal from "../groups/AddGroupModal";
@@ -124,9 +125,7 @@ const Moderation = () => {
               Ajouter un signalement
             </Button>
           </div>
-          <div className="text-center py-8 text-gray-500">
-            Section des signalements - À implémenter
-          </div>
+          <SignalementsTable refreshTrigger={refreshTrigger} />
         </TabsContent>
       </Tabs>
 

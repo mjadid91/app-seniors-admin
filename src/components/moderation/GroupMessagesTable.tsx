@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, Trash2, Archive } from "lucide-react";
+import { Eye, Trash2, Archive } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { GroupMessage } from './types';
 import { getStatutBadgeColor } from './utils';
@@ -15,7 +15,7 @@ interface GroupMessagesTableProps {
   setGroupMessages: React.Dispatch<React.SetStateAction<GroupMessage[]>>;
 }
 
-const allowedStatuts = ['visible', 'masque', 'supprime'] as const;
+const allowedStatuts = ['visible', 'masque', 'archive'] as const;
 type GroupMessageStatut = typeof allowedStatuts[number];
 
 const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTableProps) => {
@@ -29,7 +29,7 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
     setIsViewModalOpen(true);
     toast({
       title: "Voir le message",
-      description: `Ouverture du message de ${message.auteur}`,
+      description: "Ouverture du message de groupe",
     });
     console.log("Voir message:", message);
   };
@@ -63,11 +63,11 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
     }
   };
 
-  const handleMasquerMessage = (message: GroupMessage) => {
-    handleStatutChange(message.id, 'masque');
+  const handleArchiverMessage = (message: GroupMessage) => {
+    handleStatutChange(message.id, 'archive');
     toast({
-      title: "Message masqué",
-      description: `Le message de ${message.auteur} a été masqué`,
+      title: "Message archivé",
+      description: "Le message a été archivé",
     });
   };
 
@@ -75,7 +75,7 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
     setGroupMessages(prev => prev.filter(m => m.id !== message.id));
     toast({
       title: "Message supprimé",
-      description: `Le message de ${message.auteur} a été supprimé définitivement`,
+      description: "Le message a été supprimé définitivement",
       variant: "destructive"
     });
   };
@@ -91,10 +91,10 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-200">
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Contenu</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700">Auteur</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700">Groupe</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700">Date</th>
-                  <th className="text-left py-3 px-4 font-medium text-slate-700">Contenu</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700">Signalements</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700">Statut</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700">Actions</th>
@@ -104,17 +104,15 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
                 {groupMessages.map((message) => (
                   <tr key={message.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                     <td className="py-4 px-4">
-                      <p className="font-medium text-slate-800">{message.auteur}</p>
+                      <p className="font-medium text-slate-800 truncate max-w-xs">
+                        {message.contenu.substring(0, 100)}...
+                      </p>
                       <p className="text-sm text-slate-500">ID: {message.id}</p>
                     </td>
+                    <td className="py-4 px-4 text-slate-600">{message.auteur}</td>
                     <td className="py-4 px-4 text-slate-600">{message.groupe}</td>
                     <td className="py-4 px-4 text-slate-600">
                       {new Date(message.dateEnvoi).toLocaleDateString('fr-FR')}
-                    </td>
-                    <td className="py-4 px-4">
-                      <p className="text-slate-600 truncate max-w-xs">
-                        {message.contenu}
-                      </p>
                     </td>
                     <td className="py-4 px-4">
                       {message.signalements > 0 ? (
@@ -143,10 +141,10 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          title="Masquer"
-                          onClick={() => handleMasquerMessage(message)}
+                          title="Archiver"
+                          onClick={() => handleArchiverMessage(message)}
                         >
-                          <EyeOff className="h-4 w-4" />
+                          <Archive className="h-4 w-4" />
                         </Button>
                         <Button 
                           variant="ghost" 

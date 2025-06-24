@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, Trash2, Archive } from "lucide-react";
+import { Eye, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ForumPost } from './types';
 import { getStatutBadgeColor } from './utils';
@@ -51,32 +51,6 @@ const ForumPostsTable = ({ forumPosts, setForumPosts }: ForumPostsTableProps) =>
         )
       );
     }
-  };
-
-  const handleStatutChange = (postId: string, statut: string) => {
-    if ((allowedStatuts as readonly string[]).includes(statut)) {
-      setForumPosts(prev =>
-        prev.map(p =>
-          p.id === postId ? { ...p, statut: statut as ForumPostStatut } : p
-        )
-      );
-    }
-  };
-
-  const handleMasquerPost = (post: ForumPost) => {
-    handleStatutChange(post.id, 'masque');
-    toast({
-      title: "Sujet masqué",
-      description: `Le sujet "${post.titre}" a été masqué`,
-    });
-  };
-
-  const handleArchiverPost = (post: ForumPost) => {
-    handleStatutChange(post.id, 'archive');
-    toast({
-      title: "Sujet archivé",
-      description: `Le sujet "${post.titre}" a été archivé`,
-    });
   };
 
   const handleSupprimerPost = (post: ForumPost) => {
@@ -143,22 +117,6 @@ const ForumPostsTable = ({ forumPosts, setForumPosts }: ForumPostsTableProps) =>
                           onClick={() => handleVoirPost(post)}
                         >
                           <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          title="Masquer"
-                          onClick={() => handleMasquerPost(post)}
-                        >
-                          <EyeOff className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          title="Archiver"
-                          onClick={() => handleArchiverPost(post)}
-                        >
-                          <Archive className="h-4 w-4" />
                         </Button>
                         <Button 
                           variant="ghost" 

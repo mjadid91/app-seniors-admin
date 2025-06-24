@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '../../stores/authStore';
 import { convertSupabaseUserToAppUser, getCategoryFromRole } from '../utils/userConversion';
@@ -85,7 +86,6 @@ export const useUserCrud = (
         }
       }
 
-
       if (userData.devise) {
         console.log("Devise sélectionnée :", userData.devise);
         const { data: deviseData, error: deviseError } = await supabase
@@ -104,8 +104,6 @@ export const useUserCrud = (
           }]);
         }
       }
-
-
 
       const newUser = convertSupabaseUserToAppUser(data, getRoleFromCategory);
       setUsers([...users, newUser]);
@@ -153,62 +151,87 @@ export const useUserCrud = (
     }
   };
 
-  // Fonction pour supprimer un utilisateur
+  // Fonction pour supprimer un utilisateur - améliorée
   const deleteUser = async (userId: string): Promise<void> => {
     try {
       const userIdInt = parseInt(userId);
+      console.log('Début de la suppression pour l\'utilisateur ID:', userIdInt);
       
-      // D'abord, supprimer les références dans les tables liées
-      console.log('Suppression des références de l\'utilisateur:', userIdInt);
+      // Supprimer toutes les références dans l'ordre approprié pour éviter les erreurs de contraintes
       
-      // Supprimer les langues de l'utilisateur
+      // 1. Supprimer les langues de l'utilisateur
       const { error: langueError } = await supabase
         .from('Langue_Utilisateurs')
         .delete()
         .eq('IDUtilisateurs', userIdInt);
       
-      if (langueError) {
+      if (langueError && langueError.code !== 'PGRST116') { // PGRST116 = aucune ligne trouvée
         console.warn('Erreur lors de la suppression des langues:', langueError);
       }
       
-      // Supprimer les devises de l'utilisateur
+      // 2. Supprimer les devises de l'utilisateur
       const { error: deviseError } = await supabase
         .from('Devise_Utilisateurs')
         .delete()
         .eq('IDUtilisateurs', userIdInt);
       
-      if (deviseError) {
+      if (deviseError && deviseError.code !== 'PGRST116') {
         console.warn('Erreur lors de la suppression des devises:', deviseError);
       }
       
-      // Supprimer l'entrée Senior si elle existe
+      // 3. Supprimer l'entrée Senior si elle existe
       const { error: seniorError } = await supabase
         .from('Seniors')
         .delete()
         .eq('IDUtilisateurSenior', userIdInt);
       
-      if (seniorError) {
+      if (seniorError && seniorError.code !== 'PGRST116') {
         console.warn('Erreur lors de la suppression du profil Senior:', seniorError);
       }
       
-      // Supprimer l'entrée Aidant si elle existe
+      // 4. Supprimer l'entrée Aidant si elle existe
       const { error: aidantError } = await supabase
         .from('Aidant')
         .delete()
         .eq('IDUtilisateurs', userIdInt);
       
-      if (aidantError) {
+      if (aidantError && aidantError.code !== 'PGRST116') {
         console.warn('Erreur lors de la suppression du profil Aidant:', aidantError);
       }
+
+      // 5. Supprimer d'autres références potentielles
+      // ConsentementCookies
+      await supabase
+        .from('ConsentementCookies')
+        .delete()
+        .eq('IDUtilisateurs', userIdInt);
+
+      // HistoriqueConnexion
+      await supabase
+        .from('HistoriqueConnexion')
+        .delete()
+        .eq('IDUtilisateurs', userIdInt);
+
+      // MessageGroupe
+      await supabase
+        .from('MessageGroupe')
+        .delete()
+        .eq('IDUtilisateurs', userIdInt);
+
+      // ReponseForum
+      await supabase
+        .from('ReponseForum')
+        .delete()
+        .eq('IDUtilisateurs', userIdInt);
       
-      // Enfin, supprimer l'utilisateur principal
+      // 6. Enfin, supprimer l'utilisateur principal
       const { error: deleteError } = await supabase
         .from('Utilisateurs')
         .delete()
         .eq('IDUtilisateurs', userIdInt);
 
       if (deleteError) {
-        console.error('Erreur lors de la suppression de l\'utilisateur:', deleteError);
+        console.error('Erreur lors de la suppression de l\'utilisateur principal:', deleteError);
         throw deleteError;
       }
 
