@@ -16,7 +16,7 @@ interface Signalement {
   IDUtilisateurSignaleur: number;
   Motif: string;
   DateSignalement: string;
-  Traite: boolean;
+  Traité: boolean;
   ActionModeration?: string;
   SignaleurNom?: string;
   SignaleurPrenom?: string;
@@ -44,7 +44,7 @@ const SignalementsTable = ({ refreshTrigger }: SignalementsTableProps) => {
           IDUtilisateurSignaleur,
           Motif,
           DateSignalement,
-          Traite,
+          Traité,
           ActionModeration,
           Utilisateurs!inner(Nom, Prenom)
         `)
@@ -179,11 +179,11 @@ const SignalementsTable = ({ refreshTrigger }: SignalementsTableProps) => {
                     </div>
                   </td>
                   <td className="py-4 px-4">
-                    {getStatutBadge(signalement.Traite)}
+                    {getStatutBadge(signalement.Traité)}
                   </td>
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-2">
-                      {!signalement.Traite && (
+                      {!signalement.Traité && (
                         <>
                           <Button 
                             variant="ghost" 
