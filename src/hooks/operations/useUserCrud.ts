@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '../../stores/authStore';
 import { convertSupabaseUserToAppUser, getCategoryFromRole } from '../utils/userConversion';
@@ -151,7 +150,7 @@ export const useUserCrud = (
     }
   };
 
-  // Fonction pour supprimer un utilisateur - améliorée
+  // Fonction pour supprimer un utilisateur - améliorée avec PrestationSupport
   const deleteUser = async (userId: string): Promise<void> => {
     try {
       const userIdInt = parseInt(userId);
@@ -159,7 +158,17 @@ export const useUserCrud = (
       
       // Supprimer toutes les références dans l'ordre approprié pour éviter les erreurs de contraintes
       
-      // 1. Supprimer les langues de l'utilisateur
+      // 1. Supprimer les prestations support
+      const { error: prestationSupportError } = await supabase
+        .from('PrestationSupport')
+        .delete()
+        .eq('IDIntervenant', userIdInt);
+      
+      if (prestationSupportError && prestationSupportError.code !== 'PGRST116') {
+        console.warn('Erreur lors de la suppression des prestations support:', prestationSupportError);
+      }
+      
+      // 2. Supprimer les langues de l'utilisateur
       const { error: langueError } = await supabase
         .from('Langue_Utilisateurs')
         .delete()
@@ -169,7 +178,7 @@ export const useUserCrud = (
         console.warn('Erreur lors de la suppression des langues:', langueError);
       }
       
-      // 2. Supprimer les devises de l'utilisateur
+      // 3. Supprimer les devises de l'utilisateur
       const { error: deviseError } = await supabase
         .from('Devise_Utilisateurs')
         .delete()
@@ -179,7 +188,7 @@ export const useUserCrud = (
         console.warn('Erreur lors de la suppression des devises:', deviseError);
       }
       
-      // 3. Supprimer l'entrée Senior si elle existe
+      // 4. Supprimer l'entrée Senior si elle existe
       const { error: seniorError } = await supabase
         .from('Seniors')
         .delete()
@@ -189,7 +198,7 @@ export const useUserCrud = (
         console.warn('Erreur lors de la suppression du profil Senior:', seniorError);
       }
       
-      // 4. Supprimer l'entrée Aidant si elle existe
+      // 5. Supprimer l'entrée Aidant si elle existe
       const { error: aidantError } = await supabase
         .from('Aidant')
         .delete()
@@ -199,7 +208,7 @@ export const useUserCrud = (
         console.warn('Erreur lors de la suppression du profil Aidant:', aidantError);
       }
 
-      // 5. Supprimer d'autres références potentielles
+      // 6. Supprimer d'autres références potentielles
       // ConsentementCookies
       await supabase
         .from('ConsentementCookies')
@@ -224,7 +233,7 @@ export const useUserCrud = (
         .delete()
         .eq('IDUtilisateurs', userIdInt);
       
-      // 6. Enfin, supprimer l'utilisateur principal
+      // 7. Enfin, supprimer l'utilisateur principal
       const { error: deleteError } = await supabase
         .from('Utilisateurs')
         .delete()
