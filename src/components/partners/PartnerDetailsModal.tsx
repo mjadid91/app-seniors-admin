@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Mail, Phone, MapPin, Star, Calendar, Users } from "lucide-react";
 import { Partner } from "./types";
+import { usePartnerPrestations } from "../../hooks/usePartnerPrestations";
 
 interface PartnerDetailsModalProps {
   isOpen: boolean;
@@ -12,6 +13,8 @@ interface PartnerDetailsModalProps {
 }
 
 const PartnerDetailsModal = ({ isOpen, onClose, partner }: PartnerDetailsModalProps) => {
+  const { prestationsCount, loading } = usePartnerPrestations(partner?.id || null);
+
   if (!partner) return null;
 
   const renderStars = (rating: number) => {
@@ -91,7 +94,9 @@ const PartnerDetailsModal = ({ isOpen, onClose, partner }: PartnerDetailsModalPr
                 <label className="text-sm font-medium text-slate-700">Nombre de prestations</label>
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-slate-500" />
-                  <p className="text-slate-900">Nb prestations réalisées</p>
+                  <p className="text-slate-900">
+                    {loading ? "Chargement..." : prestationsCount}
+                  </p>
                 </div>
               </div>
             </div>
