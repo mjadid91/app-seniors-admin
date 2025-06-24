@@ -44,7 +44,7 @@ const SignalementsTable = ({ refreshTrigger }: SignalementsTableProps) => {
           IDUtilisateurSignaleur,
           Motif,
           DateSignalement,
-          Traité,
+          "Traité",
           ActionModeration,
           Utilisateurs!inner(Nom, Prenom)
         `)
