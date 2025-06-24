@@ -15,9 +15,6 @@ interface GroupMessagesTableProps {
   setGroupMessages: React.Dispatch<React.SetStateAction<GroupMessage[]>>;
 }
 
-const allowedStatuts = ['visible', 'masque', 'archive'] as const;
-type GroupMessageStatut = typeof allowedStatuts[number];
-
 const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTableProps) => {
   const { toast } = useToast();
   const [selectedMessage, setSelectedMessage] = useState<GroupMessage | null>(null);
@@ -44,30 +41,30 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
     
     if (action === 'supprime') {
       setGroupMessages(prev => prev.filter(m => m.id !== messageId));
-    } else if ((allowedStatuts as readonly string[]).includes(action)) {
+    } else if (['visible', 'masque'].includes(action)) {
       setGroupMessages(prev =>
         prev.map(m =>
-          m.id === messageId ? { ...m, statut: action as GroupMessageStatut } : m
+          m.id === messageId ? { ...m, statut: action as 'visible' | 'masque' } : m
         )
       );
     }
   };
 
   const handleStatutChange = (messageId: string, statut: string) => {
-    if ((allowedStatuts as readonly string[]).includes(statut)) {
+    if (['visible', 'masque', 'supprime'].includes(statut)) {
       setGroupMessages(prev =>
         prev.map(m =>
-          m.id === messageId ? { ...m, statut: statut as GroupMessageStatut } : m
+          m.id === messageId ? { ...m, statut: statut as GroupMessage['statut'] } : m
         )
       );
     }
   };
 
   const handleArchiverMessage = (message: GroupMessage) => {
-    handleStatutChange(message.id, 'archive');
+    handleStatutChange(message.id, 'masque');
     toast({
-      title: "Message archivé",
-      description: "Le message a été archivé",
+      title: "Message masqué",
+      description: "Le message a été masqué",
     });
   };
 
@@ -141,7 +138,7 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          title="Archiver"
+                          title="Masquer"
                           onClick={() => handleArchiverMessage(message)}
                         >
                           <Archive className="h-4 w-4" />

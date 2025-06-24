@@ -16,12 +16,12 @@ interface Signalement {
   IDUtilisateurSignaleur: number;
   Motif: string;
   DateSignalement: string;
-  Traité: boolean;
+  Traite: boolean;
   ActionModeration?: string;
   SignaleurNom?: string;
   SignaleurPrenom?: string;
   ContenuSignale?: string;
-  TypeContenu?: 'forum' | 'groupe';
+  TypeContenu?: 'forum' | 'group';
 }
 
 interface SignalementsTableProps {
@@ -44,7 +44,7 @@ const SignalementsTable = ({ refreshTrigger }: SignalementsTableProps) => {
           IDUtilisateurSignaleur,
           Motif,
           DateSignalement,
-          Traité,
+          Traite,
           ActionModeration,
           Utilisateurs!inner(Nom, Prenom)
         `)
@@ -56,7 +56,7 @@ const SignalementsTable = ({ refreshTrigger }: SignalementsTableProps) => {
       const enrichedData = await Promise.all(
         data.map(async (signalement) => {
           let contenuSignale = '';
-          let typeContenu: 'forum' | 'groupe' = 'groupe';
+          let typeContenu: 'forum' | 'group' = 'group';
 
           if (signalement.IDMessageGroupe) {
             const { data: messageData } = await supabase
@@ -66,7 +66,7 @@ const SignalementsTable = ({ refreshTrigger }: SignalementsTableProps) => {
               .single();
             
             contenuSignale = messageData?.Contenu || 'Contenu supprimé';
-            typeContenu = 'groupe';
+            typeContenu = 'group';
           } else if (signalement.IDReponseForum) {
             const { data: reponseData } = await supabase
               .from('ReponseForum')
@@ -179,11 +179,11 @@ const SignalementsTable = ({ refreshTrigger }: SignalementsTableProps) => {
                     </div>
                   </td>
                   <td className="py-4 px-4">
-                    {getStatutBadge(signalement.Traité)}
+                    {getStatutBadge(signalement.Traite)}
                   </td>
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-2">
-                      {!signalement.Traité && (
+                      {!signalement.Traite && (
                         <>
                           <Button 
                             variant="ghost" 

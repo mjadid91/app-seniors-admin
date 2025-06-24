@@ -16,7 +16,7 @@ export const useModerationActions = () => {
       const { error } = await supabase
         .from('SignalementContenu')
         .update({ 
-          Traité: true,
+          Traite: true,
           ActionModeration: 'Traité par modérateur'
         })
         .eq(column, parseInt(itemId));
@@ -63,7 +63,7 @@ export const useModerationActions = () => {
         const { error: signalError } = await supabase
           .from('SignalementContenu')
           .update({ 
-            Traité: true,
+            Traite: true,
             ActionModeration: 'Contenu masqué'
           })
           .eq('IDReponseForum', itemIdNum);
@@ -83,7 +83,7 @@ export const useModerationActions = () => {
         const { error: signalError } = await supabase
           .from('SignalementContenu')
           .update({ 
-            Traité: true,
+            Traite: true,
             ActionModeration: 'Contenu masqué'
           })
           .eq('IDMessageGroupe', itemIdNum);
