@@ -43,8 +43,8 @@ export const useDashboardStats = () => {
 
         // Revenus (somme du montant total des commandes)
         const { data: commandesData, error: commandesError } = await supabase
-          .from("Commande")
-          .select("MontantTotal");
+          .from("VersementCommission")
+          .select("*");
 
         const revenus = commandesError || !commandesData
           ? 0
