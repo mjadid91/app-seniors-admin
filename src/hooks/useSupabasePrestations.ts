@@ -40,22 +40,17 @@ export const useSupabasePrestations = () => {
       const prestationsWithDomains = await Promise.all(
         prestationsData.map(async (prestation) => {
           let domaine_nom = null;
+          let domaineId = null;
           
-          // Si la prestation a un IDDomaine dans la vue, l'utiliser
-          // Sinon, récupérer depuis la table Prestation directement
-          let domaineId = prestation.IDDomaine;
+          // Récupérer l'IDDomaine depuis la table Prestation directement
+          const { data: prestationDetail, error: prestationError } = await supabase
+            .from("Prestation")
+            .select("IDDomaine")
+            .eq("IDPrestation", prestation.id)
+            .single();
           
-          if (!domaineId) {
-            // Récupérer l'IDDomaine depuis la table Prestation
-            const { data: prestationDetail, error: prestationError } = await supabase
-              .from("Prestation")
-              .select("IDDomaine")
-              .eq("IDPrestation", prestation.id)
-              .single();
-            
-            if (!prestationError && prestationDetail) {
-              domaineId = prestationDetail.IDDomaine;
-            }
+          if (!prestationError && prestationDetail) {
+            domaineId = prestationDetail.IDDomaine;
           }
           
           // Si on a un IDDomaine, récupérer le nom du domaine

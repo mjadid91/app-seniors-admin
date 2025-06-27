@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -14,13 +15,13 @@ import RecentActivity from "./RecentActivity";
 import { useDashboardStats } from "./useDashboardStats";
 
 const Dashboard = () => {
-  const { stats, loading, error } = useDashboardStats();
+  const { data: stats, isLoading: loading, error } = useDashboardStats();
   const navigate = useNavigate();
 
   const statCards = [
     {
       title: "Utilisateurs actifs",
-      value: stats ? stats.utilisateurs.toLocaleString("fr-FR") : "-",
+      value: stats ? stats.totalSeniors.toLocaleString("fr-FR") : "-",
       change: "",
       trend: "up" as const,
       icon: Users,
@@ -28,7 +29,7 @@ const Dashboard = () => {
     },
     {
       title: "Prestations ce mois",
-      value: stats ? stats.prestations.toLocaleString("fr-FR") : "-",
+      value: stats ? stats.totalPrestations.toLocaleString("fr-FR") : "-",
       change: "",
       trend: "up" as const,
       icon: Calendar,
@@ -36,7 +37,7 @@ const Dashboard = () => {
     },
     {
       title: "Messages actifs",
-      value: stats ? stats.messages.toLocaleString("fr-FR") : "-",
+      value: "0", // Placeholder
       change: "",
       trend: "up" as const,
       icon: MessageSquare,
@@ -44,7 +45,7 @@ const Dashboard = () => {
     },
     {
       title: "Signalements",
-      value: stats ? stats.signalements.toLocaleString("fr-FR") : "-",
+      value: "0", // Placeholder
       change: "",
       trend: "down" as const,
       icon: Shield,
@@ -52,7 +53,7 @@ const Dashboard = () => {
     },
     {
       title: "Revenus",
-      value: stats ? "€" + stats.revenus.toLocaleString("fr-FR") : "-",
+      value: stats ? "€" + stats.totalRevenu.toLocaleString("fr-FR") : "-",
       change: "",
       trend: "up" as const,
       icon: DollarSign,
@@ -112,7 +113,7 @@ const Dashboard = () => {
           </div>
         ) : error ? (
           <div className="col-span-5 text-center text-red-500 py-12">
-            <span>{error}</span>
+            <span>Erreur lors du chargement des statistiques</span>
           </div>
         ) : (
           statCards.map((stat, index) => (
