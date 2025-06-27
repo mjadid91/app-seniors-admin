@@ -22,10 +22,17 @@ export const useSupabasePrestations = () => {
   return useQuery({
     queryKey: ["prestations"],
     queryFn: async () => {
+      console.log("Fetching prestations from database view...");
       const { data, error } = await supabase
         .from("prestations_dashboard_view")
         .select("*");
-      if (error) throw new Error(error.message);
+      
+      if (error) {
+        console.error("Error fetching prestations:", error);
+        throw new Error(error.message);
+      }
+      
+      console.log("Prestations data received:", data);
       return data as PrestationDB[];
     },
   });
