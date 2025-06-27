@@ -1,74 +1,51 @@
-
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-interface DashboardStats {
-  utilisateurs: number;
-  prestations: number;
-  messages: number;
-  signalements: number;
-  revenus: number;
-}
-
 export const useDashboardStats = () => {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        // Nombre d'utilisateurs
-        const { count: usersCount } = await supabase
-          .from("Utilisateurs")
-          .select("*", { count: "exact", head: true });
-
-        // Nombre de prestations
-        const { count: prestationsCount } = await supabase
-          .from("Prestation")
-          .select("*", { count: "exact", head: true });
-
-        // Nombre de messages actifs (par exemple groupe, forum ou autre)
-        const { count: messagesCount } = await supabase
-          .from("MessageGroupe") // adapter si un autre type de messages
-          .select("*", { count: "exact", head: true });
-
-        // Nombre de signalements
-        const { count: reportsCount } = await supabase
-          .from("SignalementContenu")
-          .select("*", { count: "exact", head: true });
-
-        // Revenus (somme du montant total des commandes)
-        const { data: commandesData, error: commandesError } = await supabase
-          .from("VersementCommission")
-          .select("*");
-
-        const revenus = commandesError || !commandesData
-          ? 0
-          : commandesData.reduce(
-              (sum: number, row: any) => sum + (Number(row.MontantTotal) || 0),
-              0
-            );
-
-        setStats({
-          utilisateurs: usersCount ?? 0,
-          prestations: prestationsCount ?? 0,
-          messages: messagesCount ?? 0,
-          signalements: reportsCount ?? 0,
-          revenus,
-        });
-      } catch (err: any) {
-        setError("Erreur lors du chargement des statistiques.");
-        setStats(null);
+  return useQuery({
+    queryKey: ["dashboard-stats"],
+    queryFn: async () => {
+      console.log("Fetching dashboard stats...");
+      
+      // Compter les utilisateurs seniors
+      const { data: seniorsData, error: seniorsError } = await supabase
+        .from("Seniors")
+        .select("IDSeniors", { count: "exact" });
+      
+      if (seniorsError) {
+        console.error("Error fetching seniors:", seniorsError);
+        throw seniorsError;
       }
-      setLoading(false);
-    };
 
-    fetchStats();
-  }, []);
+      // Compter les aidants
+      const { data: aidantsData, error: aidantsError } = await supabase
+        .from("Aidant")
+        .select("IDAidant", { count: "exact" });
+      
+      if (aidantsError) {
+        console.error("Error fetching aidants:", aidantsError);
+        throw aidantsError;
+      }
 
-  return { stats, loading, error };
+      // Compter les prestations
+      const { data: prestationsData, error: prestationsError } = await supabase
+        .from("prestations_dashboard_view")
+        .select("id", { count: "exact" });
+      
+      if (prestationsError) {
+        console.error("Error fetching prestations:", prestationsError);
+        throw prestationsError;
+      }
+
+      const stats = {
+        totalSeniors: seniorsData?.length || 0,
+        totalAidants: aidantsData?.length || 0,
+        totalPrestations: prestationsData?.length || 0,
+        totalRevenu: 0, // Placeholder pour maintenant
+      };
+
+      console.log("Dashboard stats:", stats);
+      return stats;
+    },
+  });
 };
