@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -21,7 +20,7 @@ const Dashboard = () => {
   const statCards = [
     {
       title: "Utilisateurs actifs",
-      value: stats ? stats.totalSeniors.toLocaleString("fr-FR") : "-",
+      value: stats ? stats.totalUtilisateurs.toLocaleString("fr-FR") : "-", // Utiliser le total
       change: "",
       trend: "up" as const,
       icon: Users,

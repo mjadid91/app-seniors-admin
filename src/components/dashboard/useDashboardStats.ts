@@ -1,3 +1,4 @@
+
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -37,9 +38,14 @@ export const useDashboardStats = () => {
         throw prestationsError;
       }
 
+      const totalSeniors = seniorsData?.length || 0;
+      const totalAidants = aidantsData?.length || 0;
+      const totalUtilisateurs = totalSeniors + totalAidants; // Somme des deux
+
       const stats = {
-        totalSeniors: seniorsData?.length || 0,
-        totalAidants: aidantsData?.length || 0,
+        totalSeniors: totalSeniors,
+        totalAidants: totalAidants,
+        totalUtilisateurs: totalUtilisateurs, // Nouveau champ pour le total
         totalPrestations: prestationsData?.length || 0,
         totalRevenu: 0, // Placeholder pour maintenant
       };
