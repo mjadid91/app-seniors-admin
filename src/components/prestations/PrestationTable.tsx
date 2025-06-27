@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit } from "lucide-react";
@@ -13,7 +12,6 @@ export interface Prestation {
   tarif: number;
   statut: 'en_attente' | 'en_cours' | 'terminee' | 'refusee' | 'annulee';
   evaluation?: number;
-  domaineNom?: string;
 }
 
 interface PrestationTableProps {
@@ -27,7 +25,7 @@ const PrestationTable = ({ prestations, onVoirPrestation, onEditPrestation }: Pr
     switch (statut) {
       case 'en_attente': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
       case 'en_cours': return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'terminee': return 'bg-green-100 text-green-700 border-green-200';  
+      case 'terminee': return 'bg-green-100 text-green-700 border-green-200';
       case 'refusee': return 'bg-red-100 text-red-700 border-red-200';
       case 'annulee': return 'bg-gray-100 text-gray-700 border-gray-200';
       default: return 'bg-gray-100 text-gray-700 border-gray-200';
@@ -53,18 +51,6 @@ const PrestationTable = ({ prestations, onVoirPrestation, onEditPrestation }: Pr
     ));
   };
 
-  // Fonction pour gérer le clic sur "Modifier" avec debug
-  const handleEditClick = (prestation: Prestation) => {
-    console.log("Edit button clicked for prestation:", prestation);
-    onEditPrestation(prestation);
-  };
-
-  // Fonction pour gérer le clic sur "Voir" avec debug  
-  const handleViewClick = (prestation: Prestation) => {
-    console.log("View button clicked for prestation:", prestation);
-    onVoirPrestation(prestation);
-  };
-
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
@@ -74,7 +60,6 @@ const PrestationTable = ({ prestations, onVoirPrestation, onEditPrestation }: Pr
             <th className="text-left py-3 px-4 font-medium text-slate-700">Senior</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Aidant</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Type</th>
-            <th className="text-left py-3 px-4 font-medium text-slate-700">Domaine</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Date</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Tarif</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Statut</th>
@@ -93,9 +78,6 @@ const PrestationTable = ({ prestations, onVoirPrestation, onEditPrestation }: Pr
                 <p className="font-medium text-slate-800">{prestation.aidantNom}</p>
               </td>
               <td className="py-4 px-4 text-slate-600">{prestation.typePrestation}</td>
-              <td className="py-4 px-4 text-slate-600">
-                {prestation.domaineNom || 'Non spécifié'}
-              </td>
               <td className="py-4 px-4 text-slate-600">
                 {new Date(prestation.dateCreation).toLocaleDateString('fr-FR')}
               </td>
@@ -120,11 +102,7 @@ const PrestationTable = ({ prestations, onVoirPrestation, onEditPrestation }: Pr
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleViewClick(prestation);
-                    }}
+                    onClick={() => onVoirPrestation(prestation)}
                     title="Voir détails"
                   >
                     <Eye className="h-4 w-4" />
@@ -132,11 +110,7 @@ const PrestationTable = ({ prestations, onVoirPrestation, onEditPrestation }: Pr
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleEditClick(prestation);
-                    }}
+                    onClick={() => onEditPrestation(prestation)}
                     title="Modifier"
                   >
                     <Edit className="h-4 w-4" />

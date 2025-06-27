@@ -14,13 +14,13 @@ import RecentActivity from "./RecentActivity";
 import { useDashboardStats } from "./useDashboardStats";
 
 const Dashboard = () => {
-  const { data: stats, isLoading: loading, error } = useDashboardStats();
+  const { stats, loading, error } = useDashboardStats();
   const navigate = useNavigate();
 
   const statCards = [
     {
       title: "Utilisateurs actifs",
-      value: stats ? stats.totalUtilisateurs.toLocaleString("fr-FR") : "-", // Utiliser le total
+      value: stats ? stats.utilisateurs.toLocaleString("fr-FR") : "-",
       change: "",
       trend: "up" as const,
       icon: Users,
@@ -28,7 +28,7 @@ const Dashboard = () => {
     },
     {
       title: "Prestations ce mois",
-      value: stats ? stats.totalPrestations.toLocaleString("fr-FR") : "-",
+      value: stats ? stats.prestations.toLocaleString("fr-FR") : "-",
       change: "",
       trend: "up" as const,
       icon: Calendar,
@@ -36,7 +36,7 @@ const Dashboard = () => {
     },
     {
       title: "Messages actifs",
-      value: "0", // Placeholder
+      value: stats ? stats.messages.toLocaleString("fr-FR") : "-",
       change: "",
       trend: "up" as const,
       icon: MessageSquare,
@@ -44,7 +44,7 @@ const Dashboard = () => {
     },
     {
       title: "Signalements",
-      value: "0", // Placeholder
+      value: stats ? stats.signalements.toLocaleString("fr-FR") : "-",
       change: "",
       trend: "down" as const,
       icon: Shield,
@@ -52,7 +52,7 @@ const Dashboard = () => {
     },
     {
       title: "Revenus",
-      value: stats ? "€" + stats.totalRevenu.toLocaleString("fr-FR") : "-",
+      value: stats ? "€" + stats.revenus.toLocaleString("fr-FR") : "-",
       change: "",
       trend: "up" as const,
       icon: DollarSign,
@@ -112,7 +112,7 @@ const Dashboard = () => {
           </div>
         ) : error ? (
           <div className="col-span-5 text-center text-red-500 py-12">
-            <span>Erreur lors du chargement des statistiques</span>
+            <span>{error}</span>
           </div>
         ) : (
           statCards.map((stat, index) => (

@@ -19,21 +19,16 @@ import type { Prestation as PrestationTableType } from "./PrestationTable";
 // Use the same type everywhere in this component
 type Prestation = PrestationTableType;
 
-const mapPrestationDBToUI = (db: PrestationDB): Prestation => {
-  console.log("Mapping prestation DB to UI:", db);
-  
-  return {
-    id: db.id.toString(), // Convert number to string for UI
-    seniorNom: db.senior_nom ?? "N/A",
-    aidantNom: db.aidant_nom ?? "N/A",
-    typePrestation: db.type_prestation ?? "Sans titre",
-    dateCreation: db.date_creation ?? "",
-    tarif: typeof db.tarif === "number" ? db.tarif : 0,
-    statut: db.statut ?? "en_attente",
-    evaluation: db.evaluation ? Number(db.evaluation) : undefined,
-    domaineNom: db.domaine_nom || undefined, // Utiliser la valeur de la base de données
-  };
-};
+const mapPrestationDBToUI = (db: PrestationDB): Prestation => ({
+  id: db.id.toString(), // Convert number to string for UI
+  seniorNom: db.senior_nom ?? "N/A",
+  aidantNom: db.aidant_nom ?? "N/A",
+  typePrestation: db.type_prestation ?? "Sans titre",
+  dateCreation: db.date_creation ?? "",
+  tarif: typeof db.tarif === "number" ? db.tarif : 0,
+  statut: db.statut ?? "en_attente",
+  evaluation: db.evaluation ? Number(db.evaluation) : undefined,
+});
 
 const PrestationTracking = () => {
   const { data: prestations = [], isLoading, error, refetch } = useSupabasePrestations();
@@ -56,23 +51,23 @@ const PrestationTracking = () => {
       : mappedPrestations.filter((prestation) => prestation.statut === selectedStatut);
 
   const handleVoirPrestation = (prestation: Prestation) => {
-    console.log("Voir prestation:", prestation);
     setSelectedPrestation(prestation);
     setIsDetailsModalOpen(true);
     toast({
       title: "Détails de la prestation",
       description: `Ouverture de la prestation ${prestation.id} : ${prestation.typePrestation}`,
     });
+    console.log("Voir prestation:", prestation);
   };
 
   const handleEditPrestation = (prestation: Prestation) => {
-    console.log("Modifier prestation:", prestation);
     setSelectedPrestation(prestation);
     setIsEditModalOpen(true);
     toast({
       title: "Modification de la prestation",
       description: `Modification de la prestation ${prestation.id} : ${prestation.typePrestation}`,
     });
+    console.log("Modifier prestation:", prestation);
   };
 
   const handleEditSuccess = () => {

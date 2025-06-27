@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, User, MapPin, Euro, Star, Clock, Briefcase } from "lucide-react";
+import { Calendar, User, MapPin, Euro, Star, Clock } from "lucide-react";
 
 interface Prestation {
   id: string;
@@ -14,7 +14,6 @@ interface Prestation {
   tarif: number;
   statut: 'en_attente' | 'en_cours' | 'terminee' | 'refusee' | 'annulee';
   evaluation?: number;
-  domaineNom?: string;
 }
 
 interface PrestationDetailsModalProps {
@@ -54,9 +53,6 @@ const PrestationDetailsModal = ({ isOpen, onClose, prestation }: PrestationDetai
     ));
   };
 
-  // Log pour debug
-  console.log("PrestationDetailsModal - prestation.domaineNom:", prestation.domaineNom);
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
@@ -94,26 +90,12 @@ const PrestationDetailsModal = ({ isOpen, onClose, prestation }: PrestationDetai
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex items-center gap-3">
               <MapPin className="h-5 w-5 text-slate-500" />
               <div>
                 <p className="text-sm text-slate-600">Type de prestation</p>
                 <p className="font-medium text-slate-800">{prestation.typePrestation}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Briefcase className="h-5 w-5 text-slate-500" />
-              <div>
-                <p className="text-sm text-slate-600">Domaine</p>
-                <p className="font-medium text-slate-800">
-                  {prestation.domaineNom || 'Non spécifié'}
-                </p>
-                {/* Debug info */}
-                {process.env.NODE_ENV === 'development' && (
-                  <p className="text-xs text-gray-400">Debug: {JSON.stringify(prestation.domaineNom)}</p>
-                )}
               </div>
             </div>
 

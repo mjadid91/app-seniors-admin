@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useSupabaseDomaines } from "../../hooks/useSupabaseDomaines";
 import type { Prestation } from "./PrestationTable";
 
 interface EditPrestationModalProps {
@@ -18,6 +17,11 @@ interface EditPrestationModalProps {
   onSuccess: () => void;
 }
 
+interface Domaine {
+  IDDomaine: number;
+  DomaineTitre: string;
+}
+
 const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPrestationModalProps) => {
   const [formData, setFormData] = useState({
     titre: "",
@@ -25,48 +29,42 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
     tarif: "",
     domaine: "",
   });
+  const [domaines, setDomaines] = useState<Domaine[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  
+
   // Charger les domaines disponibles
-  const { data: domaines = [], isLoading: domainesLoading } = useSupabaseDomaines();
+  useEffect(() => {
+    const fetchDomaines = async () => {
+      const { data, error } = await supabase
+        .from("Domaine")
+        .select("IDDomaine, DomaineTitre")
+        .order("DomaineTitre");
+      
+      if (error) {
+        console.error("Erreur lors du chargement des domaines:", error);
+        return;
+      }
+      
+      setDomaines(data || []);
+    };
+
+    if (isOpen) {
+      fetchDomaines();
+    }
+  }, [isOpen]);
 
   // Initialiser le formulaire avec les données de la prestation
   useEffect(() => {
     if (prestation && isOpen) {
-      console.log("Initializing form with prestation:", prestation);
-      
-      const initializeForm = async () => {
-        // Récupérer les détails complets de la prestation depuis la table Prestation
-        const { data: prestationData, error } = await supabase
-          .from("Prestation")
-          .select("*")
-          .eq("IDPrestation", parseInt(prestation.id))
-          .single();
-
-        if (error) {
-          console.error("Error fetching prestation details:", error);
-          toast({
-            title: "Erreur",
-            description: "Impossible de charger les détails de la prestation",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        console.log("Prestation details loaded:", prestationData);
-
-        setFormData({
-          titre: prestationData.Titre || prestation.typePrestation,
-          description: prestationData.Description || "",
-          tarif: prestationData.TarifIndicatif?.toString() || prestation.tarif.toString(),
-          domaine: prestationData.IDDomaine?.toString() || "",
-        });
-      };
-
-      initializeForm();
+      setFormData({
+        titre: prestation.typePrestation,
+        description: "", // Pas de description dans l'interface actuelle
+        tarif: prestation.tarif.toString(),
+        domaine: "", // À récupérer depuis la base
+      });
     }
-  }, [prestation, isOpen, toast]);
+  }, [prestation, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,16 +75,15 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
       const updateData: any = {
         Titre: formData.titre,
         TarifIndicatif: parseFloat(formData.tarif),
-        Description: formData.description,
       };
+
+      if (formData.description) {
+        updateData.Description = formData.description;
+      }
 
       if (formData.domaine) {
         updateData.IDDomaine = parseInt(formData.domaine);
-      } else {
-        updateData.IDDomaine = null;
       }
-
-      console.log("Updating prestation with data:", updateData);
 
       const { error } = await supabase
         .from("Prestation")
@@ -160,16 +157,11 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
 
           <div className="space-y-2">
             <Label htmlFor="domaine">Domaine</Label>
-            <Select 
-              value={formData.domaine} 
-              onValueChange={(value) => handleInputChange("domaine", value)}
-              disabled={domainesLoading}
-            >
+            <Select value={formData.domaine} onValueChange={(value) => handleInputChange("domaine", value)}>
               <SelectTrigger>
-                <SelectValue placeholder={domainesLoading ? "Chargement..." : "Sélectionner un domaine"} />
+                <SelectValue placeholder="Sélectionner un domaine" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Aucun domaine</SelectItem>
                 {domaines.map((domaine) => (
                   <SelectItem key={domaine.IDDomaine} value={domaine.IDDomaine.toString()}>
                     {domaine.DomaineTitre}
@@ -191,7 +183,7 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+            <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
             <Button type="submit" disabled={isLoading}>
