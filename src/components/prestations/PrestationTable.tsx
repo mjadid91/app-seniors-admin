@@ -12,6 +12,7 @@ export interface Prestation {
   tarif: number;
   statut: 'en_attente' | 'en_cours' | 'terminee' | 'refusee' | 'annulee';
   evaluation?: number;
+  domaineNom?: string;
 }
 
 interface PrestationTableProps {
@@ -60,6 +61,7 @@ const PrestationTable = ({ prestations, onVoirPrestation, onEditPrestation }: Pr
             <th className="text-left py-3 px-4 font-medium text-slate-700">Senior</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Aidant</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Type</th>
+            <th className="text-left py-3 px-4 font-medium text-slate-700">Domaine</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Date</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Tarif</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Statut</th>
@@ -78,6 +80,9 @@ const PrestationTable = ({ prestations, onVoirPrestation, onEditPrestation }: Pr
                 <p className="font-medium text-slate-800">{prestation.aidantNom}</p>
               </td>
               <td className="py-4 px-4 text-slate-600">{prestation.typePrestation}</td>
+              <td className="py-4 px-4 text-slate-600">
+                {prestation.domaineNom || 'Non spécifié'}
+              </td>
               <td className="py-4 px-4 text-slate-600">
                 {new Date(prestation.dateCreation).toLocaleDateString('fr-FR')}
               </td>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
@@ -28,6 +27,7 @@ const mapPrestationDBToUI = (db: PrestationDB): Prestation => ({
   tarif: typeof db.tarif === "number" ? db.tarif : 0,
   statut: db.statut ?? "en_attente",
   evaluation: db.evaluation ? Number(db.evaluation) : undefined,
+  domaineNom: db.domaine_nom ?? undefined,
 });
 
 const PrestationTracking = () => {
