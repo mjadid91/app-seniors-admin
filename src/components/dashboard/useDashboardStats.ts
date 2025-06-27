@@ -9,9 +9,9 @@ export const useDashboardStats = () => {
       console.log("Fetching dashboard stats...");
       
       // Compter les utilisateurs seniors
-      const { data: seniorsData, error: seniorsError } = await supabase
+      const { count: seniorsCount, error: seniorsError } = await supabase
         .from("Seniors")
-        .select("IDSeniors", { count: "exact" });
+        .select("IDSeniors", { count: "exact", head: true });
       
       if (seniorsError) {
         console.error("Error fetching seniors:", seniorsError);
@@ -19,9 +19,9 @@ export const useDashboardStats = () => {
       }
 
       // Compter les aidants
-      const { data: aidantsData, error: aidantsError } = await supabase
+      const { count: aidantsCount, error: aidantsError } = await supabase
         .from("Aidant")
-        .select("IDAidant", { count: "exact" });
+        .select("IDAidant", { count: "exact", head: true });
       
       if (aidantsError) {
         console.error("Error fetching aidants:", aidantsError);
@@ -29,24 +29,24 @@ export const useDashboardStats = () => {
       }
 
       // Compter les prestations
-      const { data: prestationsData, error: prestationsError } = await supabase
+      const { count: prestationsCount, error: prestationsError } = await supabase
         .from("prestations_dashboard_view")
-        .select("id", { count: "exact" });
+        .select("id", { count: "exact", head: true });
       
       if (prestationsError) {
         console.error("Error fetching prestations:", prestationsError);
         throw prestationsError;
       }
 
-      const totalSeniors = seniorsData?.length || 0;
-      const totalAidants = aidantsData?.length || 0;
-      const totalUtilisateurs = totalSeniors + totalAidants; // Somme des deux
+      const totalSeniors = seniorsCount || 0;
+      const totalAidants = aidantsCount || 0;
+      const totalUtilisateurs = totalSeniors + totalAidants;
 
       const stats = {
         totalSeniors: totalSeniors,
         totalAidants: totalAidants,
-        totalUtilisateurs: totalUtilisateurs, // Nouveau champ pour le total
-        totalPrestations: prestationsData?.length || 0,
+        totalUtilisateurs: totalUtilisateurs,
+        totalPrestations: prestationsCount || 0,
         totalRevenu: 0, // Placeholder pour maintenant
       };
 
