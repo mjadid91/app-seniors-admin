@@ -23,6 +23,7 @@ interface Ticket {
   priorite: 'basse' | 'normale' | 'haute';
   assigneA?: string;
   dateResolution?: string;
+  descriptionDemande?: string | null;
 }
 
 interface SupportTicketModalProps {
@@ -93,7 +94,7 @@ const SupportTicketModal = ({ isOpen, onClose, ticket, onTicketUpdated }: Suppor
 
             <TicketResolutionInfo ticket={ticket} />
 
-            <TicketDescription />
+            <TicketDescription description={ticket.descriptionDemande || "Pas de description fournie"} />
 
             <Tabs defaultValue="reply" className="w-full">
               <TabsList className="grid w-full grid-cols-2">

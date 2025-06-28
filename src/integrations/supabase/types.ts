@@ -3238,6 +3238,7 @@ export type Database = {
         Row: {
           aidant_nom: string | null
           date_creation: string | null
+          domaine_titre: string | null
           evaluation: number | null
           evaluation_commentaire: string | null
           id: number | null

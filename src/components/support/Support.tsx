@@ -6,7 +6,7 @@ import { Eye, UserPlus, MessageCircle, Clock, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import SupportTicketModal from "./SupportTicketModal";
 import { useSupabaseSupportTickets, SupportTicketDB } from "@/hooks/useSupabaseSupportTickets";
-import AddTicketModal from "@/components/support/AddTicketModal.tsx";
+import AddTicketModal from "./AddTicketModal";
 
 // Type local pour usage UI et mapping
 interface Ticket {
@@ -19,8 +19,8 @@ interface Ticket {
   assigneA?: string;
   message?: string | null;
   utilisateur_email?: string | null;
+  descriptionDemande?: string | null;
 }
-
 
 const Support = () => {
   // Appel aux données réelles
@@ -28,8 +28,8 @@ const Support = () => {
   const [selectedStatut, setSelectedStatut] = useState<string>("tous");
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
-  const { toast } = useToast();
   const [openModal, setOpenModal] = useState(false);
+  const { toast } = useToast();
 
   // Mapping : vue → modèle local Ticket
   const mappedTickets: Ticket[] = useMemo(() => ticketsDB.map(t => ({
@@ -46,6 +46,7 @@ const Support = () => {
         : undefined,
     message: t.message,
     utilisateur_email: t.utilisateur_email,
+    descriptionDemande: t.message,
   })), [ticketsDB]);
 
   const tickets = mappedTickets;
@@ -93,7 +94,7 @@ const Support = () => {
     console.log("Voir ticket:", ticket);
   };
 
-  // Pour l’instant, on garde la logique d’assignation mock côté UI
+  // Pour l'instant, on garde la logique d'assignation mock côté UI
   const handleAssignerTicket = (ticket: Ticket) => {
     toast({
       title: "Ticket assigné (mock)",
@@ -111,8 +112,6 @@ const Support = () => {
     }
   };
 
-
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24 animate-pulse">
@@ -126,7 +125,7 @@ const Support = () => {
   if (error) {
     return (
       <div className="p-6 bg-red-100 border border-red-200 rounded-xl text-red-700">
-        Erreur lors du chargement des tickets : {error.message}
+        Erreur lors du chargement des tickets : {error.message}
       </div>
     );
   }
@@ -303,12 +302,12 @@ const Support = () => {
       />
 
       <AddTicketModal
-          isOpen={openModal}
-          onClose={() => setOpenModal(false)}
-          onSuccess={() => {
-            setOpenModal(false);
-            refetch();
-          }}
+        isOpen={openModal}
+        onClose={() => setOpenModal(false)}
+        onSuccess={() => {
+          setOpenModal(false);
+          refetch();
+        }}
       />
     </div>
   );

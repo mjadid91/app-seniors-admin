@@ -20,9 +20,10 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     sujet: "",
-    description: "",
+    descriptionDemande: "",
     clientId: "",
     priorite: "Normale",
+    statutDemande: "Ouvert",
     agentId: ""
   });
 
@@ -65,10 +66,10 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
         .from('SupportClient')
         .insert({
           Sujet: formData.sujet,
-          DescriptionDemande: formData.description,
+          DescriptionDemande: formData.descriptionDemande,
           IDUtilisateursClient: parseInt(formData.clientId),
           Priorite: formData.priorite,
-          StatutDemande: 'Ouvert',
+          StatutDemande: formData.statutDemande,
           DateEnvoi: new Date().toISOString().split('T')[0]
         })
         .select()
@@ -97,9 +98,10 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
       onClose();
       setFormData({
         sujet: "",
-        description: "",
+        descriptionDemande: "",
         clientId: "",
         priorite: "Normale",
+        statutDemande: "Ouvert",
         agentId: ""
       });
     } catch (error: any) {
@@ -134,8 +136,8 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
           <div>
             <label className="block text-sm font-medium mb-1">Description du problème</label>
             <Textarea
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              value={formData.descriptionDemande}
+              onChange={(e) => setFormData(prev => ({ ...prev, descriptionDemande: e.target.value }))}
               required
             />
           </div>
@@ -152,6 +154,20 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
                     {client.Prenom} {client.Nom} ({client.Email})
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Statut</label>
+            <Select value={formData.statutDemande} onValueChange={(value) => setFormData(prev => ({ ...prev, statutDemande: value }))}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Ouvert">Ouvert</SelectItem>
+                <SelectItem value="En cours">En cours</SelectItem>
+                <SelectItem value="Resolu">Résolu</SelectItem>
               </SelectContent>
             </Select>
           </div>
