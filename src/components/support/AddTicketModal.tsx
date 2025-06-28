@@ -23,7 +23,6 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
     descriptionDemande: "",
     clientId: "",
     priorite: "Normale",
-    statutDemande: "Ouvert",
     agentId: ""
   });
 
@@ -63,6 +62,9 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
     try {
       console.log('Données du formulaire:', formData);
 
+      // Déterminer le statut initial : "en_attente" si pas d'agent, "en_cours" si agent assigné
+      const statutInitial = formData.agentId ? "en_cours" : "en_attente";
+
       // Créer le ticket dans SupportClient (sans spécifier l'ID qui sera auto-généré)
       const { data: ticketData, error: ticketError } = await supabase
         .from('SupportClient')
@@ -71,7 +73,7 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
           DescriptionDemande: formData.descriptionDemande,
           IDUtilisateursClient: parseInt(formData.clientId),
           Priorite: formData.priorite,
-          StatutDemande: formData.statutDemande,
+          StatutDemande: statutInitial,
           DateEnvoi: new Date().toISOString().split('T')[0]
         })
         .select()
@@ -103,7 +105,7 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
 
       toast({
         title: "Ticket créé",
-        description: "Le ticket support a été créé avec succès"
+        description: `Le ticket support a été créé avec le statut "${statutInitial === "en_attente" ? "en attente" : "en cours"}"`
       });
 
       onSuccess();
@@ -113,7 +115,6 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
         descriptionDemande: "",
         clientId: "",
         priorite: "Normale",
-        statutDemande: "Ouvert",
         agentId: ""
       });
     } catch (error: any) {
@@ -171,24 +172,10 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Statut</label>
-            <Select value={formData.statutDemande} onValueChange={(value) => setFormData(prev => ({ ...prev, statutDemande: value }))}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Ouvert">Ouvert</SelectItem>
-                <SelectItem value="En cours">En cours</SelectItem>
-                <SelectItem value="Resolu">Résolu</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
             <label className="block text-sm font-medium mb-1">Agent de support (optionnel)</label>
             <Select value={formData.agentId} onValueChange={(value) => setFormData(prev => ({ ...prev, agentId: value }))}>
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un agent" />
+                <SelectValue placeholder="Sélectionner un agent (optionnel)" />
               </SelectTrigger>
               <SelectContent>
                 {supportAgents.map((agent: any) => (
@@ -198,6 +185,9 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
                 ))}
               </SelectContent>
             </Select>
+            <p className="text-xs text-gray-500 mt-1">
+              Si aucun agent n'est sélectionné, le ticket sera créé avec le statut "en attente"
+            </p>
           </div>
 
           <div>

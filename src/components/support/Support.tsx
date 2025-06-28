@@ -14,7 +14,7 @@ interface Ticket {
   sujet: string;
   utilisateur: string;
   dateCreation: string;
-  statut: "a_traiter" | "en_cours" | "resolu";
+  statut: "en_attente" | "en_cours" | "resolu";
   priorite: "basse" | "normale" | "haute";
   assigneA?: string;
   message?: string | null;
@@ -59,7 +59,7 @@ const Support = () => {
 
   const getStatutBadgeColor = (statut: string) => {
     switch (statut) {
-      case 'a_traiter': return 'bg-red-100 text-red-700 border-red-200';
+      case 'en_attente': return 'bg-red-100 text-red-700 border-red-200';
       case 'en_cours': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
       case 'resolu': return 'bg-green-100 text-green-700 border-green-200';
       default: return 'bg-gray-100 text-gray-700 border-gray-200';
@@ -68,7 +68,7 @@ const Support = () => {
 
   const getStatutLabel = (statut: string) => {
     switch (statut) {
-      case 'a_traiter': return 'À traiter';
+      case 'en_attente': return 'En attente';
       case 'en_cours': return 'En cours';
       case 'resolu': return 'Résolu';
       default: return statut;
@@ -151,9 +151,9 @@ const Support = () => {
                 <MessageCircle className="h-4 w-4 text-red-600" />
               </div>
               <div>
-                <p className="text-sm text-slate-600">À traiter</p>
+                <p className="text-sm text-slate-600">En attente</p>
                 <p className="text-xl font-bold text-slate-800">
-                  {tickets.filter(t => t.statut === 'a_traiter').length}
+                  {tickets.filter(t => t.statut === 'en_attente').length}
                 </p>
               </div>
             </div>
@@ -217,7 +217,7 @@ const Support = () => {
               className="px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="tous">Tous les statuts</option>
-              <option value="a_traiter">À traiter</option>
+              <option value="en_attente">En attente</option>
               <option value="en_cours">En cours</option>
               <option value="resolu">Résolu</option>
             </select>
@@ -274,7 +274,7 @@ const Support = () => {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        {ticket.statut === 'a_traiter' && (
+                        {ticket.statut === 'en_attente' && (
                           <Button 
                             variant="ghost" 
                             size="sm"

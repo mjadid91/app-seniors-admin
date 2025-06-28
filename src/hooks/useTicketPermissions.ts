@@ -3,7 +3,7 @@ import { usePermissions } from "@/hooks/usePermissions";
 import { useAuthStore } from "@/stores/authStore";
 
 interface Ticket {
-  statut: 'a_traiter' | 'en_cours' | 'resolu';
+  statut: 'en_attente' | 'en_cours' | 'resolu';
   assigneA?: string;
 }
 

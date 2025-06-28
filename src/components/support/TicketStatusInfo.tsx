@@ -4,7 +4,7 @@ import { AlertCircle } from "lucide-react";
 
 interface TicketStatusInfoProps {
   ticket: {
-    statut: 'a_traiter' | 'en_cours' | 'resolu';
+    statut: 'en_attente' | 'en_cours' | 'resolu';
     priorite: 'basse' | 'normale' | 'haute';
     assigneA?: string;
   };
@@ -13,7 +13,7 @@ interface TicketStatusInfoProps {
 const TicketStatusInfo = ({ ticket }: TicketStatusInfoProps) => {
   const getStatutBadgeColor = (statut: string) => {
     switch (statut) {
-      case 'a_traiter': return 'bg-red-100 text-red-700 border-red-200';
+      case 'en_attente': return 'bg-red-100 text-red-700 border-red-200';
       case 'en_cours': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
       case 'resolu': return 'bg-green-100 text-green-700 border-green-200';
       default: return 'bg-gray-100 text-gray-700 border-gray-200';
@@ -22,7 +22,7 @@ const TicketStatusInfo = ({ ticket }: TicketStatusInfoProps) => {
 
   const getStatutLabel = (statut: string) => {
     switch (statut) {
-      case 'a_traiter': return 'À traiter';
+      case 'en_attente': return 'En attente';
       case 'en_cours': return 'En cours';
       case 'resolu': return 'Résolu';
       default: return statut;

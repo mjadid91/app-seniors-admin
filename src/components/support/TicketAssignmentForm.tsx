@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,7 +45,7 @@ const TicketAssignmentForm = ({ ticketId, currentAssignee, onAssignmentChanged }
         .from("PrestationSupport")
         .insert({
           IDIntervenant: user.id,
-          IDTicketClient: parseInt(ticketId) // Convert string to number
+          IDTicketClient: parseInt(ticketId)
         });
 
     if (insertError) {
@@ -56,13 +57,13 @@ const TicketAssignmentForm = ({ ticketId, currentAssignee, onAssignmentChanged }
       return;
     }
 
-    // 2. Mettre à jour le statut du ticket
+    // 2. Mettre à jour le statut du ticket à "en_cours"
     const { error: updateError } = await supabase
         .from("SupportClient")
         .update({
           StatutDemande: "en_cours"
         })
-        .eq("IDTicketClient", parseInt(ticketId)); // Convert string to number
+        .eq("IDTicketClient", parseInt(ticketId));
 
     if (updateError) {
       toast({
@@ -77,7 +78,7 @@ const TicketAssignmentForm = ({ ticketId, currentAssignee, onAssignmentChanged }
 
     toast({
       title: "Ticket assigné",
-      description: `Le ticket ${ticketId} a été assigné à ${user.prenom} ${user.nom}`,
+      description: `Le ticket ${ticketId} a été assigné à ${user.prenom} ${user.nom} et mis en cours`,
     });
   };
 

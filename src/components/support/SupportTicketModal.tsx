@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MessageSquare } from "lucide-react";
@@ -19,7 +18,7 @@ interface Ticket {
   sujet: string;
   utilisateur: string;
   dateCreation: string;
-  statut: 'a_traiter' | 'en_cours' | 'resolu';
+  statut: 'en_attente' | 'en_cours' | 'resolu';
   priorite: 'basse' | 'normale' | 'haute';
   assigneA?: string;
   dateResolution?: string;
@@ -35,7 +34,7 @@ interface SupportTicketModalProps {
 
 const SupportTicketModal = ({ isOpen, onClose, ticket, onTicketUpdated }: SupportTicketModalProps) => {
   const [isResolveModalOpen, setIsResolveModalOpen] = useState(false);
-  const { canResolve } = useTicketPermissions(ticket || { statut: 'a_traiter' });
+  const { canResolve } = useTicketPermissions(ticket || { statut: 'en_attente' });
   const { resolveTicket, isResolving } = useSupportTicketMutations();
 
   if (!ticket) return null;

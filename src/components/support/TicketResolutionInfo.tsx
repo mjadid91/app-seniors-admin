@@ -4,7 +4,7 @@ import { CheckCircle } from "lucide-react";
 
 interface TicketResolutionInfoProps {
   ticket: {
-    statut: 'a_traiter' | 'en_cours' | 'resolu';
+    statut: 'en_attente' | 'en_cours' | 'resolu';
     dateResolution?: string;
   };
 }

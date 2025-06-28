@@ -8,7 +8,7 @@ export interface SupportTicketDB {
   sujet: string;
   message: string | null;
   date_creation: string | null;
-  statut: "a_traiter" | "en_cours" | "resolu";
+  statut: "en_attente" | "en_cours" | "resolu";
   priorite: "basse" | "normale" | "haute";
   id_utilisateur: number | null;
   utilisateur_nom: string | null;
@@ -19,7 +19,7 @@ export interface SupportTicketDB {
   assigne_nom: string | null;
   assigne_prenom: string | null;
   assigne_email: string | null;
-  date_resolution?: string | null; // Ajout de la date de résolution
+  date_resolution?: string | null;
 }
 
 export const useSupabaseSupportTickets = () => {
