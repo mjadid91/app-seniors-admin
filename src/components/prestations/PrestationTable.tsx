@@ -12,6 +12,7 @@ export interface Prestation {
   tarif: number;
   statut: 'en_attente' | 'en_cours' | 'terminee' | 'refusee' | 'annulee';
   evaluation?: number;
+  domaineNom?: string;
 }
 
 interface PrestationTableProps {
@@ -45,83 +46,87 @@ const PrestationTable = ({ prestations, onVoirPrestation, onEditPrestation }: Pr
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
-      <span key={i} className={`text-sm ${i < rating ? 'text-yellow-400' : 'text-gray-300'}`}>
+        <span key={i} className={`text-sm ${i < rating ? 'text-yellow-400' : 'text-gray-300'}`}>
         ★
       </span>
     ));
   };
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
           <tr className="border-b border-slate-200">
             <th className="text-left py-3 px-4 font-medium text-slate-700">ID</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Senior</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Aidant</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Type</th>
+            <th className="text-left py-3 px-4 font-medium text-slate-700">Domaine</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Date</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Tarif</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Statut</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Évaluation</th>
             <th className="text-left py-3 px-4 font-medium text-slate-700">Actions</th>
           </tr>
-        </thead>
-        <tbody>
+          </thead>
+          <tbody>
           {prestations.map((prestation) => (
-            <tr key={prestation.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-              <td className="py-4 px-4 font-mono text-sm text-slate-600">{prestation.id}</td>
-              <td className="py-4 px-4">
-                <p className="font-medium text-slate-800">{prestation.seniorNom}</p>
-              </td>
-              <td className="py-4 px-4">
-                <p className="font-medium text-slate-800">{prestation.aidantNom}</p>
-              </td>
-              <td className="py-4 px-4 text-slate-600">{prestation.typePrestation}</td>
-              <td className="py-4 px-4 text-slate-600">
-                {new Date(prestation.dateCreation).toLocaleDateString('fr-FR')}
-              </td>
-              <td className="py-4 px-4 font-medium text-slate-800">{prestation.tarif.toFixed(2)}€</td>
-              <td className="py-4 px-4">
-                <Badge className={getStatutBadgeColor(prestation.statut)}>
-                  {getStatutLabel(prestation.statut)}
-                </Badge>
-              </td>
-              <td className="py-4 px-4">
-                {prestation.evaluation ? (
-                  <div className="flex items-center gap-1">
-                    {renderStars(prestation.evaluation)}
-                    <span className="text-sm text-slate-600 ml-1">{prestation.evaluation}</span>
+              <tr key={prestation.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                <td className="py-4 px-4 font-mono text-sm text-slate-600">{prestation.id}</td>
+                <td className="py-4 px-4">
+                  <p className="font-medium text-slate-800">{prestation.seniorNom}</p>
+                </td>
+                <td className="py-4 px-4">
+                  <p className="font-medium text-slate-800">{prestation.aidantNom}</p>
+                </td>
+                <td className="py-4 px-4 text-slate-600">{prestation.typePrestation}</td>
+                <td className="py-4 px-4 text-slate-600">
+                  {prestation.domaineNom || 'Non spécifié'}
+                </td>
+                <td className="py-4 px-4 text-slate-600">
+                  {new Date(prestation.dateCreation).toLocaleDateString('fr-FR')}
+                </td>
+                <td className="py-4 px-4 font-medium text-slate-800">{prestation.tarif.toFixed(2)}€</td>
+                <td className="py-4 px-4">
+                  <Badge className={getStatutBadgeColor(prestation.statut)}>
+                    {getStatutLabel(prestation.statut)}
+                  </Badge>
+                </td>
+                <td className="py-4 px-4">
+                  {prestation.evaluation ? (
+                      <div className="flex items-center gap-1">
+                        {renderStars(prestation.evaluation)}
+                        <span className="text-sm text-slate-600 ml-1">{prestation.evaluation}</span>
+                      </div>
+                  ) : (
+                      <span className="text-sm text-slate-400">Non évaluée</span>
+                  )}
+                </td>
+                <td className="py-4 px-4">
+                  <div className="flex gap-2">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onVoirPrestation(prestation)}
+                        title="Voir détails"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEditPrestation(prestation)}
+                        title="Modifier"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                   </div>
-                ) : (
-                  <span className="text-sm text-slate-400">Non évaluée</span>
-                )}
-              </td>
-              <td className="py-4 px-4">
-                <div className="flex gap-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => onVoirPrestation(prestation)}
-                    title="Voir détails"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => onEditPrestation(prestation)}
-                    title="Modifier"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </div>
-              </td>
-            </tr>
+                </td>
+              </tr>
           ))}
-        </tbody>
-      </table>
-    </div>
+          </tbody>
+        </table>
+      </div>
   );
 };
 

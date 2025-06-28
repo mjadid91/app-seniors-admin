@@ -37,15 +37,15 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
   useEffect(() => {
     const fetchDomaines = async () => {
       const { data, error } = await supabase
-        .from("Domaine")
-        .select("IDDomaine, DomaineTitre")
-        .order("DomaineTitre");
-      
+          .from("Domaine")
+          .select("IDDomaine, DomaineTitre")
+          .order("DomaineTitre");
+
       if (error) {
         console.error("Erreur lors du chargement des domaines:", error);
         return;
       }
-      
+
       setDomaines(data || []);
     };
 
@@ -86,9 +86,9 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
       }
 
       const { error } = await supabase
-        .from("Prestation")
-        .update(updateData)
-        .eq("IDPrestation", parseInt(prestation.id));
+          .from("Prestation")
+          .update(updateData)
+          .eq("IDPrestation", parseInt(prestation.id));
 
       if (error) {
         throw error;
@@ -121,78 +121,78 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Modifier la prestation #{prestation?.id}</DialogTitle>
-        </DialogHeader>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Modifier la prestation #{prestation?.id}</DialogTitle>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="titre">Titre de la prestation *</Label>
-              <Input
-                id="titre"
-                value={formData.titre}
-                onChange={(e) => handleInputChange("titre", e.target.value)}
-                placeholder="Ex: Aide ménagère"
-                required
-              />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="titre">Titre de la prestation *</Label>
+                <Input
+                    id="titre"
+                    value={formData.titre}
+                    onChange={(e) => handleInputChange("titre", e.target.value)}
+                    placeholder="Ex: Aide ménagère"
+                    required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tarif">Tarif indicatif (€) *</Label>
+                <Input
+                    id="tarif"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.tarif}
+                    onChange={(e) => handleInputChange("tarif", e.target.value)}
+                    placeholder="0.00"
+                    required
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tarif">Tarif indicatif (€) *</Label>
-              <Input
-                id="tarif"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.tarif}
-                onChange={(e) => handleInputChange("tarif", e.target.value)}
-                placeholder="0.00"
-                required
+              <Label htmlFor="domaine">Domaine</Label>
+              <Select value={formData.domaine} onValueChange={(value) => handleInputChange("domaine", value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un domaine" />
+                </SelectTrigger>
+                <SelectContent>
+                  {domaines.map((domaine) => (
+                      <SelectItem key={domaine.IDDomaine} value={domaine.IDDomaine.toString()}>
+                        {domaine.DomaineTitre}
+                      </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => handleInputChange("description", e.target.value)}
+                  placeholder="Description détaillée de la prestation"
+                  rows={3}
               />
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="domaine">Domaine</Label>
-            <Select value={formData.domaine} onValueChange={(value) => handleInputChange("domaine", value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un domaine" />
-              </SelectTrigger>
-              <SelectContent>
-                {domaines.map((domaine) => (
-                  <SelectItem key={domaine.IDDomaine} value={domaine.IDDomaine.toString()}>
-                    {domaine.DomaineTitre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Description détaillée de la prestation"
-              rows={3}
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Annuler
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Modification..." : "Modifier"}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <div className="flex justify-end gap-3 pt-4">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Annuler
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Modification..." : "Modifier"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
   );
 };
 

@@ -6,6 +6,7 @@ import { Eye, UserPlus, MessageCircle, Clock, CheckCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import SupportTicketModal from "./SupportTicketModal";
 import { useSupabaseSupportTickets, SupportTicketDB } from "@/hooks/useSupabaseSupportTickets";
+import AddTicketModal from "@/components/support/AddTicketModal.tsx";
 
 // Type local pour usage UI et mapping
 interface Ticket {
@@ -16,10 +17,10 @@ interface Ticket {
   statut: "a_traiter" | "en_cours" | "resolu";
   priorite: "basse" | "normale" | "haute";
   assigneA?: string;
-  // Extension :
   message?: string | null;
   utilisateur_email?: string | null;
 }
+
 
 const Support = () => {
   // Appel aux données réelles
@@ -28,6 +29,7 @@ const Support = () => {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const { toast } = useToast();
+  const [openModal, setOpenModal] = useState(false);
 
   // Mapping : vue → modèle local Ticket
   const mappedTickets: Ticket[] = useMemo(() => ticketsDB.map(t => ({
@@ -109,6 +111,8 @@ const Support = () => {
     }
   };
 
+
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24 animate-pulse">
@@ -135,6 +139,10 @@ const Support = () => {
           <p className="text-slate-600 mt-1">Gestion des demandes d'assistance</p>
         </div>
       </div>
+
+      <Button onClick={() => setOpenModal(true)} className="mb-4">
+        Ajouter un ticket
+      </Button>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -292,6 +300,15 @@ const Support = () => {
         onClose={() => setIsTicketModalOpen(false)}
         ticket={selectedTicket}
         onTicketUpdated={handleTicketUpdated}
+      />
+
+      <AddTicketModal
+          isOpen={openModal}
+          onClose={() => setOpenModal(false)}
+          onSuccess={() => {
+            setOpenModal(false);
+            refetch();
+          }}
       />
     </div>
   );

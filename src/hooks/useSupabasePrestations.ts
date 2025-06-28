@@ -14,6 +14,8 @@ export interface PrestationDB {
   aidant_nom: string;
   evaluation?: number | null;
   evaluation_commentaire?: string | null;
+  IDDomaine?: number | null;
+  domaine_titre?: string | null;
 }
 
 export const useSupabasePrestations = () => {
