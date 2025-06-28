@@ -61,7 +61,9 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
     setIsSubmitting(true);
 
     try {
-      // Créer le ticket dans SupportClient
+      console.log('Données du formulaire:', formData);
+
+      // Créer le ticket dans SupportClient (sans spécifier l'ID qui sera auto-généré)
       const { data: ticketData, error: ticketError } = await supabase
         .from('SupportClient')
         .insert({
@@ -75,10 +77,17 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
         .select()
         .single();
 
-      if (ticketError) throw ticketError;
+      if (ticketError) {
+        console.error('Erreur lors de la création du ticket:', ticketError);
+        throw ticketError;
+      }
+
+      console.log('Ticket créé avec succès:', ticketData);
 
       // Si un agent est sélectionné, créer l'entrée dans PrestationSupport
       if (formData.agentId && ticketData) {
+        console.log('Assignation de l\'agent:', formData.agentId);
+        
         const { error: prestationError } = await supabase
           .from('PrestationSupport')
           .insert({
@@ -86,7 +95,10 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
             IDIntervenant: parseInt(formData.agentId)
           });
 
-        if (prestationError) throw prestationError;
+        if (prestationError) {
+          console.error('Erreur lors de l\'assignation:', prestationError);
+          throw prestationError;
+        }
       }
 
       toast({
@@ -108,7 +120,7 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
       console.error('Erreur lors de la création du ticket:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de créer le ticket",
+        description: error.message || "Impossible de créer le ticket",
         variant: "destructive"
       });
     } finally {
