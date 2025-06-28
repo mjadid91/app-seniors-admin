@@ -41,10 +41,10 @@ export const useDashboardStats = () => {
           .from("SignalementContenu")
           .select("*", { count: "exact", head: true });
 
-        // Revenus (somme du montant total des commandes)
+        // Pour les revenus, on va utiliser les commandes existantes car VersementCommission n'existe pas
         const { data: commandesData, error: commandesError } = await supabase
-          .from("VersementCommission")
-          .select("*");
+          .from("Commande")
+          .select("MontantTotal");
 
         const revenus = commandesError || !commandesData
           ? 0
