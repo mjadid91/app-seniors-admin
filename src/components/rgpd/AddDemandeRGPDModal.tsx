@@ -16,7 +16,7 @@ const AddDemandeRGPDModal = ({ isOpen, onClose }: AddDemandeRGPDModalProps) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     idUtilisateur: "",
-    typeDemande: "Accès aux données"
+    typeDemande: "Accès"
   });
 
   const creerDemandeMutation = useCreerDemandeRGPD();
@@ -48,7 +48,7 @@ const AddDemandeRGPDModal = ({ isOpen, onClose }: AddDemandeRGPDModalProps) => {
       onClose();
       setFormData({
         idUtilisateur: "",
-        typeDemande: "Accès aux données"
+        typeDemande: "Accès"
       });
     } catch (error) {
       toast({
@@ -94,10 +94,9 @@ const AddDemandeRGPDModal = ({ isOpen, onClose }: AddDemandeRGPDModalProps) => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Accès aux données">Accès aux données</SelectItem>
-                <SelectItem value="Rectification">Rectification</SelectItem>
+                <SelectItem value="Accès">Accès</SelectItem>
                 <SelectItem value="Suppression">Suppression</SelectItem>
-                <SelectItem value="Portabilité">Portabilité</SelectItem>
+                <SelectItem value="Rectification">Rectification</SelectItem>
                 <SelectItem value="Opposition">Opposition</SelectItem>
               </SelectContent>
             </Select>
