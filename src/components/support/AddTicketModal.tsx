@@ -23,18 +23,16 @@ const AddTicketModal = ({ isOpen, onClose, onSuccess }: AddTicketModalProps) => 
     descriptionDemande: "",
     clientId: "",
     priorite: "Normale",
-    agentId: ""
+    agentId: "" // Optionnel
   });
 
-  // Récupérer tous les utilisateurs clients
-  const { data: clients = [] } = useQuery({
+  const {data: clients = [] } = useQuery({
     queryKey: ['clients'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('Utilisateurs')
         .select('IDUtilisateurs, Nom, Prenom, Email')
         .order('Nom');
-      
       if (error) throw error;
       return data;
     }

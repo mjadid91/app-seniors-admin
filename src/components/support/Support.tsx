@@ -301,14 +301,12 @@ const Support = () => {
         onTicketUpdated={handleTicketUpdated}
       />
 
-      <AddTicketModal
-        isOpen={openModal}
-        onClose={() => setOpenModal(false)}
-        onSuccess={() => {
-          setOpenModal(false);
-          refetch();
-        }}
-      />
+      <AddTicketModal isOpen={openModal} onClose={() => setOpenModal(false)} onSuccess={()=> {
+        setOpenModal(false);
+        refetch();
+      }}
+      ></AddTicketModal>
+
     </div>
   );
 };
