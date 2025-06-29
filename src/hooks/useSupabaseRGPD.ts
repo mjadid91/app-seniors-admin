@@ -208,3 +208,60 @@ export const useMettreAJourConsentement = () => {
     },
   });
 };
+
+// Hook pour supprimer une demande RGPD
+export const useSupprimerDemandeRGPD = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (demandeId: number) => {
+      const { error } = await supabase
+        .from("DemandeRGPD")
+        .delete()
+        .eq("IDDemandeRGPD", demandeId);
+      
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["demandes-rgpd"] });
+    },
+  });
+};
+
+// Hook pour supprimer un consentement
+export const useSupprimerConsentement = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (consentementId: number) => {
+      const { error } = await supabase
+        .from("ConsentementCookies")
+        .delete()
+        .eq("IDConsentement", consentementId);
+      
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["consentements-cookies"] });
+    },
+  });
+};
+
+// Hook pour supprimer un document RGPD
+export const useSupprimerDocumentRGPD = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (documentId: number) => {
+      const { error } = await supabase
+        .from("DocumentRGPD")
+        .delete()
+        .eq("IDDocumentRGPD", documentId);
+      
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents-rgpd"] });
+    },
+  });
+};
