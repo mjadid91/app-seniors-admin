@@ -2,11 +2,11 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useMettreAJourConsentement } from "@/hooks/useSupabaseRGPD";
+import { useUsersSelect } from "@/hooks/useUsersSelect";
 
 interface AddConsentementModalProps {
   isOpen: boolean;
@@ -22,9 +22,19 @@ const AddConsentementModal = ({ isOpen, onClose }: AddConsentementModalProps) =>
   });
 
   const consentementMutation = useMettreAJourConsentement();
+  const { data: users, isLoading: usersLoading } = useUsersSelect();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.idUtilisateur) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un utilisateur",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
       await consentementMutation.mutateAsync({
@@ -62,13 +72,23 @@ const AddConsentementModal = ({ isOpen, onClose }: AddConsentementModalProps) =>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">ID Utilisateur</label>
-            <Input
-              type="number"
-              value={formData.idUtilisateur}
-              onChange={(e) => setFormData(prev => ({ ...prev, idUtilisateur: e.target.value }))}
-              required
-            />
+            <label className="block text-sm font-medium mb-1">Utilisateur</label>
+            <Select 
+              value={formData.idUtilisateur} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, idUtilisateur: value }))}
+              disabled={usersLoading}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={usersLoading ? "Chargement..." : "Sélectionner un utilisateur"} />
+              </SelectTrigger>
+              <SelectContent>
+                {users?.map((user) => (
+                  <SelectItem key={user.id} value={user.id.toString()}>
+                    {user.displayName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
@@ -98,7 +118,7 @@ const AddConsentementModal = ({ isOpen, onClose }: AddConsentementModalProps) =>
             <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button type="submit" disabled={consentementMutation.isPending}>
+            <Button type="submit" disabled={consentementMutation.isPending || !formData.idUtilisateur}>
               {consentementMutation.isPending ? "Ajout..." : "Ajouter"}
             </Button>
           </div>
