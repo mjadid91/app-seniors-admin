@@ -25,16 +25,30 @@ const BonPlanCard = ({ bonPlan, onView, onEdit, onDelete }: BonPlanCardProps) =>
   };
 
   const getStatutColor = (statut: string) => {
-    switch (statut.toLowerCase()) {
-      case 'actif':
+    switch (statut) {
+      case 'Actif':
         return 'bg-green-100 text-green-700 border-green-200';
-      case 'inactif':
+      case 'En attente':
+        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case 'Expiré':
         return 'bg-red-100 text-red-700 border-red-200';
-      case 'expire':
-      case 'expiré':
+      case 'Inactif':
         return 'bg-gray-100 text-gray-700 border-gray-200';
       default:
         return 'bg-blue-100 text-blue-700 border-blue-200';
+    }
+  };
+
+  const getStatutIcon = (statut: string) => {
+    switch (statut) {
+      case 'Actif':
+        return '✅';
+      case 'En attente':
+        return '🕓';
+      case 'Expiré':
+        return '⛔';
+      default:
+        return '';
     }
   };
 
@@ -50,7 +64,8 @@ const BonPlanCard = ({ bonPlan, onView, onEdit, onDelete }: BonPlanCardProps) =>
             <p className="text-sm text-slate-500">{bonPlan.partenaire}</p>
           </div>
         </div>
-        <span className={`px-2 py-1 rounded-full text-xs border ${getStatutColor(bonPlan.statut)}`}>
+        <span className={`px-2 py-1 rounded-full text-xs border ${getStatutColor(bonPlan.statut)} flex items-center gap-1`}>
+          <span>{getStatutIcon(bonPlan.statut)}</span>
           {bonPlan.statut}
         </span>
       </div>

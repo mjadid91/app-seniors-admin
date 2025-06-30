@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +37,38 @@ type DBBonPlan = {
   CodePromo: string;
   StatutBonPlan: string;
   IDPartenaire: number | null;
+};
+
+// Helper function to determine status based on dates
+const getComputedStatus = (statut: string, dateDebut: string, dateFin: string): string => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+  
+  const startDate = new Date(dateDebut);
+  startDate.setHours(0, 0, 0, 0);
+  
+  const endDate = new Date(dateFin);
+  endDate.setHours(23, 59, 59, 999); // End of day for end date
+
+  // If end date is in the past, it's expired regardless of original status
+  if (endDate < today) {
+    return "Expiré";
+  }
+  
+  // If original status is "Actif"
+  if (statut === "Actif") {
+    // If start date is in the future, it's pending
+    if (startDate > today) {
+      return "En attente";
+    }
+    // If we're between start and end dates, it's active
+    if (startDate <= today && today <= endDate) {
+      return "Actif";
+    }
+  }
+  
+  // Return original status for other cases
+  return statut;
 };
 
 export const usePartners = () => {
@@ -119,10 +152,25 @@ export const usePartners = () => {
     setPartners(buildPartners);
   }, [rawPartners, services, partenaireServices]);
 
-  // Fetch bons plans
+  // Update expired bons plans in database
+  const updateExpiredBonsPlans = useCallback(async (expiredIds: number[]) => {
+    if (expiredIds.length === 0) return;
+
+    const { error } = await supabase
+      .from("BonPlan")
+      .update({ StatutBonPlan: "Expiré" })
+      .in("IDBonPlan", expiredIds);
+
+    if (error) {
+      console.error("Erreur lors de la mise à jour des bons plans expirés:", error);
+    } else {
+      console.log(`${expiredIds.length} bon(s) plan(s) mis à jour en statut Expiré`);
+    }
+  }, []);
+
+  // Fetch bons plans with status computation and automatic updates
   const fetchBonsPlans = useCallback(async () => {
     // Get BonPlan with the partner name joined
-    // Since no join in Supabase, do in code
     const { data, error } = await supabase
       .from("BonPlan")
       .select("*");
@@ -130,29 +178,46 @@ export const usePartners = () => {
       toast({ title: "Erreur", description: "Impossible de charger les bons plans.", variant: "destructive" });
       return;
     }
-    // We'll attach partner name by looking for the partner in rawPartners
-    setBonsPlans(
-      (data as DBBonPlan[]).map((b) => {
-        let partenaireNom = "";
-        if (b.IDPartenaire && rawPartners.length > 0) {
-          const found = rawPartners.find((p) => p.IDPartenaire === b.IDPartenaire);
-          partenaireNom = found?.RaisonSociale || "";
-        }
-        return {
-          id: b.IDBonPlan,
-          titre: b.TitreBonPlan,
-          partenaire: partenaireNom,
-          description: b.DescriptionBonPlan,
-          typeReduction: b.TypeReduction,
-          valeurReduction: b.TypeReduction === "pourcentage" ? b.PourcentageReduction : b.PourcentageReduction, // For both cases
-          dateDebutReduction: b.DateDebutReduction,
-          dateFinReduction: b.DateFinReduction,
-          codePromo: b.CodePromo,
-          statut: b.StatutBonPlan,
-        };
-      })
-    );
-  }, [rawPartners, toast]);
+
+    // Process bons plans and compute statuses
+    const expiredIds: number[] = [];
+    const processedBonsPlans = (data as DBBonPlan[]).map((b) => {
+      let partenaireNom = "";
+      if (b.IDPartenaire && rawPartners.length > 0) {
+        const found = rawPartners.find((p) => p.IDPartenaire === b.IDPartenaire);
+        partenaireNom = found?.RaisonSociale || "";
+      }
+
+      const computedStatus = getComputedStatus(
+        b.StatutBonPlan, 
+        b.DateDebutReduction, 
+        b.DateFinReduction
+      );
+
+      // If status changed to expired and wasn't already expired in DB, track for update
+      if (computedStatus === "Expiré" && b.StatutBonPlan !== "Expiré") {
+        expiredIds.push(b.IDBonPlan);
+      }
+
+      return {
+        id: b.IDBonPlan,
+        titre: b.TitreBonPlan,
+        partenaire: partenaireNom,
+        description: b.DescriptionBonPlan,
+        typeReduction: b.TypeReduction,
+        valeurReduction: b.TypeReduction === "pourcentage" ? b.PourcentageReduction : b.PourcentageReduction,
+        dateDebutReduction: b.DateDebutReduction,
+        dateFinReduction: b.DateFinReduction,
+        codePromo: b.CodePromo,
+        statut: computedStatus, // Use computed status instead of DB status
+      };
+    });
+
+    // Update expired bons plans in database
+    await updateExpiredBonsPlans(expiredIds);
+
+    setBonsPlans(processedBonsPlans);
+  }, [rawPartners, toast, updateExpiredBonsPlans]);
 
   // Initial fetch on mount
   useEffect(() => {
