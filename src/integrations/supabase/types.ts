@@ -1895,19 +1895,37 @@ export type Database = {
       }
       Notifications: {
         Row: {
+          Cible: string | null
+          DateCreation: string
+          EstLu: boolean
           IDNotifications: number
           IDUtilisateurDestinataire: number | null
           IDUtilisateurOrigine: number | null
+          Message: string
+          Titre: string
+          TypeNotification: string
         }
         Insert: {
+          Cible?: string | null
+          DateCreation?: string
+          EstLu?: boolean
           IDNotifications?: number
           IDUtilisateurDestinataire?: number | null
           IDUtilisateurOrigine?: number | null
+          Message?: string
+          Titre?: string
+          TypeNotification?: string
         }
         Update: {
+          Cible?: string | null
+          DateCreation?: string
+          EstLu?: boolean
           IDNotifications?: number
           IDUtilisateurDestinataire?: number | null
           IDUtilisateurOrigine?: number | null
+          Message?: string
+          Titre?: string
+          TypeNotification?: string
         }
         Relationships: [
           {

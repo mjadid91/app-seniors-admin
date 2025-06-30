@@ -3,15 +3,19 @@ import { Bell, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "../../stores/authStore";
 import { useState } from "react";
-import NotificationsModal from "./NotificationsModal";
 import SettingsModal from "./SettingsModal";
+import NotificationCenter from "../notifications/NotificationCenter";
 import { useNavigate } from "react-router-dom";
+import { useUnreadNotificationsCount } from "@/hooks/useNotifications";
 
 const Header = () => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+
+  // Récupérer le nombre de notifications non lues
+  const { data: unreadCount = 0 } = useUnreadNotificationsCount(user?.id);
 
   return (
     <>
@@ -34,9 +38,11 @@ const Header = () => {
               className="relative"
             >
               <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                3
-              </span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </Button>
 
             <Button
@@ -66,7 +72,7 @@ const Header = () => {
         </div>
       </header>
 
-      <NotificationsModal 
+      <NotificationCenter 
         isOpen={showNotifications} 
         onClose={() => setShowNotifications(false)} 
       />
