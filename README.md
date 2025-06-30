@@ -165,7 +165,6 @@ L'application utilise un système de rôles basé sur Supabase Auth :
 - **Design responsive** : Optimisé pour tous les écrans
 - **Mode sombre/clair** : Thème adaptatif
 - **Navigation intuitive** : Menu latéral et fil d'Ariane
-- **Composants accessibles** : Respect des standards WCAG
 
 ## 🚀 Déploiement
 
@@ -173,18 +172,6 @@ L'application utilise un système de rôles basé sur Supabase Auth :
 1. Connecter votre compte GitHub dans l'interface Lovable
 2. Cliquer sur "Publish" dans l'éditeur
 3. Votre application sera déployée automatiquement
-
-### Déploiement manuel
-1. **Build de production**
-```bash
-npm run build
-```
-
-2. **Déployer le dossier `dist/`** sur votre hébergeur préféré :
-   - Vercel
-   - Netlify
-   - Heroku
-   - Firebase Hosting
 
 ## 🔧 Configuration avancée
 
