@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Shield, FileText, Users, AlertTriangle, CheckCircle, Clock, Search, Download, Plus, Edit, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -329,7 +330,7 @@ const RGPD = () => {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-slate-200">
-                        <th className="text-left py-3 px-4 font-medium text-slate-600">Utilisateur</th>
+                        <th className="text-left py-3 px-4 font-medium text-slate-600">Email Utilisateur</th>
                         <th className="text-left py-3 px-4 font-medium text-slate-600">Type de demande</th>
                         <th className="text-left py-3 px-4 font-medium text-slate-600">Date de demande</th>
                         <th className="text-left py-3 px-4 font-medium text-slate-600">Échéance</th>
@@ -342,8 +343,8 @@ const RGPD = () => {
                         <tr key={demande.IDDemandeRGPD} className="border-b border-slate-100 hover:bg-slate-50">
                           <td className="py-4 px-4">
                             <div>
-                              <p className="font-medium text-slate-800">{demande.user_nom}</p>
-                              <p className="text-sm text-slate-500">{demande.user_email}</p>
+                              <p className="font-medium text-slate-800">{demande.user_email}</p>
+                              <p className="text-sm text-slate-500">ID: {demande.IDUtilisateurs}</p>
                             </div>
                           </td>
                           <td className="py-4 px-4">{demande.TypeDemande}</td>

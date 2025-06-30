@@ -30,9 +30,11 @@ const ProcessRequestModal = ({ isOpen, onClose, request, onProcessRequest }: Pro
     try {
       await onProcessRequest(request.IDDemandeRGPD, status, response);
       
+      const fullName = `${request.user_prenom || ''} ${request.user_nom || ''}`.trim() || `Utilisateur ${request.IDUtilisateurs}`;
+      
       toast({
         title: "Demande traitée",
-        description: `La demande de ${request.user_nom} a été ${status.toLowerCase()}.`,
+        description: `La demande de ${fullName} a été ${status.toLowerCase()}.`,
       });
 
       setResponse("");
@@ -51,20 +53,22 @@ const ProcessRequestModal = ({ isOpen, onClose, request, onProcessRequest }: Pro
 
   if (!request) return null;
 
+  const fullName = `${request.user_prenom || ''} ${request.user_nom || ''}`.trim() || `Utilisateur ${request.IDUtilisateurs}`;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Traiter la demande RGPD</DialogTitle>
           <DialogDescription>
-            Demande de {request.user_nom} - {request.TypeDemande}
+            Demande de {fullName} - {request.TypeDemande}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="bg-slate-50 p-4 rounded-lg">
             <h4 className="font-medium mb-2">Détails de la demande</h4>
             <div className="space-y-1 text-sm">
-              <p><strong>Utilisateur:</strong> {request.user_nom}</p>
+              <p><strong>Utilisateur:</strong> {fullName}</p>
               <p><strong>Email:</strong> {request.user_email}</p>
               <p><strong>Type:</strong> {request.TypeDemande}</p>
               <p><strong>Date de demande:</strong> {new Date(request.DateDemande).toLocaleDateString('fr-FR')}</p>

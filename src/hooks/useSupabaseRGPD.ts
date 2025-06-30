@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,6 +13,7 @@ export interface DemandeRGPD {
   TraitePar: number | null;
   DateTraitement: string | null;
   user_nom?: string;
+  user_prenom?: string;
   user_email?: string;
 }
 
@@ -47,6 +49,7 @@ export const useDemandesRGPD = () => {
           *,
           Utilisateurs!IDUtilisateurs (
             Nom,
+            Prenom,
             Email
           )
         `)
@@ -72,14 +75,16 @@ export const useDemandesRGPD = () => {
         return dataWithoutJoin?.map((demande: any) => ({
           ...demande,
           user_nom: `Utilisateur ${demande.IDUtilisateurs}`,
+          user_prenom: "",
           user_email: "Email non disponible"
         })) as DemandeRGPD[];
       }
       
-      // Transformer les données pour inclure les noms et emails
+      // Transformer les données pour inclure les noms, prénoms et emails
       return dataWithJoin?.map((demande: any) => ({
         ...demande,
         user_nom: demande.Utilisateurs?.Nom || `Utilisateur ${demande.IDUtilisateurs}`,
+        user_prenom: demande.Utilisateurs?.Prenom || "",
         user_email: demande.Utilisateurs?.Email || "Email non disponible"
       })) as DemandeRGPD[];
     },
