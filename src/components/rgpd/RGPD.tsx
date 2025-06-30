@@ -29,13 +29,18 @@ const RGPD = () => {
   const { toast } = useToast();
 
   // Hooks pour récupérer les données
-  const { data: demandesRGPD = [], isLoading: loadingDemandes } = useDemandesRGPD();
+  const { data: demandesRGPD = [], isLoading: loadingDemandes, error: errorDemandes } = useDemandesRGPD();
   const { data: consentements = [], isLoading: loadingConsentements } = useConsentementsCookies();
   const { data: documents = [], isLoading: loadingDocuments } = useDocumentsRGPD();
   const traiterDemandeMutation = useTraiterDemandeRGPD();
   const supprimerDemandeMutation = useSupprimerDemandeRGPD();
   const supprimerConsentementMutation = useSupprimerConsentement();
   const supprimerDocumentMutation = useSupprimerDocumentRGPD();
+
+  // Logging pour déboguer
+  console.log("RGPD component - demandesRGPD:", demandesRGPD);
+  console.log("RGPD component - loadingDemandes:", loadingDemandes);
+  console.log("RGPD component - errorDemandes:", errorDemandes);
 
   // Calculer les statistiques des consentements
   const consentStats = {
@@ -311,6 +316,14 @@ const RGPD = () => {
 
               {loadingDemandes ? (
                 <div className="text-center py-8">Chargement des demandes...</div>
+              ) : errorDemandes ? (
+                <div className="text-center py-8 text-red-600">
+                  Erreur lors du chargement des demandes: {errorDemandes.message}
+                </div>
+              ) : demandesRGPD.length === 0 ? (
+                <div className="text-center py-8 text-slate-500">
+                  Aucune demande RGPD trouvée
+                </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">

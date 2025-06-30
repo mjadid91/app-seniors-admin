@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -39,7 +38,10 @@ export const useDemandesRGPD = () => {
   return useQuery({
     queryKey: ["demandes-rgpd"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      console.log("Fetching demandes RGPD...");
+      
+      // Première tentative avec jointure
+      const { data: dataWithJoin, error: errorWithJoin } = await supabase
         .from("DemandeRGPD")
         .select(`
           *,
@@ -50,12 +52,34 @@ export const useDemandesRGPD = () => {
         `)
         .order("DateDemande", { ascending: false });
       
-      if (error) throw new Error(error.message);
+      console.log("Query with join result:", { dataWithJoin, errorWithJoin });
+      
+      if (errorWithJoin) {
+        console.log("Join query failed, trying without join:");
+        // Si la jointure échoue, essayons sans jointure
+        const { data: dataWithoutJoin, error: errorWithoutJoin } = await supabase
+          .from("DemandeRGPD")
+          .select("*")
+          .order("DateDemande", { ascending: false });
+        
+        console.log("Query without join result:", { dataWithoutJoin, errorWithoutJoin });
+        
+        if (errorWithoutJoin) {
+          throw new Error(errorWithoutJoin.message);
+        }
+        
+        // Retourner les données sans les informations utilisateur
+        return dataWithoutJoin?.map((demande: any) => ({
+          ...demande,
+          user_nom: `Utilisateur ${demande.IDUtilisateurs}`,
+          user_email: "Email non disponible"
+        })) as DemandeRGPD[];
+      }
       
       // Transformer les données pour inclure les noms et emails
-      return data?.map((demande: any) => ({
+      return dataWithJoin?.map((demande: any) => ({
         ...demande,
-        user_nom: demande.Utilisateurs?.Nom || "Utilisateur inconnu",
+        user_nom: demande.Utilisateurs?.Nom || `Utilisateur ${demande.IDUtilisateurs}`,
         user_email: demande.Utilisateurs?.Email || "Email non disponible"
       })) as DemandeRGPD[];
     },
