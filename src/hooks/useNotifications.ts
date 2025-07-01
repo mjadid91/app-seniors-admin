@@ -32,7 +32,7 @@ export const useNotifications = () => {
           *,
           user_expediteur:Utilisateurs!IDUtilisateurOrigine(Nom, Prenom)
         `)
-        .eq('IDUtilisateurDestinataire', user.id)
+        .eq('IDUtilisateurDestinataire', parseInt(user.id))
         .order('DateCreation', { ascending: false });
 
       if (error) throw error;
