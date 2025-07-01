@@ -32,7 +32,7 @@ const App = () => (
           <Route path="/connexion" element={<LoginPage />} />
           <Route path="/settings" element={<Settings />} />
           
-          {/* Dashboard routes with shared layout */}
+          {/* Prestations routes with shared layout */}
           <Route element={<SharedLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/users" element={<UsersPage />} />
