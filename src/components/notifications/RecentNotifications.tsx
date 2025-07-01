@@ -46,7 +46,7 @@ const RecentNotifications = () => {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h4 className="font-medium text-sm">{notification.Titre}</h4>
-                  {!notification.EstLue && (
+                  {!notification.EstLu && (
                     <Badge variant="secondary" className="text-xs">Nouveau</Badge>
                   )}
                 </div>

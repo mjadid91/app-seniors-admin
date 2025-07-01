@@ -13,7 +13,7 @@ const NotificationItem = ({ notification }: NotificationItemProps) => {
   const markAsReadMutation = useMarkAsRead();
 
   const handleMarkAsRead = () => {
-    if (!notification.EstLue) {
+    if (!notification.EstLu) {
       markAsReadMutation.mutate(notification.IDNotifications);
     }
   };
@@ -21,7 +21,7 @@ const NotificationItem = ({ notification }: NotificationItemProps) => {
   return (
     <div
       className={`p-4 border rounded-lg transition-colors hover:bg-slate-50 ${
-        !notification.EstLue ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200'
+        !notification.EstLu ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200'
       }`}
     >
       <div className="flex items-start gap-3">
@@ -31,7 +31,7 @@ const NotificationItem = ({ notification }: NotificationItemProps) => {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-semibold text-slate-800">{notification.Titre}</h3>
-            {!notification.EstLue && (
+            {!notification.EstLu && (
               <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
             )}
           </div>
@@ -43,7 +43,7 @@ const NotificationItem = ({ notification }: NotificationItemProps) => {
                 locale: fr,
               })}
             </p>
-            {!notification.EstLue && (
+            {!notification.EstLu && (
               <Button
                 variant="ghost"
                 size="sm"

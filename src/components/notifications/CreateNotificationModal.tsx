@@ -27,14 +27,14 @@ const CreateNotificationModal = ({ isOpen, onClose }: CreateNotificationModalPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user?.IDUtilisateurs) return;
+    if (!user?.id) return;
 
     try {
       await createNotificationMutation.mutateAsync({
         titre,
         message,
         destinataireId: parseInt(destinataireId),
-        expediteurId: user.IDUtilisateurs,
+        expediteurId: parseInt(user.id),
         type,
       });
 

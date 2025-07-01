@@ -8,10 +8,10 @@ export interface Notification {
   Titre: string;
   Message: string;
   DateCreation: string;
-  EstLue: boolean;
+  EstLu: boolean;
   IDUtilisateurDestinataire: number;
-  IDUtilisateurExpediteur: number;
-  Type: string;
+  IDUtilisateurOrigine: number;
+  TypeNotification: string;
   user_expediteur?: {
     Nom: string;
     Prenom: string;
@@ -22,23 +22,23 @@ export const useNotifications = () => {
   const { user } = useAuthStore();
 
   return useQuery({
-    queryKey: ['notifications', user?.IDUtilisateurs],
+    queryKey: ['notifications', user?.id],
     queryFn: async () => {
-      if (!user?.IDUtilisateurs) return [];
+      if (!user?.id) return [];
 
       const { data, error } = await supabase
         .from('Notifications')
         .select(`
           *,
-          user_expediteur:Utilisateurs!IDUtilisateurExpediteur(Nom, Prenom)
+          user_expediteur:Utilisateurs!IDUtilisateurOrigine(Nom, Prenom)
         `)
-        .eq('IDUtilisateurDestinataire', user.IDUtilisateurs)
+        .eq('IDUtilisateurDestinataire', user.id)
         .order('DateCreation', { ascending: false });
 
       if (error) throw error;
       return data as Notification[];
     },
-    enabled: !!user?.IDUtilisateurs,
+    enabled: !!user?.id,
   });
 };
 
@@ -50,13 +50,13 @@ export const useMarkAsRead = () => {
     mutationFn: async (notificationId: number) => {
       const { error } = await supabase
         .from('Notifications')
-        .update({ EstLue: true })
+        .update({ EstLu: true })
         .eq('IDNotifications', notificationId);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications', user?.IDUtilisateurs] });
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
     },
   });
 };
@@ -78,10 +78,10 @@ export const useCreateNotification = () => {
           Titre: notification.titre,
           Message: notification.message,
           IDUtilisateurDestinataire: notification.destinataireId,
-          IDUtilisateurExpediteur: notification.expediteurId,
-          Type: notification.type,
+          IDUtilisateurOrigine: notification.expediteurId,
+          TypeNotification: notification.type,
           DateCreation: new Date().toISOString(),
-          EstLue: false,
+          EstLu: false,
         });
 
       if (error) throw error;
