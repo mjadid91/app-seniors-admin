@@ -18,7 +18,6 @@ import PartnersPage from "./pages/PartnersPage";
 import RGPDPage from "./pages/RGPDPage";
 import FinancesPage from "./pages/FinancesPage";
 import LoginPage from "./components/auth/LoginPage";
-import NotificationsPage from "./pages/NotificationsPage";
 
 const queryClient = new QueryClient();
 
@@ -44,7 +43,6 @@ const App = () => (
             <Route path="/partners" element={<PartnersPage />} />
             <Route path="/rgpd" element={<RGPDPage />} />
             <Route path="/finances" element={<FinancesPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
           </Route>
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
