@@ -2,7 +2,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuthStore } from "@/stores/authStore";
 
 export interface Document {
   id: number;
@@ -38,7 +37,6 @@ export const useDocuments = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const { toast } = useToast();
-  const { user } = useAuthStore();
   const [catIdToName, setCatIdToName] = useState<Record<number, string>>({});
   const [catNameToId, setCatNameToId] = useState<Record<string, number>>({});
 
@@ -65,15 +63,9 @@ export const useDocuments = () => {
 
   // Fetch documents from Supabase
   const fetchDocuments = useCallback(async () => {
-    if (!user?.id) {
-      console.log("No user ID available, skipping document fetch");
-      return;
-    }
-
     const { data, error } = await supabase
       .from("Document")
       .select("*");
-    
     if (error) {
       toast({ title: "Erreur", description: "Impossible de charger les documents.", variant: "destructive" });
       return;
@@ -95,7 +87,7 @@ export const useDocuments = () => {
         urlFichier: doc.URLFichier,
       }))
     );
-  }, [catIdToName, toast, user?.id]);
+  }, [catIdToName, toast]);
 
   // Fetch on mount
   useEffect(() => {
@@ -103,19 +95,14 @@ export const useDocuments = () => {
   }, [fetchCategories]);
 
   useEffect(() => {
-    if (Object.keys(catIdToName).length > 0 && user?.id) {
+    if (Object.keys(catIdToName).length > 0) {
       fetchDocuments();
     }
-  }, [catIdToName, fetchDocuments, user?.id]);
+  }, [catIdToName, fetchDocuments]);
 
   // Add new document (create in Supabase) - updated to handle the new interface
   const handleAddDocument = async (newDocData: Omit<Document, "id" | "supabaseId">) => {
     console.log('Adding document with data:', newDocData);
-    
-    if (!user?.id) {
-      toast({ title: "Erreur", description: "Vous devez être connecté pour ajouter un document.", variant: "destructive" });
-      return;
-    }
     
     try {
       const catId = catNameToId[newDocData.category];
@@ -135,7 +122,7 @@ export const useDocuments = () => {
             DateUpload: new Date().toISOString().split('T')[0],
             IDCategorieDocument: catId,
             Statut: newDocData.status,
-            IDUtilisateurs: parseInt(user.id),
+            IDUtilisateurs: newDocData.utilisateurId,
             URLFichier: newDocData.urlFichier || "#",
           },
         ])

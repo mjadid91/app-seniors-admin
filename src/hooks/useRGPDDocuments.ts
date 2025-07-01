@@ -32,26 +32,26 @@ export const useDownloadRGPDDocument = () => {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (documentRGPD: DocumentRGPD) => {
-      if (!documentRGPD.URLFichier) {
+    mutationFn: async (document: DocumentRGPD) => {
+      if (!document.URLFichier) {
         throw new Error("URL du document non disponible");
       }
 
-      // Créer un lien de téléchargement en utilisant l'objet DOM global
-      const link = window.document.createElement('a');
-      link.href = documentRGPD.URLFichier;
-      link.download = `${documentRGPD.Titre}.pdf`;
+      // Créer un lien de téléchargement
+      const link = document.createElement('a');
+      link.href = document.URLFichier;
+      link.download = `${document.Titre}.pdf`;
       link.target = '_blank';
-      window.document.body.appendChild(link);
+      document.body.appendChild(link);
       link.click();
-      window.document.body.removeChild(link);
+      document.body.removeChild(link);
 
-      return documentRGPD;
+      return document;
     },
-    onSuccess: (documentRGPD) => {
+    onSuccess: (document) => {
       toast({
         title: "Téléchargement",
-        description: `Téléchargement de "${documentRGPD.Titre}" en cours...`,
+        description: `Téléchargement de "${document.Titre}" en cours...`,
       });
     },
     onError: (error: Error) => {
