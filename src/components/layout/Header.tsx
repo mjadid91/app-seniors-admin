@@ -6,12 +6,14 @@ import { useState } from "react";
 import NotificationsModal from "./NotificationsModal";
 import SettingsModal from "./SettingsModal";
 import { useNavigate } from "react-router-dom";
+import { useUserProfile} from "@/hooks/useUserProfile.ts";
 
 const Header = () => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const { profile } = useUserProfile();
 
   return (
     <>

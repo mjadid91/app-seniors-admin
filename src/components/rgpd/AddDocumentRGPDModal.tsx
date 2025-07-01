@@ -93,14 +93,105 @@ const AddDocumentRGPDModal = ({ isOpen, onClose }: AddDocumentRGPDModalProps) =>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">URL du fichier</label>
-            <Textarea
-              value={formData.urlFichier}
-              onChange={(e) => setFormData(prev => ({ ...prev, urlFichier: e.target.value }))}
-              placeholder="https://exemple.com/document.pdf"
-              required
+            <label className="block text-sm font-medium mb-1">Fichier PDF</label>
+            <input
+                type="file"
+                accept="application/pdf"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+
+                  // Vérification du type
+                  if (file.type !== "application/pdf") {
+                    toast({
+                      title: "Fichier invalide",
+                      description: "Seuls les fichiers PDF sont autorisés.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  // Vérification de taille (max 10 Mo)
+                  if (file.size > 10 * 1024 * 1024) {
+                    toast({
+                      title: "Fichier trop volumineux",
+                      description: "La taille ne doit pas dépasser 10 Mo.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  const sanitizedFileName = file.name
+                      .normalize("NFD") // enlève les accents
+                      .replace(/[\u0300-\u036f]/g, "")
+                      .replace(/\s+/g, "-")           // espaces → tirets
+                      .replace(/[^\w.-]/g, "");       // caractères spéciaux supprimés
+
+                  const folder = "rgpd"; // nom du dossier (dans le bucket)
+                  const fileName = `${folder}/${Date.now()}-${sanitizedFileName}`;
+
+                  const { data, error } = await supabase.storage
+                      .from("documents-rgpd")
+                      .upload(fileName, file, {
+                        cacheControl: "3600",
+                        upsert: true,
+                      });
+
+
+                  if (error) {
+                    console.error("Erreur d'upload Supabase:", error);
+                    toast({
+                      title: "Erreur upload",
+                      description: error.message || "Impossible d'envoyer le fichier",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+
+                  const publicData = supabase.storage
+                      .from("documents-rgpd")
+                      .getPublicUrl(fileName).data;
+
+                  if (!publicData?.publicUrl) {
+                    toast({
+                      title: "Erreur",
+                      description: "Le lien public n'a pas pu être généré.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+
+                  setFormData((prev) => ({
+                    ...prev,
+                    urlFichier: publicData.publicUrl,
+                  }));
+
+                  toast({
+                    title: "Fichier prêt",
+                    description: `PDF "${file.name}" enregistré avec succès.`,
+                  });
+                }}
+                className="border border-slate-300 rounded px-3 py-2 w-full"
+                required
             />
+
+            {formData.urlFichier && (
+                <p className="text-xs text-green-600 mt-2">
+                  ✅ Fichier prêt :{" "}
+                  <a
+                      href={formData.urlFichier}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline"
+                  >
+                    Voir le PDF
+                  </a>
+                </p>
+            )}
           </div>
+
+
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>
