@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuthStore } from "../../stores/authStore";
 
 interface ProfileImageSectionProps {
   profileImage: string | null;
@@ -13,40 +15,74 @@ interface ProfileImageSectionProps {
 
 const ProfileImageSection = ({ profileImage, initials, onImageChange }: ProfileImageSectionProps) => {
   const { toast } = useToast();
+  const { user } = useAuthStore();
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      // Vérifier le type de fichier
-      if (!file.type.startsWith('image/')) {
+    if (!file || !user?.id) return;
+
+    // Vérifier le type de fichier
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un fichier image valide.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Vérifier la taille du fichier (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Erreur",
+        description: "La taille du fichier ne doit pas dépasser 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Générer un nom de fichier unique
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+
+      // Uploader vers Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('profile-pictures')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (error) {
+        console.error('Erreur upload:', error);
         toast({
           title: "Erreur",
-          description: "Veuillez sélectionner un fichier image valide.",
+          description: "Impossible d'uploader l'image.",
           variant: "destructive",
         });
         return;
       }
 
-      // Vérifier la taille du fichier (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "Erreur",
-          description: "La taille du fichier ne doit pas dépasser 5MB.",
-          variant: "destructive",
-        });
-        return;
-      }
+      // Obtenir l'URL publique
+      const { data: publicData } = supabase.storage
+        .from('profile-pictures')
+        .getPublicUrl(fileName);
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        onImageChange(result);
+      if (publicData?.publicUrl) {
+        onImageChange(publicData.publicUrl);
         toast({
           title: "Image téléchargée",
           description: "Votre photo de profil a été mise à jour. N'oubliez pas de sauvegarder.",
         });
-      };
-      reader.readAsDataURL(file);
+      }
+    } catch (error) {
+      console.error('Erreur lors de l\'upload:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur inattendue s'est produite.",
+        variant: "destructive",
+      });
     }
   };
 

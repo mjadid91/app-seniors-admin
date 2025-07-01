@@ -13,6 +13,7 @@ export interface Document {
   status: string;
   supabaseId?: number;
   utilisateurId?: number;
+  urlFichier?: string;
 }
 
 interface SupabaseDocument {
@@ -24,6 +25,7 @@ interface SupabaseDocument {
   Statut: string;
   IDCategorieDocument: number | null;
   IDUtilisateurs: number | null;
+  URLFichier: string;
 }
 
 interface SupabaseCategorie {
@@ -82,6 +84,7 @@ export const useDocuments = () => {
         status: doc.Statut,
         supabaseId: doc.IDDocument,
         utilisateurId: doc.IDUtilisateurs || undefined,
+        urlFichier: doc.URLFichier,
       }))
     );
   }, [catIdToName, toast]);
@@ -120,7 +123,7 @@ export const useDocuments = () => {
             IDCategorieDocument: catId,
             Statut: newDocData.status,
             IDUtilisateurs: newDocData.utilisateurId,
-            URLFichier: "#", // Placeholder, as file upload isn't implemented
+            URLFichier: newDocData.urlFichier || "#",
           },
         ])
         .select();
@@ -161,19 +164,49 @@ export const useDocuments = () => {
   };
 
   const handleViewDocument = (doc: Document) => {
-    toast({
-      title: "Aperçu du document",
-      description: `Ouverture de ${doc.name} (non implémenté)`,
-    });
-    window.open(doc.supabaseId ? "#" : "#", "_blank");
+    if (doc.urlFichier && doc.urlFichier !== "#") {
+      window.open(doc.urlFichier, "_blank");
+    } else {
+      toast({
+        title: "Document non disponible",
+        description: "Le fichier de ce document n'est pas disponible.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDownloadDocument = (doc: Document) => {
-    toast({
-      title: "Téléchargement",
-      description: `Téléchargement de ${doc.name} en cours... (non implémenté)`,
-    });
-    // To implement: download using doc.URLFichier via Supabase Storage
+    // Vérifier si le document est publié
+    if (doc.status !== 'Publié') {
+      toast({
+        title: "Accès refusé",
+        description: "Seuls les documents publiés peuvent être téléchargés.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (doc.urlFichier && doc.urlFichier !== "#") {
+      // Créer un lien de téléchargement
+      const link = document.createElement('a');
+      link.href = doc.urlFichier;
+      link.download = doc.name;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "Téléchargement",
+        description: `Téléchargement de ${doc.name} en cours...`,
+      });
+    } else {
+      toast({
+        title: "Erreur",
+        description: "Le fichier de ce document n'est pas disponible.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDeleteDocument = async (docId: number) => {

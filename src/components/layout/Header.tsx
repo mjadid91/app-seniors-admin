@@ -7,6 +7,7 @@ import NotificationsModal from "./NotificationsModal";
 import SettingsModal from "./SettingsModal";
 import { useNavigate } from "react-router-dom";
 import { useUserProfile} from "@/hooks/useUserProfile.ts";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Header = () => {
   const { user } = useAuthStore();
@@ -14,6 +15,10 @@ const Header = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const { profile } = useUserProfile();
+
+  const getInitials = () => {
+    return `${user?.prenom?.[0] || ''}${user?.nom?.[0] || ''}`;
+  };
 
   return (
     <>
@@ -52,11 +57,12 @@ const Header = () => {
             </Button>
 
             <div className="flex items-center gap-2 ml-3 pl-3 border-l border-slate-200">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-medium text-sm">
-                  {user?.prenom?.[0]}{user?.nom?.[0]}
-                </span>
-              </div>
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={profile?.photo || undefined} alt="Photo de profil" />
+                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-medium text-sm">
+                  {getInitials()}
+                </AvatarFallback>
+              </Avatar>
               <div className="hidden sm:block">
                 <p className="text-sm font-medium text-slate-800">
                   {user?.prenom} {user?.nom}
