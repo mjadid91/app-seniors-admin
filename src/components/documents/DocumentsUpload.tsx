@@ -4,13 +4,24 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
+import { useAuthStore } from "@/stores/authStore";
 
 const DocumentsUpload = () => {
   const { toast } = useToast();
+  const { user } = useAuthStore();
   const [isUploading, setIsUploading] = useState(false);
 
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+
+    if (!user?.id) {
+      toast({
+        title: "Erreur d'authentification",
+        description: "Vous devez être connecté pour uploader des documents.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsUploading(true);
 
@@ -56,7 +67,7 @@ const DocumentsUpload = () => {
           .getPublicUrl(fileName);
 
         if (publicData?.publicUrl) {
-          // Insérer le document dans la base de données avec un statut "Brouillon"
+          // Insérer le document dans la base de données avec l'ID utilisateur
           const { error: dbError } = await supabase
             .from('Document')
             .insert({
@@ -66,6 +77,7 @@ const DocumentsUpload = () => {
               URLFichier: publicData.publicUrl,
               Statut: 'Brouillon',
               IDCategorieDocument: 1, // Catégorie par défaut, vous pouvez la changer
+              IDUtilisateurs: parseInt(user.id), // Assurer que l'ID utilisateur est défini
             });
 
           if (dbError) {
