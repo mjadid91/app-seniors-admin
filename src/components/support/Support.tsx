@@ -274,16 +274,6 @@ const Support = () => {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        {ticket.statut === 'en_attente' && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleAssignerTicket(ticket)}
-                            title="Assigner"
-                          >
-                            <UserPlus className="h-4 w-4" />
-                          </Button>
-                        )}
                       </div>
                     </td>
                   </tr>

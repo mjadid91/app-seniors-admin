@@ -344,7 +344,7 @@ const RGPD = () => {
                           <td className="py-4 px-4">
                             <div>
                               <p className="font-medium text-slate-800">{demande.user_email}</p>
-                              <p className="text-sm text-slate-500">ID: {demande.IDUtilisateurs}</p>
+                              {/* <p className="text-sm text-slate-500">ID:</p> */}
                             </div>
                           </td>
                           <td className="py-4 px-4">{demande.TypeDemande}</td>
