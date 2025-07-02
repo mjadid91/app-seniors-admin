@@ -47,7 +47,7 @@ export const useDemandesRGPD = () => {
         .from("DemandeRGPD")
         .select(`
           *,
-          Utilisateurs!IDUtilisateurs (
+          Utilisateurs!DemandeRGPD_IDUtilisateurs_fkey (
             Nom,
             Prenom,
             Email
