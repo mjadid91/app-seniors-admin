@@ -370,13 +370,6 @@ export type Database = {
             referencedColumns: ["IDCommande"]
           },
           {
-            foreignKeyName: "bonplan_utilisateurs_idcommande_fkey"
-            columns: ["IDCommande"]
-            isOneToOne: false
-            referencedRelation: "v_financestransactions"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "BonPlan_Utilisateurs_IDUtilisateurs_fkey"
             columns: ["IDUtilisateurs"]
             isOneToOne: false
@@ -1153,13 +1146,6 @@ export type Database = {
             referencedColumns: ["IDCommande"]
           },
           {
-            foreignKeyName: "Evaluation_IDCommande_fkey"
-            columns: ["IDCommande"]
-            isOneToOne: false
-            referencedRelation: "v_financestransactions"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "Evaluation_IDMiseEnRelation_fkey"
             columns: ["IDMiseEnRelation"]
             isOneToOne: false
@@ -1300,13 +1286,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "Commande"
             referencedColumns: ["IDCommande"]
-          },
-          {
-            foreignKeyName: "Facture_IDCommande_fkey"
-            columns: ["IDCommande"]
-            isOneToOne: false
-            referencedRelation: "v_financestransactions"
-            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "Facture_IDMiseEnRelation_IDPrestation_fkey"
@@ -1792,13 +1771,6 @@ export type Database = {
             referencedColumns: ["IDCommande"]
           },
           {
-            foreignKeyName: "miseenrelation_idcommande_fkey"
-            columns: ["IDCommande"]
-            isOneToOne: false
-            referencedRelation: "v_financestransactions"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "MiseEnRelation_IDMoyenPaiement_fkey"
             columns: ["IDMoyenPaiement"]
             isOneToOne: false
@@ -1895,19 +1867,37 @@ export type Database = {
       }
       Notifications: {
         Row: {
+          Cible: string | null
+          DateCreation: string
+          EstLu: boolean
           IDNotifications: number
           IDUtilisateurDestinataire: number | null
           IDUtilisateurOrigine: number | null
+          Message: string
+          Titre: string
+          TypeNotification: string
         }
         Insert: {
+          Cible?: string | null
+          DateCreation?: string
+          EstLu?: boolean
           IDNotifications?: number
           IDUtilisateurDestinataire?: number | null
           IDUtilisateurOrigine?: number | null
+          Message?: string
+          Titre?: string
+          TypeNotification?: string
         }
         Update: {
+          Cible?: string | null
+          DateCreation?: string
+          EstLu?: boolean
           IDNotifications?: number
           IDUtilisateurDestinataire?: number | null
           IDUtilisateurOrigine?: number | null
+          Message?: string
+          Titre?: string
+          TypeNotification?: string
         }
         Relationships: [
           {
@@ -2425,13 +2415,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "Commande"
             referencedColumns: ["IDCommande"]
-          },
-          {
-            foreignKeyName: "Produit_Commande_IDCommande_fkey"
-            columns: ["IDCommande"]
-            isOneToOne: false
-            referencedRelation: "v_financestransactions"
-            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "Produit_Commande_IDProduit_fkey"
@@ -3208,13 +3191,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "Commande"
             referencedColumns: ["IDCommande"]
-          },
-          {
-            foreignKeyName: "versementcommissions_idcommande_fkey"
-            columns: ["IDCommande"]
-            isOneToOne: false
-            referencedRelation: "v_financestransactions"
-            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "VersementCommissions_IDPrestation_fkey"
