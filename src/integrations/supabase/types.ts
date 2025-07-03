@@ -3042,10 +3042,10 @@ export type Database = {
           EstDesactive: boolean
           EstRGPD: boolean
           Genre: string
-          IDAuth: string | null
           IDCatUtilisateurs: number | null
           IDUtilisateurs: number
           LangueSite: string
+          MotDePasse: string
           Nom: string
           Photo: string
           Prenom: string
@@ -3061,10 +3061,10 @@ export type Database = {
           EstDesactive?: boolean
           EstRGPD?: boolean
           Genre: string
-          IDAuth?: string | null
           IDCatUtilisateurs?: number | null
           IDUtilisateurs?: number
           LangueSite: string
+          MotDePasse: string
           Nom: string
           Photo: string
           Prenom: string
@@ -3080,10 +3080,10 @@ export type Database = {
           EstDesactive?: boolean
           EstRGPD?: boolean
           Genre?: string
-          IDAuth?: string | null
           IDCatUtilisateurs?: number | null
           IDUtilisateurs?: number
           LangueSite?: string
+          MotDePasse?: string
           Nom?: string
           Photo?: string
           Prenom?: string

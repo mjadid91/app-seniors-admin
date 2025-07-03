@@ -12,8 +12,7 @@ export const convertSupabaseUserToAppUser = (
     prenom: supabaseUser.Prenom,
     email: supabaseUser.Email,
     role: getRoleFromCategory(supabaseUser.IDCatUtilisateurs),
-    dateInscription: supabaseUser.DateInscription,
-    photo: supabaseUser.Photo
+    dateInscription: supabaseUser.DateInscription
   };
 };
 
