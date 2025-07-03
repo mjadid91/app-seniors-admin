@@ -137,12 +137,14 @@ export const useTraiterDemandeRGPD = () => {
       statut: string; 
       traitePar: number 
     }) => {
+      const currentDate = new Date().toISOString().split('T')[0]; // Format ISO date
+      
       const { error } = await supabase
         .from("DemandeRGPD")
         .update({
           Statut: statut,
           TraitePar: traitePar,
-          DateTraitement: new Date().toISOString().split('T')[0]
+          DateTraitement: currentDate
         })
         .eq("IDDemandeRGPD", demandeId);
       

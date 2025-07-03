@@ -6,13 +6,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthStore } from "@/stores/authStore";
 import { type DemandeRGPD } from "@/hooks/useSupabaseRGPD";
 
 interface ProcessRequestModalProps {
   isOpen: boolean;
   onClose: () => void;
   request: DemandeRGPD | null;
-  onProcessRequest: (requestId: number, status: string, response: string) => void;
+  onProcessRequest: (requestId: number, status: string, response: string, traitePar: number) => void;
 }
 
 const ProcessRequestModal = ({ isOpen, onClose, request, onProcessRequest }: ProcessRequestModalProps) => {
@@ -20,15 +21,18 @@ const ProcessRequestModal = ({ isOpen, onClose, request, onProcessRequest }: Pro
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuthStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!request) return;
+    if (!request || !user) return;
 
     setIsLoading(true);
 
     try {
-      await onProcessRequest(request.IDDemandeRGPD, status, response);
+      // Utiliser l'ID de l'utilisateur connecté comme traitePar
+      const traitePar = parseInt(user.id);
+      await onProcessRequest(request.IDDemandeRGPD, status, response, traitePar);
       
       const fullName = `${request.user_prenom || ''} ${request.user_nom || ''}`.trim() || `Utilisateur ${request.IDUtilisateurs}`;
       

@@ -1,13 +1,9 @@
-
 import { useState } from "react";
-import { Shield, FileText, Users, AlertTriangle, CheckCircle, Clock, Search, Download, Plus, Edit, Trash } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Eye, Check, Trash2, Plus, FileText, Cookie, Shield, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import ProcessRequestModal from "./ProcessRequestModal";
-import AddDemandeRGPDModal from "./AddDemandeRGPDModal";
-import EditDemandeRGPDModal from "./EditDemandeRGPDModal";
-import AddConsentementModal from "./AddConsentementModal";
-import AddDocumentRGPDModal from "./AddDocumentRGPDModal";
 import { 
   useDemandesRGPD, 
   useConsentementsCookies, 
@@ -18,578 +14,472 @@ import {
   useSupprimerDocumentRGPD,
   type DemandeRGPD 
 } from "@/hooks/useSupabaseRGPD";
+import ProcessRequestModal from "./ProcessRequestModal";
+import AddDemandeRGPDModal from "./AddDemandeRGPDModal";
+import AddConsentementModal from "./AddConsentementModal";
+import AddDocumentRGPDModal from "./AddDocumentRGPDModal";
+import EditDemandeRGPDModal from "./EditDemandeRGPDModal";
 
 const RGPD = () => {
-  const [activeTab, setActiveTab] = useState("overview");
-  const [isProcessModalOpen, setIsProcessModalOpen] = useState(false);
-  const [isAddDemandeModalOpen, setIsAddDemandeModalOpen] = useState(false);
-  const [isEditDemandeModalOpen, setIsEditDemandeModalOpen] = useState(false);
-  const [isAddConsentementModalOpen, setIsAddConsentementModalOpen] = useState(false);
-  const [isAddDocumentModalOpen, setIsAddDocumentModalOpen] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<DemandeRGPD | null>(null);
   const { toast } = useToast();
+  
+  // États des modales
+  const [processModalOpen, setProcessModalOpen] = useState(false);
+  const [addDemandeModalOpen, setAddDemandeModalOpen] = useState(false);
+  const [addConsentementModalOpen, setAddConsentementModalOpen] = useState(false);
+  const [addDocumentModalOpen, setAddDocumentModalOpen] = useState(false);
+  const [editDemandeModalOpen, setEditDemandeModalOpen] = useState(false);
+  
+  // États des éléments sélectionnés
+  const [selectedRequest, setSelectedRequest] = useState<DemandeRGPD | null>(null);
 
-  // Hooks pour récupérer les données
-  const { data: demandesRGPD = [], isLoading: loadingDemandes, error: errorDemandes } = useDemandesRGPD();
-  const { data: consentements = [], isLoading: loadingConsentements } = useConsentementsCookies();
-  const { data: documents = [], isLoading: loadingDocuments } = useDocumentsRGPD();
+  // Hooks pour les données
+  const { data: demandes = [], isLoading: demandesLoading, refetch: refetchDemandes } = useDemandesRGPD();
+  const { data: consentements = [], isLoading: consentsLoading, refetch: refetchConsentements } = useConsentementsCookies();
+  const { data: documents = [], isLoading: documentsLoading, refetch: refetchDocuments } = useDocumentsRGPD();
+
+  // Hooks pour les mutations
   const traiterDemandeMutation = useTraiterDemandeRGPD();
   const supprimerDemandeMutation = useSupprimerDemandeRGPD();
   const supprimerConsentementMutation = useSupprimerConsentement();
   const supprimerDocumentMutation = useSupprimerDocumentRGPD();
 
-  // Logging pour déboguer
-  console.log("RGPD component - demandesRGPD:", demandesRGPD);
-  console.log("RGPD component - loadingDemandes:", loadingDemandes);
-  console.log("RGPD component - errorDemandes:", errorDemandes);
-
-  // Calculer les statistiques des consentements
-  const consentStats = {
-    total: consentements.length,
-    accepted: consentements.filter(c => c.Statut === true).length,
-    refused: consentements.filter(c => c.Statut === false).length,
-    pending: 0 // Les consentements sont soit acceptés soit refusés
-  };
-
-  // Statistiques par type de cookie
-  const cookieStats = {
-    essentiel: consentements.filter(c => c.TypeCookie === 'Essentiel').length,
-    analytique: consentements.filter(c => c.TypeCookie === 'Analytique' && c.Statut).length,
-    publicitaire: consentements.filter(c => c.TypeCookie === 'Publicitaire' && c.Statut).length,
-  };
-
-  const handleProcessRequest = (request: DemandeRGPD) => {
-    setSelectedRequest(request);
-    setIsProcessModalOpen(true);
-  };
-
-  const handleEditRequest = (request: DemandeRGPD) => {
-    setSelectedRequest(request);
-    setIsEditDemandeModalOpen(true);
-  };
-
-  const handleDeleteRequest = async (requestId: number) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer cette demande ?")) {
-      try {
-        await supprimerDemandeMutation.mutateAsync(requestId);
-        toast({
-          title: "Demande supprimée",
-          description: "La demande RGPD a été supprimée avec succès"
-        });
-      } catch (error) {
-        toast({
-          title: "Erreur",
-          description: "Impossible de supprimer la demande",
-          variant: "destructive"
-        });
-      }
-    }
-  };
-
-  const handleDeleteConsentement = async (consentementId: number) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer ce consentement ?")) {
-      try {
-        await supprimerConsentementMutation.mutateAsync(consentementId);
-        toast({
-          title: "Consentement supprimé",
-          description: "Le consentement a été supprimé avec succès"
-        });
-      } catch (error) {
-        toast({
-          title: "Erreur",
-          description: "Impossible de supprimer le consentement",
-          variant: "destructive"
-        });
-      }
-    }
-  };
-
-  const handleDeleteDocument = async (documentId: number) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer ce document ?")) {
-      try {
-        await supprimerDocumentMutation.mutateAsync(documentId);
-        toast({
-          title: "Document supprimé",
-          description: "Le document a été supprimé avec succès"
-        });
-      } catch (error) {
-        toast({
-          title: "Erreur",
-          description: "Impossible de supprimer le document",
-          variant: "destructive"
-        });
-      }
-    }
-  };
-
-  const handleRequestProcess = async (requestId: number, status: string, response: string) => {
+  // Fonction pour traiter une demande
+  const handleProcessRequest = async (requestId: number, status: string, response: string, traitePar: number) => {
     try {
       await traiterDemandeMutation.mutateAsync({
         demandeId: requestId,
         statut: status,
-        traitePar: 1 // TODO: Utiliser l'ID de l'utilisateur connecté
+        traitePar: traitePar
       });
       
+      refetchDemandes();
+    } catch (error) {
+      console.error("Erreur lors du traitement de la demande:", error);
+      throw error;
+    }
+  };
+
+  // Fonction pour supprimer une demande
+  const handleDeleteRequest = async (requestId: number) => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer cette demande RGPD ?")) return;
+    
+    try {
+      await supprimerDemandeMutation.mutateAsync(requestId);
       toast({
-        title: "Demande traitée",
-        description: "La demande RGPD a été mise à jour avec succès"
+        title: "Demande supprimée",
+        description: "La demande RGPD a été supprimée avec succès."
       });
+      refetchDemandes();
     } catch (error) {
       toast({
         title: "Erreur",
-        description: "Impossible de traiter la demande",
+        description: "Impossible de supprimer la demande.",
         variant: "destructive"
       });
     }
   };
 
-  // Calculer le taux de conformité
-  const conformiteRate = Math.min(98, 85 + (documents.length * 2)); // Simulation
+  // Fonction pour supprimer un consentement
+  const handleDeleteConsent = async (consentId: number) => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer ce consentement ?")) return;
+    
+    try {
+      await supprimerConsentementMutation.mutateAsync(consentId);
+      toast({
+        title: "Consentement supprimé",
+        description: "Le consentement a été supprimé avec succès."
+      });
+      refetchConsentements();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le consentement.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Fonction pour supprimer un document
+  const handleDeleteDocument = async (documentId: number) => {
+    if (!confirm("Êtes-vous sûr de vouloir supprimer ce document ?")) return;
+    
+    try {
+      await supprimerDocumentMutation.mutateAsync(documentId);
+      toast({
+        title: "Document supprimé",
+        description: "Le document RGPD a été supprimé avec succès."
+      });
+      refetchDocuments();
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le document.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const getStatutBadgeColor = (statut: string) => {
+    switch (statut) {
+      case 'En attente': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case 'En cours': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'Traité': return 'bg-green-100 text-green-700 border-green-200';
+      case 'Rejeté': return 'bg-red-100 text-red-700 border-red-200';
+      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+    }
+  };
+
+  if (demandesLoading || consentsLoading || documentsLoading) {
+    return <div className="p-6">Chargement...</div>;
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-slate-800">Conformité RGPD</h1>
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          <Download className="h-4 w-4 mr-2" />
-          Rapport de conformité
-        </Button>
+        <div>
+          <h2 className="text-3xl font-bold text-slate-800">Gestion RGPD</h2>
+          <p className="text-slate-600 mt-1">Conformité et protection des données</p>
+        </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-        <div className="border-b border-slate-200">
-          <nav className="flex space-x-8 px-6">
-            <button
-              onClick={() => setActiveTab("overview")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "overview"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              Vue d'ensemble
-            </button>
-            <button
-              onClick={() => setActiveTab("requests")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "requests"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              Demandes d'accès
-            </button>
-            <button
-              onClick={() => setActiveTab("consent")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "consent"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              Gestion des consentements
-            </button>
-            <button
-              onClick={() => setActiveTab("policies")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "policies"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              Politiques
-            </button>
-          </nav>
-        </div>
-
-        <div className="p-6">
-          {activeTab === "overview" && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-green-50 rounded-lg p-4">
-                  <div className="flex items-center gap-3">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
-                    <div>
-                      <p className="text-2xl font-bold text-green-600">{conformiteRate}%</p>
-                      <p className="text-sm text-green-700">Conformité générale</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <div className="flex items-center gap-3">
-                    <Users className="h-8 w-8 text-blue-600" />
-                    <div>
-                      <p className="text-2xl font-bold text-blue-600">{consentStats.total}</p>
-                      <p className="text-sm text-blue-700">Consentements</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-yellow-50 rounded-lg p-4">
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-8 w-8 text-yellow-600" />
-                    <div>
-                      <p className="text-2xl font-bold text-yellow-600">
-                        {demandesRGPD.filter(d => d.Statut === 'En cours').length}
-                      </p>
-                      <p className="text-sm text-yellow-700">Demandes en cours</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-red-50 rounded-lg p-4">
-                  <div className="flex items-center gap-3">
-                    <AlertTriangle className="h-8 w-8 text-red-600" />
-                    <div>
-                      <p className="text-2xl font-bold text-red-600">
-                        {demandesRGPD.filter(d => {
-                          const echeance = new Date(d.DateEcheance || '');
-                          const today = new Date();
-                          return echeance < today && d.Statut !== 'Traité';
-                        }).length}
-                      </p>
-                      <p className="text-sm text-red-700">Alertes</p>
-                    </div>
-                  </div>
-                </div>
+      {/* Statistiques RGPD */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <AlertTriangle className="h-4 w-4 text-yellow-600" />
               </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="border border-slate-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-slate-800 mb-4">Statut de conformité</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-600">Politique de confidentialité</span>
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-600">Cookies et traceurs</span>
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-600">Registre de traitement</span>
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-600">Analyse d'impact</span>
-                      <AlertTriangle className="h-5 w-5 text-yellow-600" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border border-slate-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-slate-800 mb-4">Actions récentes</h3>
-                  <div className="space-y-3">
-                    {documents.slice(0, 3).map((doc) => (
-                      <div key={doc.IDDocumentRGPD} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                        <FileText className="h-5 w-5 text-blue-600" />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{doc.Titre}</p>
-                          <p className="text-xs text-slate-500">
-                            Mis à jour le {new Date(doc.DateMiseAJour).toLocaleDateString('fr-FR')}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              <div>
+                <p className="text-sm text-slate-600">En attente</p>
+                <p className="text-xl font-bold text-slate-800">
+                  {demandes.filter(d => d.Statut === 'En attente').length}
+                </p>
               </div>
             </div>
-          )}
+          </CardContent>
+        </Card>
 
-          {activeTab === "requests" && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-4 w-4" />
-                    <input
-                      type="text"
-                      placeholder="Rechercher une demande..."
-                      className="pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
-                    />
-                  </div>
-                  <Button variant="outline">Filtrer</Button>
-                </div>
-                <Button onClick={() => setIsAddDemandeModalOpen(true)} className="bg-green-600 hover:bg-green-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter une demande
-                </Button>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Shield className="h-4 w-4 text-blue-600" />
               </div>
-
-              {loadingDemandes ? (
-                <div className="text-center py-8">Chargement des demandes...</div>
-              ) : errorDemandes ? (
-                <div className="text-center py-8 text-red-600">
-                  Erreur lors du chargement des demandes: {errorDemandes.message}
-                </div>
-              ) : demandesRGPD.length === 0 ? (
-                <div className="text-center py-8 text-slate-500">
-                  Aucune demande RGPD trouvée
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-slate-200">
-                        <th className="text-left py-3 px-4 font-medium text-slate-600">Email Utilisateur</th>
-                        <th className="text-left py-3 px-4 font-medium text-slate-600">Type de demande</th>
-                        <th className="text-left py-3 px-4 font-medium text-slate-600">Date de demande</th>
-                        <th className="text-left py-3 px-4 font-medium text-slate-600">Échéance</th>
-                        <th className="text-left py-3 px-4 font-medium text-slate-600">Statut</th>
-                        <th className="text-left py-3 px-4 font-medium text-slate-600">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {demandesRGPD.map((demande) => (
-                        <tr key={demande.IDDemandeRGPD} className="border-b border-slate-100 hover:bg-slate-50">
-                          <td className="py-4 px-4">
-                            <div>
-                              <p className="font-medium text-slate-800">{demande.user_email}</p>
-                              {/* <p className="text-sm text-slate-500">ID:</p> */}
-                            </div>
-                          </td>
-                          <td className="py-4 px-4">{demande.TypeDemande}</td>
-                          <td className="py-4 px-4">{new Date(demande.DateDemande).toLocaleDateString('fr-FR')}</td>
-                          <td className="py-4 px-4">
-                            {demande.DateEcheance ? new Date(demande.DateEcheance).toLocaleDateString('fr-FR') : 'Non définie'}
-                          </td>
-                          <td className="py-4 px-4">
-                            <span className={`px-2 py-1 rounded-full text-xs ${
-                              demande.Statut === 'Traité' 
-                                ? 'bg-green-100 text-green-700' 
-                                : demande.Statut === 'En cours'
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'bg-yellow-100 text-yellow-700'
-                            }`}>
-                              {demande.Statut}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="flex gap-2">
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => handleProcessRequest(demande)}
-                                disabled={demande.Statut === 'Traité'}
-                              >
-                                {demande.Statut === 'Traité' ? 'Traité' : 'Traiter'}
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => handleEditRequest(demande)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => handleDeleteRequest(demande.IDDemandeRGPD)}
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <Trash className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+              <div>
+                <p className="text-sm text-slate-600">En cours</p>
+                <p className="text-xl font-bold text-slate-800">
+                  {demandes.filter(d => d.Statut === 'En cours').length}
+                </p>
+              </div>
             </div>
-          )}
+          </CardContent>
+        </Card>
 
-          {activeTab === "consent" && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Gestion des consentements</h2>
-                <Button onClick={() => setIsAddConsentementModalOpen(true)} className="bg-green-600 hover:bg-green-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter un consentement
-                </Button>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                <Check className="h-4 w-4 text-green-600" />
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-white border border-slate-200 rounded-lg p-6">
-                  <h3 className="font-semibold text-slate-800 mb-2">Total</h3>
-                  <p className="text-3xl font-bold text-slate-600">{consentStats.total}</p>
-                </div>
-                <div className="bg-white border border-slate-200 rounded-lg p-6">
-                  <h3 className="font-semibold text-slate-800 mb-2">Acceptés</h3>
-                  <p className="text-3xl font-bold text-green-600">{consentStats.accepted}</p>
-                  <p className="text-sm text-slate-500">
-                    {consentStats.total > 0 ? ((consentStats.accepted / consentStats.total) * 100).toFixed(1) : 0}%
-                  </p>
-                </div>
-                <div className="bg-white border border-slate-200 rounded-lg p-6">
-                  <h3 className="font-semibold text-slate-800 mb-2">Refusés</h3>
-                  <p className="text-3xl font-bold text-red-600">{consentStats.refused}</p>
-                  <p className="text-sm text-slate-500">
-                    {consentStats.total > 0 ? ((consentStats.refused / consentStats.total) * 100).toFixed(1) : 0}%
-                  </p>
-                </div>
-                <div className="bg-white border border-slate-200 rounded-lg p-6">
-                  <h3 className="font-semibold text-slate-800 mb-2">En attente</h3>
-                  <p className="text-3xl font-bold text-yellow-600">{consentStats.pending}</p>
-                  <p className="text-sm text-slate-500">0%</p>
-                </div>
+              <div>
+                <p className="text-sm text-slate-600">Traitées</p>
+                <p className="text-xl font-bold text-slate-800">
+                  {demandes.filter(d => d.Statut === 'Traité').length}
+                </p>
               </div>
-
-              {loadingConsentements ? (
-                <div className="text-center py-8">Chargement des consentements...</div>
-              ) : (
-                <div className="bg-white border border-slate-200 rounded-lg">
-                  <div className="p-4 border-b">
-                    <h3 className="font-semibold">Liste des consentements</h3>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-slate-200">
-                          <th className="text-left py-3 px-4 font-medium text-slate-600">ID Utilisateur</th>
-                          <th className="text-left py-3 px-4 font-medium text-slate-600">Type de cookie</th>
-                          <th className="text-left py-3 px-4 font-medium text-slate-600">Statut</th>
-                          <th className="text-left py-3 px-4 font-medium text-slate-600">Date</th>
-                          <th className="text-left py-3 px-4 font-medium text-slate-600">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {consentements.map((consentement) => (
-                          <tr key={consentement.IDConsentement} className="border-b border-slate-100 hover:bg-slate-50">
-                            <td className="py-3 px-4">{consentement.IDUtilisateurs}</td>
-                            <td className="py-3 px-4">{consentement.TypeCookie}</td>
-                            <td className="py-3 px-4">
-                              <span className={`px-2 py-1 rounded-full text-xs ${
-                                consentement.Statut 
-                                  ? 'bg-green-100 text-green-700' 
-                                  : 'bg-red-100 text-red-700'
-                              }`}>
-                                {consentement.Statut ? 'Accepté' : 'Refusé'}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4">{new Date(consentement.DateConsentement).toLocaleDateString('fr-FR')}</td>
-                            <td className="py-3 px-4">
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => handleDeleteConsentement(consentement.IDConsentement)}
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <Trash className="h-4 w-4" />
-                              </Button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
             </div>
-          )}
+          </CardContent>
+        </Card>
 
-          {activeTab === "policies" && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Documents légaux</h2>
-                <Button onClick={() => setIsAddDocumentModalOpen(true)} className="bg-green-600 hover:bg-green-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter un document
-                </Button>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                <FileText className="h-4 w-4 text-purple-600" />
               </div>
+              <div>
+                <p className="text-sm text-slate-600">Total</p>
+                <p className="text-xl font-bold text-slate-800">{demandes.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white border border-slate-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-slate-800 mb-4">Documents légaux</h3>
-                  <div className="space-y-3">
-                    {documents.map((doc) => (
-                      <div key={doc.IDDocumentRGPD} className="flex items-center justify-between p-3 border border-slate-200 rounded-lg">
-                        <div className="flex items-center gap-3 flex-1">
-                          <FileText className="h-5 w-5 text-blue-600" />
-                          <div className="flex-1">
-                            <span className="font-medium">{doc.Titre}</span>
-                            <p className="text-xs text-slate-500">{doc.TypeDoc}</p>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">Modifier</Button>
+      {/* Section Demandes RGPD */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-blue-600" />
+              Demandes RGPD ({demandes.length})
+            </CardTitle>
+            <Button onClick={() => setAddDemandeModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nouvelle demande
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">ID</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Utilisateur</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Email</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Type</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Date demande</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Échéance</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Statut</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {demandes.map((demande) => {
+                  const fullName = `${demande.user_prenom || ''} ${demande.user_nom || ''}`.trim() || `Utilisateur ${demande.IDUtilisateurs}`;
+                  
+                  return (
+                    <tr key={demande.IDDemandeRGPD} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                      <td className="py-4 px-4 font-mono text-sm text-slate-600">#{demande.IDDemandeRGPD}</td>
+                      <td className="py-4 px-4 font-medium text-slate-800">{fullName}</td>
+                      <td className="py-4 px-4 text-slate-600">{demande.user_email}</td>
+                      <td className="py-4 px-4 text-slate-600">{demande.TypeDemande}</td>
+                      <td className="py-4 px-4 text-slate-600">
+                        {new Date(demande.DateDemande).toLocaleDateString('fr-FR')}
+                      </td>
+                      <td className="py-4 px-4 text-slate-600">
+                        {demande.DateEcheance ? new Date(demande.DateEcheance).toLocaleDateString('fr-FR') : '-'}
+                      </td>
+                      <td className="py-4 px-4">
+                        <Badge className={getStatutBadgeColor(demande.Statut)}>
+                          {demande.Statut}
+                        </Badge>
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2">
                           <Button 
+                            variant="ghost" 
                             size="sm" 
-                            variant="outline"
-                            onClick={() => handleDeleteDocument(doc.IDDocumentRGPD)}
-                            className="text-red-600 hover:text-red-700"
+                            title="Voir détails"
+                            onClick={() => {
+                              setSelectedRequest(demande);
+                              setEditDemandeModalOpen(true);
+                            }}
                           >
-                            <Trash className="h-4 w-4" />
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          {demande.Statut !== 'Traité' && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              title="Traiter"
+                              onClick={() => {
+                                setSelectedRequest(demande);
+                                setProcessModalOpen(true);
+                              }}
+                            >
+                              <Check className="h-4 w-4 text-green-600" />
+                            </Button>
+                          )}
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            title="Supprimer"
+                            onClick={() => handleDeleteRequest(demande.IDDemandeRGPD)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
                           </Button>
                         </div>
-                      </div>
-                    ))}
-                    {documents.length === 0 && !loadingDocuments && (
-                      <div className="text-center text-slate-500 py-4">
-                        Aucun document disponible
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="bg-white border border-slate-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-slate-800 mb-4">Registre des activités</h3>
-                  <div className="space-y-3">
-                    <div className="p-3 bg-slate-50 rounded-lg">
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="font-medium text-slate-800">Gestion des utilisateurs</span>
-                        <span className="text-xs text-slate-500">Actif</span>
-                      </div>
-                      <p className="text-sm text-slate-600">Traitement des données personnelles des utilisateurs</p>
-                    </div>
-                    <div className="p-3 bg-slate-50 rounded-lg">
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="font-medium text-slate-800">Service de prestations</span>
-                        <span className="text-xs text-slate-500">Actif</span>
-                      </div>
-                      <p className="text-sm text-slate-600">Données liées aux prestations et partenaires</p>
-                    </div>
-                    <div className="p-3 bg-slate-50 rounded-lg">
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="font-medium text-slate-800">Support client</span>
-                        <span className="text-xs text-slate-500">Actif</span>
-                      </div>
-                      <p className="text-sm text-slate-600">Communications et tickets de support</p>
-                    </div>
-                  </div>
-                </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {demandes.length === 0 && (
+              <div className="text-center py-8 text-slate-500">
+                Aucune demande RGPD trouvée
               </div>
-            </div>
-          )}
-        </div>
-      </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
-      <ProcessRequestModal 
-        isOpen={isProcessModalOpen}
-        onClose={() => setIsProcessModalOpen(false)}
+      {/* Section Consentements Cookies */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Cookie className="h-5 w-5 text-orange-600" />
+              Consentements Cookies ({consentements.length})
+            </CardTitle>
+            <Button onClick={() => setAddConsentementModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nouveau consentement
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">ID</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Utilisateur</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Type de Cookie</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Statut</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Date de Consentement</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {consentements.map((consent) => (
+                  <tr key={consent.IDConsentement} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td className="py-4 px-4 font-mono text-sm text-slate-600">#{consent.IDConsentement}</td>
+                    <td className="py-4 px-4 text-slate-600">Utilisateur {consent.IDUtilisateurs}</td>
+                    <td className="py-4 px-4 text-slate-600">{consent.TypeCookie}</td>
+                    <td className="py-4 px-4">
+                      <Badge className={consent.Statut ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}>
+                        {consent.Statut ? 'Accepté' : 'Refusé'}
+                      </Badge>
+                    </td>
+                    <td className="py-4 px-4 text-slate-600">
+                      {new Date(consent.DateConsentement).toLocaleDateString('fr-FR')}
+                    </td>
+                    <td className="py-4 px-4">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        title="Supprimer"
+                        onClick={() => handleDeleteConsent(consent.IDConsentement)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {consentements.length === 0 && (
+              <div className="text-center py-8 text-slate-500">
+                Aucun consentement trouvé
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section Documents RGPD */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-purple-600" />
+              Documents RGPD ({documents.length})
+            </CardTitle>
+            <Button onClick={() => setAddDocumentModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nouveau document
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">ID</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Titre</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Type</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Date de mise à jour</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {documents.map((doc) => (
+                  <tr key={doc.IDDocumentRGPD} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td className="py-4 px-4 font-mono text-sm text-slate-600">#{doc.IDDocumentRGPD}</td>
+                    <td className="py-4 px-4 text-slate-600">{doc.Titre}</td>
+                    <td className="py-4 px-4 text-slate-600">{doc.TypeDoc}</td>
+                    <td className="py-4 px-4 text-slate-600">
+                      {new Date(doc.DateMiseAJour).toLocaleDateString('fr-FR')}
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-2">
+                        <a href={doc.URLFichier} target="_blank" rel="noopener noreferrer">
+                          <Button variant="ghost" size="sm" title="Voir le document">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </a>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          title="Supprimer"
+                          onClick={() => handleDeleteDocument(doc.IDDocumentRGPD)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-600" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {documents.length === 0 && (
+              <div className="text-center py-8 text-slate-500">
+                Aucun document RGPD trouvé
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Modales */}
+      <ProcessRequestModal
+        isOpen={processModalOpen}
+        onClose={() => setProcessModalOpen(false)}
         request={selectedRequest}
-        onProcessRequest={handleRequestProcess}
+        onProcessRequest={handleProcessRequest}
       />
 
-      <AddDemandeRGPDModal 
-        isOpen={isAddDemandeModalOpen}
-        onClose={() => setIsAddDemandeModalOpen(false)}
+      <AddDemandeRGPDModal
+        isOpen={addDemandeModalOpen}
+        onClose={() => setAddDemandeModalOpen(false)}
+        onSuccess={() => {
+          setAddDemandeModalOpen(false);
+          refetchDemandes();
+        }}
       />
 
-      <EditDemandeRGPDModal 
-        isOpen={isEditDemandeModalOpen}
-        onClose={() => setIsEditDemandeModalOpen(false)}
+      <AddConsentementModal
+        isOpen={addConsentementModalOpen}
+        onClose={() => setAddConsentementModalOpen(false)}
+        onSuccess={() => {
+          setAddConsentementModalOpen(false);
+          refetchConsentements();
+        }}
+      />
+
+      <AddDocumentRGPDModal
+        isOpen={addDocumentModalOpen}
+        onClose={() => setAddDocumentModalOpen(false)}
+        onSuccess={() => {
+          setAddDocumentModalOpen(false);
+          refetchDocuments();
+        }}
+      />
+
+      <EditDemandeRGPDModal
+        isOpen={editDemandeModalOpen}
+        onClose={() => setEditDemandeModalOpen(false)}
         demande={selectedRequest}
-      />
-
-      <AddConsentementModal 
-        isOpen={isAddConsentementModalOpen}
-        onClose={() => setIsAddConsentementModalOpen(false)}
-      />
-
-      <AddDocumentRGPDModal 
-        isOpen={isAddDocumentModalOpen}
-        onClose={() => setIsAddDocumentModalOpen(false)}
+        onSuccess={() => {
+          setEditDemandeModalOpen(false);
+          refetchDemandes();
+        }}
       />
     </div>
   );
