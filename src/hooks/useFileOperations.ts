@@ -2,19 +2,20 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useAuthStore } from '@/stores/authStore';
 
 export const useFileOperations = () => {
   const [uploading, setUploading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const { toast } = useToast();
-  const { user } = useAuthStore();
 
   const uploadFile = async (
     file: File,
     categoryId: number,
     onSuccess?: () => void
   ) => {
+    // Vérifier que l'utilisateur est authentifié
+    const { data: { user } } = await supabase.auth.getUser();
+    
     if (!user) {
       toast({
         title: "Erreur",

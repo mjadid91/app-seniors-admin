@@ -60,12 +60,13 @@ export const useDocuments = () => {
     setCatNameToId(nameToId);
   }, [toast]);
 
-  // Fetch documents from Supabase
+  // Fetch documents from Supabase avec RLS
   const fetchDocuments = useCallback(async () => {
     const { data, error } = await supabase
       .from("Document")
       .select("*");
     if (error) {
+      console.error('Error fetching documents:', error);
       toast({ title: "Erreur", description: "Impossible de charger les documents.", variant: "destructive" });
       return;
     }
@@ -98,7 +99,7 @@ export const useDocuments = () => {
     }
   }, [catIdToName, fetchDocuments]);
 
-  // Add new document (create in Supabase) - updated to handle the new interface
+  // Add new document (create in Supabase)
   const handleAddDocument = async (newDocData: Omit<Document, "id" | "supabaseId">) => {
     console.log('Adding document with data:', newDocData);
     
@@ -107,6 +108,13 @@ export const useDocuments = () => {
       
       if (!catId) {
         toast({ title: "Erreur", description: "Catégorie non trouvée.", variant: "destructive" });
+        return;
+      }
+
+      // Vérifier l'authentification
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({ title: "Erreur", description: "Vous devez être connecté.", variant: "destructive" });
         return;
       }
 
@@ -120,7 +128,7 @@ export const useDocuments = () => {
             DateUpload: new Date().toISOString().split('T')[0],
             IDCategorieDocument: catId,
             Statut: newDocData.status,
-            IDUtilisateurs: newDocData.utilisateurId,
+            IDUtilisateurs: parseInt(user.id),
             URLFichier: newDocData.type, // Utiliser type comme URL temporairement
           },
         ])
