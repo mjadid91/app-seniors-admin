@@ -1,37 +1,25 @@
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
-import { useAuthStore } from "../stores/authStore";
+import { useUser } from "../contexts/UserContext";
 
 const Index = () => {
-  const { user, isAuthenticated, loading } = useSupabaseAuth();
-  const { setUser, setAuthenticated } = useAuthStore();
-  const [isInitializing, setIsInitializing] = useState(true);
+  const { user, loading } = useUser();
   const navigate = useNavigate();
 
-  // Synchroniser l'état d'authentification avec le store global
   useEffect(() => {
     if (!loading) {
-      console.log('Index: Synchronizing auth state', { user, isAuthenticated });
-      setUser(user);
-      setAuthenticated(isAuthenticated);
-      setIsInitializing(false);
-      
-      // Rediriger vers dashboard si authentifié
-      if (isAuthenticated && user) {
-        console.log('Index: Redirecting to dashboard');
+      if (user) {
+        console.log('Index: Redirecting authenticated user to dashboard');
         navigate("/dashboard");
       } else {
-        // Rediriger vers la page de connexion si non authentifié
-        console.log('Index: Redirecting to login');
+        console.log('Index: Redirecting unauthenticated user to login');
         navigate("/connexion");
       }
     }
-  }, [user, isAuthenticated, loading, setUser, setAuthenticated, navigate]);
+  }, [user, loading, navigate]);
 
-  // Traite explicitement l'écran de chargement tant que l'auth n'est pas prête
-  if (loading || isInitializing) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="text-center">
@@ -42,7 +30,6 @@ const Index = () => {
     );
   }
 
-  // Cette page ne devrait jamais afficher de contenu car elle redirige toujours
   return null;
 };
 
