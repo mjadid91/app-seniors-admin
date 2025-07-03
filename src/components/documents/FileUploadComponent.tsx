@@ -18,13 +18,14 @@ const FileUploadComponent = ({ categories, onUploadSuccess }: FileUploadComponen
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFile, uploading } = useFileOperations();
 
-  // Mapping des catégories vers leurs IDs (vous devrez adapter selon vos données)
+  // Mapping des catégories vers leurs IDs - adapté selon les données de la base
   const getCategoryId = (categoryName: string): number => {
     const categoryMap: Record<string, number> = {
       'Documents administratifs': 1,
       'Documents médicaux': 2,
       'Documents personnels': 3,
-      'Autres': 4
+      'Rapports': 4,
+      'Autres': 5
     };
     return categoryMap[categoryName] || 1;
   };
