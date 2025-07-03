@@ -99,56 +99,6 @@ export const useDocuments = () => {
     }
   }, [catIdToName, fetchDocuments]);
 
-  // Add new document (create in Supabase)
-  const handleAddDocument = async (newDocData: Omit<Document, "id" | "supabaseId">) => {
-    console.log('Adding document with data:', newDocData);
-    
-    try {
-      const catId = catNameToId[newDocData.category];
-      
-      if (!catId) {
-        toast({ title: "Erreur", description: "Catégorie non trouvée.", variant: "destructive" });
-        return;
-      }
-
-      // Vérifier l'authentification
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({ title: "Erreur", description: "Vous devez être connecté.", variant: "destructive" });
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("Document")
-        .insert([
-          {
-            Titre: newDocData.name,
-            TypeFichier: newDocData.type,
-            TailleFichier: parseFloat(newDocData.size),
-            DateUpload: new Date().toISOString().split('T')[0],
-            IDCategorieDocument: catId,
-            Statut: newDocData.status,
-            IDUtilisateurs: parseInt(user.id),
-            URLFichier: newDocData.type, // Utiliser type comme URL temporairement
-          },
-        ])
-        .select();
-
-      if (error) {
-        console.error('Supabase error:', error);
-        toast({ title: "Erreur", description: "Création du document impossible.", variant: "destructive" });
-        return;
-      }
-
-      console.log('Document created successfully:', data);
-      toast({ title: "Document ajouté", description: `Le document "${newDocData.name}" a été ajouté.` });
-      fetchDocuments();
-    } catch (error) {
-      console.error('Error adding document:', error);
-      toast({ title: "Erreur", description: "Création du document impossible.", variant: "destructive" });
-    }
-  };
-
   // Edit document
   const handleEditDocument = async (id: number, updatedDoc: Partial<Document>) => {
     // Find catId if category is being updated
@@ -177,14 +127,6 @@ export const useDocuments = () => {
     window.open(doc.supabaseId ? "#" : "#", "_blank");
   };
 
-  const handleDownloadDocument = (doc: Document) => {
-    toast({
-      title: "Téléchargement",
-      description: `Téléchargement de ${doc.name} en cours...`,
-    });
-    // Le téléchargement est maintenant géré par le hook useFileOperations
-  };
-
   const handleDeleteDocument = async (docId: number) => {
     const { error } = await supabase.from("Document").delete().eq("IDDocument", docId);
     if (error) {
@@ -198,10 +140,8 @@ export const useDocuments = () => {
   return {
     documents,
     categories,
-    handleAddDocument,
     handleViewDocument,
     handleEditDocument,
-    handleDownloadDocument,
     handleDeleteDocument,
     fetchDocuments // Exposer la fonction pour rafraîchir les documents
   };

@@ -23,6 +23,7 @@ export const useDocumentForm = (isOpen: boolean) => {
   const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [users, setUsers] = useState<{ id: number; fullName: string }[]>([]);
+  const [catNameToId, setCatNameToId] = useState<Record<string, number>>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -44,6 +45,13 @@ export const useDocumentForm = (isOpen: boolean) => {
       }
 
       setCategories(data.map((cat) => cat.NomCategorie));
+      
+      // Build mapping from category name to ID
+      const nameToId: Record<string, number> = {};
+      data.forEach((cat) => {
+        nameToId[cat.NomCategorie] = cat.IDCategorieDocument;
+      });
+      setCatNameToId(nameToId);
     } catch (error) {
       console.error('Erreur lors du chargement des catégories:', error);
       toast({ title: "Erreur", description: "Échec du chargement des catégories.", variant: "destructive" });
@@ -103,6 +111,7 @@ export const useDocumentForm = (isOpen: boolean) => {
     setIsLoading,
     categories,
     users,
+    catNameToId,
     resetForm,
     validateForm,
     toast

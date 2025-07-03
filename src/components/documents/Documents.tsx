@@ -11,6 +11,7 @@ import EditDocumentModal from "./EditDocumentModal";
 import ViewDocumentModal from "./ViewDocumentModal";
 import FileUploadComponent from "./FileUploadComponent";
 import { useDocuments, Document } from "./useDocuments";
+import { useFileOperations } from "@/hooks/useFileOperations";
 
 const Documents = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,12 +24,12 @@ const Documents = () => {
   const {
     documents,
     categories,
-    handleAddDocument,
     handleEditDocument,
-    handleDownloadDocument,
     handleDeleteDocument,
-    fetchDocuments // Assurez-vous que cette fonction existe dans useDocuments
+    fetchDocuments
   } = useDocuments();
+
+  const { downloadFile } = useFileOperations();
 
   const handleEditClick = (doc: Document) => {
     setSelectedDocument(doc);
@@ -38,6 +39,17 @@ const Documents = () => {
   const handleViewClick = (doc: Document) => {
     setSelectedDocument(doc);
     setIsViewDocumentModalOpen(true);
+  };
+
+  const handleDownloadDocument = async (doc: Document) => {
+    try {
+      await downloadFile({
+        URLFichier: doc.type, // L'URL est stockée dans le champ type
+        Titre: doc.name
+      });
+    } catch (error) {
+      console.error('Erreur lors du téléchargement:', error);
+    }
   };
 
   const handleUploadSuccess = () => {
@@ -90,7 +102,7 @@ const Documents = () => {
       <AddDocumentModal 
         isOpen={isAddDocumentModalOpen}
         onClose={() => setIsAddDocumentModalOpen(false)}
-        onAddDocument={handleAddDocument}
+        onUploadSuccess={handleUploadSuccess}
       />
 
       <EditDocumentModal

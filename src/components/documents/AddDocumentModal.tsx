@@ -3,25 +3,15 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import DocumentFormFields from "./DocumentFormFields";
 import { useDocumentForm } from "./useDocumentForm";
-
-interface Document {
-  id: number;
-  name: string;
-  type: string;
-  size: string;
-  uploadDate: string;
-  category: string;
-  status: string;
-  utilisateurId: number;
-}
+import { useFileOperations } from "@/hooks/useFileOperations";
 
 interface AddDocumentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddDocument: (doc: Omit<Document, 'id'>) => void;
+  onUploadSuccess: () => void;
 }
 
-const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalProps) => {
+const AddDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddDocumentModalProps) => {
   const {
     formData,
     setFormData,
@@ -33,8 +23,11 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
     users,
     resetForm,
     validateForm,
-    toast
+    toast,
+    catNameToId
   } = useDocumentForm(isOpen);
+
+  const { uploadFile, uploading } = useFileOperations();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,33 +36,35 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
       return;
     }
 
+    if (!file) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un fichier à uploader.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const categoryId = catNameToId[formData.category];
+    if (!categoryId) {
+      toast({
+        title: "Erreur",
+        description: "Catégorie non trouvée.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Créer l'objet document pour le callback (pas d'insertion directe ici)
-      const newDocument: Omit<Document, 'id'> = {
-        name: formData.name,
-        type: file ? file.name.split('.').pop()?.toUpperCase() || 'PDF' : 'PDF',
-        size: file ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : '0.0 MB',
-        uploadDate: new Date().toISOString().split('T')[0],
-        category: formData.category,
-        status: formData.status,
-        utilisateurId: parseInt(formData.utilisateurId)
-      };
-
-      // Appeler le callback qui se charge de l'insertion via useDocuments
-      await onAddDocument(newDocument);
-
-      // Réinitialiser le formulaire
-      resetForm();
-      onClose();
-    } catch (error) {
-      console.error('Erreur lors de l\'ajout du document:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible d'ajouter le document.",
-        variant: "destructive"
+      await uploadFile(file, categoryId, () => {
+        onUploadSuccess();
+        resetForm();
+        onClose();
       });
+    } catch (error) {
+      console.error('Erreur lors de l\'upload du document:', error);
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +76,7 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
         <DialogHeader>
           <DialogTitle>Nouveau document</DialogTitle>
           <DialogDescription>
-            Ajoutez un nouveau document à la bibliothèque.
+            Sélectionnez un fichier et remplissez les informations pour l'ajouter à la bibliothèque.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -97,8 +92,8 @@ const AddDocumentModal = ({ isOpen, onClose, onAddDocument }: AddDocumentModalPr
             <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Ajout..." : "Ajouter"}
+            <Button type="submit" disabled={isLoading || uploading}>
+              {(isLoading || uploading) ? "Upload en cours..." : "Ajouter"}
             </Button>
           </div>
         </form>
