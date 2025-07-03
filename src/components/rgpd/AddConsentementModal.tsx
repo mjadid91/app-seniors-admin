@@ -11,9 +11,10 @@ import { useUsersSelect } from "@/hooks/useUsersSelect";
 interface AddConsentementModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess: () => void;
 }
 
-const AddConsentementModal = ({ isOpen, onClose }: AddConsentementModalProps) => {
+const AddConsentementModal = ({ isOpen, onClose, onSuccess }: AddConsentementModalProps) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     idUtilisateur: "",
@@ -48,12 +49,13 @@ const AddConsentementModal = ({ isOpen, onClose }: AddConsentementModalProps) =>
         description: "Le consentement a été enregistré avec succès"
       });
 
-      onClose();
       setFormData({
         idUtilisateur: "",
         typeCookie: "Essentiel",
         statut: true
       });
+      onSuccess();
+      onClose();
     } catch (error) {
       toast({
         title: "Erreur",

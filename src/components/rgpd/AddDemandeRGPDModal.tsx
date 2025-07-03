@@ -10,9 +10,10 @@ import { useUsersSelect } from "@/hooks/useUsersSelect";
 interface AddDemandeRGPDModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess: () => void;
 }
 
-const AddDemandeRGPDModal = ({ isOpen, onClose }: AddDemandeRGPDModalProps) => {
+const AddDemandeRGPDModal = ({ isOpen, onClose, onSuccess }: AddDemandeRGPDModalProps) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     idUtilisateur: "",
@@ -45,11 +46,12 @@ const AddDemandeRGPDModal = ({ isOpen, onClose }: AddDemandeRGPDModalProps) => {
         description: "La demande RGPD a été créée avec succès"
       });
 
-      onClose();
       setFormData({
         idUtilisateur: "",
         typeDemande: "Accès"
       });
+      onSuccess();
+      onClose();
     } catch (error) {
       toast({
         title: "Erreur",

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -9,9 +10,10 @@ interface EditDemandeRGPDModalProps {
   isOpen: boolean;
   onClose: () => void;
   demande: DemandeRGPD | null;
+  onSuccess: () => void;
 }
 
-const EditDemandeRGPDModal = ({ isOpen, onClose, demande }: EditDemandeRGPDModalProps) => {
+const EditDemandeRGPDModal = ({ isOpen, onClose, demande, onSuccess }: EditDemandeRGPDModalProps) => {
   const { toast } = useToast();
   const [statut, setStatut] = useState("");
 
@@ -40,6 +42,7 @@ const EditDemandeRGPDModal = ({ isOpen, onClose, demande }: EditDemandeRGPDModal
         description: "Le statut de la demande a été modifié avec succès"
       });
 
+      onSuccess();
       onClose();
     } catch (error) {
       toast({

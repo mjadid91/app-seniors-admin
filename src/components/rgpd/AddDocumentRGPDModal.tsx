@@ -12,9 +12,10 @@ import { useQueryClient } from "@tanstack/react-query";
 interface AddDocumentRGPDModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess: () => void;
 }
 
-const AddDocumentRGPDModal = ({ isOpen, onClose }: AddDocumentRGPDModalProps) => {
+const AddDocumentRGPDModal = ({ isOpen, onClose, onSuccess }: AddDocumentRGPDModalProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
@@ -44,12 +45,13 @@ const AddDocumentRGPDModal = ({ isOpen, onClose }: AddDocumentRGPDModalProps) =>
         description: "Le document RGPD a été ajouté avec succès"
       });
 
-      onClose();
       setFormData({
         titre: "",
         typeDoc: "Politique de confidentialité",
         urlFichier: ""
       });
+      onSuccess();
+      onClose();
     } catch (error) {
       toast({
         title: "Erreur",
