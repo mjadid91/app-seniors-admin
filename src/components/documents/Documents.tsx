@@ -9,6 +9,7 @@ import DocumentsQuickActions from "./DocumentsQuickActions";
 import AddDocumentModal from "./AddDocumentModal";
 import EditDocumentModal from "./EditDocumentModal";
 import ViewDocumentModal from "./ViewDocumentModal";
+import FileUploadComponent from "./FileUploadComponent";
 import { useDocuments, Document } from "./useDocuments";
 
 const Documents = () => {
@@ -25,7 +26,8 @@ const Documents = () => {
     handleAddDocument,
     handleEditDocument,
     handleDownloadDocument,
-    handleDeleteDocument
+    handleDeleteDocument,
+    fetchDocuments // Assurez-vous que cette fonction existe dans useDocuments
   } = useDocuments();
 
   const handleEditClick = (doc: Document) => {
@@ -38,9 +40,29 @@ const Documents = () => {
     setIsViewDocumentModalOpen(true);
   };
 
+  const handleUploadSuccess = () => {
+    // Recharger la liste des documents après un upload réussi
+    if (fetchDocuments) {
+      fetchDocuments();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <DocumentsHeader onAddDocument={() => setIsAddDocumentModalOpen(true)} />
+
+      {/* Section d'upload de fichiers */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <FileUploadComponent 
+            categories={categories} 
+            onUploadSuccess={handleUploadSuccess}
+          />
+        </div>
+        <div>
+          <DocumentsStats documents={documents} />
+        </div>
+      </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
         <DocumentsFilters
@@ -60,9 +82,8 @@ const Documents = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <DocumentsUpload />
-        <DocumentsStats documents={documents} />
         <DocumentsQuickActions />
       </div>
 

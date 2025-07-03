@@ -3045,7 +3045,7 @@ export type Database = {
           IDCatUtilisateurs: number | null
           IDUtilisateurs: number
           LangueSite: string
-          MotDePasse: string
+          MotDePasse: string | null
           Nom: string
           Photo: string
           Prenom: string
@@ -3064,7 +3064,7 @@ export type Database = {
           IDCatUtilisateurs?: number | null
           IDUtilisateurs?: number
           LangueSite: string
-          MotDePasse: string
+          MotDePasse?: string | null
           Nom: string
           Photo: string
           Prenom: string
@@ -3083,7 +3083,7 @@ export type Database = {
           IDCatUtilisateurs?: number | null
           IDUtilisateurs?: number
           LangueSite?: string
-          MotDePasse?: string
+          MotDePasse?: string | null
           Nom?: string
           Photo?: string
           Prenom?: string

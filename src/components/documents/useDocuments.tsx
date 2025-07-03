@@ -24,6 +24,7 @@ interface SupabaseDocument {
   Statut: string;
   IDCategorieDocument: number | null;
   IDUtilisateurs: number | null;
+  URLFichier: string;
 }
 
 interface SupabaseCategorie {
@@ -73,8 +74,8 @@ export const useDocuments = () => {
       (data as SupabaseDocument[]).map((doc) => ({
         id: doc.IDDocument,
         name: doc.Titre,
-        type: doc.TypeFichier,
-        size: doc.TailleFichier != null ? `${Number(doc.TailleFichier).toFixed(1)} MB` : "0.0 MB",
+        type: doc.URLFichier, // Stocker l'URL dans le champ type pour compatibilité
+        size: doc.TailleFichier != null ? `${(doc.TailleFichier / (1024 * 1024)).toFixed(1)} MB` : "0.0 MB",
         uploadDate: doc.DateUpload,
         category: doc.IDCategorieDocument && catIdToName[doc.IDCategorieDocument]
           ? catIdToName[doc.IDCategorieDocument]
@@ -120,7 +121,7 @@ export const useDocuments = () => {
             IDCategorieDocument: catId,
             Statut: newDocData.status,
             IDUtilisateurs: newDocData.utilisateurId,
-            URLFichier: "#", // Placeholder, as file upload isn't implemented
+            URLFichier: newDocData.type, // Utiliser type comme URL temporairement
           },
         ])
         .select();
@@ -171,9 +172,9 @@ export const useDocuments = () => {
   const handleDownloadDocument = (doc: Document) => {
     toast({
       title: "Téléchargement",
-      description: `Téléchargement de ${doc.name} en cours... (non implémenté)`,
+      description: `Téléchargement de ${doc.name} en cours...`,
     });
-    // To implement: download using doc.URLFichier via Supabase Storage
+    // Le téléchargement est maintenant géré par le hook useFileOperations
   };
 
   const handleDeleteDocument = async (docId: number) => {
@@ -193,6 +194,7 @@ export const useDocuments = () => {
     handleViewDocument,
     handleEditDocument,
     handleDownloadDocument,
-    handleDeleteDocument
+    handleDeleteDocument,
+    fetchDocuments // Exposer la fonction pour rafraîchir les documents
   };
 };

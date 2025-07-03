@@ -2,6 +2,7 @@
 import { FileText, Eye, Edit, Download, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Document } from "./useDocuments";
+import { useFileOperations } from "@/hooks/useFileOperations";
 
 interface DocumentsTableProps {
   documents: Document[];
@@ -18,6 +19,20 @@ const DocumentsTable = ({
   onDownload, 
   onDelete 
 }: DocumentsTableProps) => {
+  const { downloadFile, downloading } = useFileOperations();
+
+  const handleDownload = async (doc: Document) => {
+    if (doc.supabaseId) {
+      // Utiliser notre hook personnalisé pour télécharger
+      await downloadFile({
+        URLFichier: doc.type, // Utiliser le champ type qui contient l'URL dans votre cas
+        Titre: doc.name
+      });
+    }
+    // Appeler aussi la fonction onDownload originale si nécessaire
+    onDownload(doc);
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
@@ -80,7 +95,8 @@ const DocumentsTable = ({
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={() => onDownload(doc)}
+                    onClick={() => handleDownload(doc)}
+                    disabled={downloading}
                     title="Télécharger"
                   >
                     <Download className="h-4 w-4" />
