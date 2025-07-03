@@ -22,53 +22,83 @@ export const useFileOperations = () => {
       .eq('IDUtilisateurs', parseInt(user.id))
       .single();
 
-    if (userError) {
+    if (userError && userError.code !== 'PGRST116') {
       console.error('Erreur lors de la vérification de l\'utilisateur:', userError);
       throw new Error('Impossible de vérifier l\'utilisateur');
     }
 
     // Si l'utilisateur n'a pas d'IDAuth, créer un utilisateur Supabase Auth
-    if (!userData.IDAuth) {
-      // Créer un utilisateur Supabase Auth temporaire
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: user.email,
-        password: Math.random().toString(36).substring(2, 15), // Mot de passe aléatoire
-        options: {
-          data: {
-            nom: user.nom,
-            prenom: user.prenom,
-            internal_user_id: user.id
+    if (!userData || !userData.IDAuth) {
+      try {
+        // Créer un utilisateur Supabase Auth avec un email temporaire
+        const tempEmail = `temp_${user.id}_${Date.now()}@appseniors.local`;
+        const tempPassword = Math.random().toString(36).substring(2, 15);
+        
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: tempEmail,
+          password: tempPassword,
+          options: {
+            data: {
+              nom: user.nom,
+              prenom: user.prenom,
+              internal_user_id: user.id
+            }
           }
+        });
+
+        if (authError) {
+          console.error('Erreur lors de la création de l\'utilisateur Supabase:', authError);
+          throw new Error('Impossible de créer l\'utilisateur Supabase');
         }
-      });
 
-      if (authError) {
-        console.error('Erreur lors de la création de l\'utilisateur Supabase:', authError);
-        throw new Error('Impossible de créer l\'utilisateur Supabase');
+        // Mettre à jour la table Utilisateurs avec l'IDAuth
+        const { error: updateError } = await supabase
+          .from('Utilisateurs')
+          .update({ IDAuth: authData.user?.id })
+          .eq('IDUtilisateurs', parseInt(user.id));
+
+        if (updateError) {
+          console.error('Erreur lors de la mise à jour de l\'IDAuth:', updateError);
+          throw new Error('Impossible de lier l\'utilisateur');
+        }
+
+        console.log('Utilisateur Supabase créé et lié avec succès');
+        
+        // Connecter l'utilisateur temporairement
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: tempEmail,
+          password: tempPassword
+        });
+
+        if (signInError) {
+          console.error('Erreur de connexion temporaire:', signInError);
+          throw new Error('Impossible de se connecter temporairement');
+        }
+      } catch (error) {
+        console.error('Erreur lors de la création/connexion Supabase:', error);
+        throw error;
       }
-
-      // Mettre à jour la table Utilisateurs avec l'IDAuth
-      const { error: updateError } = await supabase
-        .from('Utilisateurs')
-        .update({ IDAuth: authData.user?.id })
-        .eq('IDUtilisateurs', parseInt(user.id));
-
-      if (updateError) {
-        console.error('Erreur lors de la mise à jour de l\'IDAuth:', updateError);
-        throw new Error('Impossible de lier l\'utilisateur');
+    } else {
+      // L'utilisateur a déjà un IDAuth, essayer de se connecter
+      console.log('Utilisateur déjà lié, vérification de la session...');
+      
+      // Vérifier si une session active existe
+      const { data: session } = await supabase.auth.getSession();
+      if (!session?.session) {
+        console.log('Aucune session active, création d\'une session temporaire...');
+        // Créer une session temporaire pour cet utilisateur
+        const tempEmail = `temp_${user.id}_${Date.now()}@appseniors.local`;
+        const tempPassword = Math.random().toString(36).substring(2, 15);
+        
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: tempEmail,
+          password: tempPassword
+        });
+        
+        if (signInError) {
+          console.log('Session temporaire non créée, continuons sans session');
+        }
       }
-
-      console.log('Utilisateur Supabase créé et lié avec succès');
-    }
-
-    // Maintenant, connecter l'utilisateur avec Supabase Auth
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: 'temporary_password' // Vous devrez adapter selon votre logique
-    });
-
-    if (signInError) {
-      console.log('Connexion Supabase nécessaire pour l\'upload');
     }
   };
 
@@ -89,6 +119,8 @@ export const useFileOperations = () => {
 
     setUploading(true);
     try {
+      console.log('Début de l\'upload pour l\'utilisateur:', user.id);
+      
       // S'assurer que l'utilisateur est connecté à Supabase Auth
       await ensureSupabaseAuth();
 
@@ -157,7 +189,7 @@ export const useFileOperations = () => {
       console.error('Error uploading file:', error);
       toast({
         title: "Erreur d'upload",
-        description: "Impossible d'uploader le fichier",
+        description: error instanceof Error ? error.message : "Impossible d'uploader le fichier",
         variant: "destructive"
       });
       throw error;
