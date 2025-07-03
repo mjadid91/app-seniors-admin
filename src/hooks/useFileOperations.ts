@@ -97,13 +97,13 @@ export const useFileOperations = () => {
     }
   };
 
-  const downloadFile = async (document: { URLFichier: string; Titre: string }) => {
+  const downloadFile = async (fileDocument: { URLFichier: string; Titre: string }) => {
     setDownloading(true);
     try {
-      console.log('Downloading file:', document.URLFichier);
+      console.log('Downloading file:', fileDocument.URLFichier);
 
       // Télécharger le fichier depuis l'URL
-      const response = await fetch(document.URLFichier);
+      const response = await fetch(fileDocument.URLFichier);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -113,19 +113,19 @@ export const useFileOperations = () => {
       
       // Créer un lien de téléchargement
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = window.document.createElement('a');
       link.href = url;
-      link.download = document.Titre;
-      document.body.appendChild(link);
+      link.download = fileDocument.Titre;
+      window.document.body.appendChild(link);
       link.click();
       
       // Nettoyer
       window.URL.revokeObjectURL(url);
-      document.body.removeChild(link);
+      window.document.body.removeChild(link);
 
       toast({
         title: "Téléchargement",
-        description: `Le fichier "${document.Titre}" a été téléchargé`
+        description: `Le fichier "${fileDocument.Titre}" a été téléchargé`
       });
 
     } catch (error) {
