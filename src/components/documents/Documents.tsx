@@ -3,13 +3,11 @@ import { useState } from "react";
 import DocumentsHeader from "./DocumentsHeader";
 import DocumentsFilters from "./DocumentsFilters";
 import DocumentsTable from "./DocumentsTable";
-import DocumentsUpload from "./DocumentsUpload";
 import DocumentsStats from "./DocumentsStats";
 import DocumentsQuickActions from "./DocumentsQuickActions";
 import AddDocumentModal from "./AddDocumentModal";
 import EditDocumentModal from "./EditDocumentModal";
 import ViewDocumentModal from "./ViewDocumentModal";
-import FileUploadComponent from "./FileUploadComponent";
 import { useDocuments, Document } from "./useDocuments";
 import { useFileOperations } from "@/hooks/useFileOperations";
 
@@ -63,17 +61,9 @@ const Documents = () => {
     <div className="space-y-6">
       <DocumentsHeader onAddDocument={() => setIsAddDocumentModalOpen(true)} />
 
-      {/* Section d'upload de fichiers */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <FileUploadComponent 
-            categories={categories} 
-            onUploadSuccess={handleUploadSuccess}
-          />
-        </div>
-        <div>
-          <DocumentsStats documents={documents} />
-        </div>
+      {/* Section statistiques uniquement */}
+      <div className="grid grid-cols-1 gap-6">
+        <DocumentsStats documents={documents} />
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
@@ -95,7 +85,6 @@ const Documents = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <DocumentsUpload />
         <DocumentsQuickActions />
       </div>
 
