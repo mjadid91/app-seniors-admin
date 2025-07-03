@@ -10,6 +10,62 @@ export const useSupabaseAuth = () => {
   const [loading, setLoading] = useState(true);
   const { getRoleFromCategory, loading: categoriesLoading } = useUserCategories();
 
+  const ensureSupabaseAuth = async (appUser: AppUser) => {
+    // Vérifier si l'utilisateur a déjà un IDAuth dans la base
+    const { data: userData, error: userError } = await supabase
+      .from('Utilisateurs')
+      .select('IDAuth')
+      .eq('IDUtilisateurs', parseInt(appUser.id))
+      .single();
+
+    if (userError) {
+      console.error('Erreur lors de la vérification de l\'utilisateur:', userError);
+      return false;
+    }
+
+    // Si l'utilisateur n'a pas d'IDAuth, créer un utilisateur Supabase Auth
+    if (!userData.IDAuth) {
+      try {
+        // Créer un utilisateur Supabase Auth
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: appUser.email,
+          password: Math.random().toString(36).substring(2, 15), // Mot de passe aléatoire
+          options: {
+            data: {
+              nom: appUser.nom,
+              prenom: appUser.prenom,
+              internal_user_id: appUser.id
+            }
+          }
+        });
+
+        if (authError) {
+          console.error('Erreur lors de la création de l\'utilisateur Supabase:', authError);
+          return false;
+        }
+
+        // Mettre à jour la table Utilisateurs avec l'IDAuth
+        const { error: updateError } = await supabase
+          .from('Utilisateurs')
+          .update({ IDAuth: authData.user?.id })
+          .eq('IDUtilisateurs', parseInt(appUser.id));
+
+        if (updateError) {
+          console.error('Erreur lors de la mise à jour de l\'IDAuth:', updateError);
+          return false;
+        }
+
+        console.log('Utilisateur Supabase créé et lié avec succès');
+        return true;
+      } catch (error) {
+        console.error('Erreur lors de la création de l\'utilisateur Supabase:', error);
+        return false;
+      }
+    }
+
+    return true;
+  };
+
   const signIn = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setLoading(true);
@@ -69,6 +125,9 @@ export const useSupabaseAuth = () => {
 
       console.log('Utilisateur créé avec succès:', appUser);
 
+      // S'assurer que l'utilisateur a un lien avec Supabase Auth
+      await ensureSupabaseAuth(appUser);
+
       setUser(appUser);
       setIsAuthenticated(true);
 
@@ -83,6 +142,10 @@ export const useSupabaseAuth = () => {
 
   const signOut = () => {
     console.log('Déconnexion de l\'utilisateur...');
+    
+    // Déconnecter de Supabase Auth aussi
+    supabase.auth.signOut();
+    
     setUser(null);
     setIsAuthenticated(false);
     // Nettoyer le localStorage
@@ -92,13 +155,17 @@ export const useSupabaseAuth = () => {
 
   // Initialisation - vérifier s'il y a une session sauvegardée
   useEffect(() => {
-    const initializeAuth = () => {
+    const initializeAuth = async () => {
       try {
         const savedUser = localStorage.getItem('appseniors-auth');
         if (savedUser) {
           const parsedData = JSON.parse(savedUser);
           if (parsedData.state?.user && parsedData.state?.isAuthenticated) {
             console.log('Session trouvée dans localStorage:', parsedData.state.user);
+            
+            // S'assurer que l'utilisateur a un lien avec Supabase Auth
+            await ensureSupabaseAuth(parsedData.state.user);
+            
             setUser(parsedData.state.user);
             setIsAuthenticated(true);
           }

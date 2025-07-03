@@ -10,6 +10,68 @@ export const useFileOperations = () => {
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuthStore();
 
+  const ensureSupabaseAuth = async () => {
+    if (!isAuthenticated || !user) {
+      throw new Error('Utilisateur non connecté');
+    }
+
+    // Vérifier si l'utilisateur a déjà un IDAuth dans la base
+    const { data: userData, error: userError } = await supabase
+      .from('Utilisateurs')
+      .select('IDAuth')
+      .eq('IDUtilisateurs', parseInt(user.id))
+      .single();
+
+    if (userError) {
+      console.error('Erreur lors de la vérification de l\'utilisateur:', userError);
+      throw new Error('Impossible de vérifier l\'utilisateur');
+    }
+
+    // Si l'utilisateur n'a pas d'IDAuth, créer un utilisateur Supabase Auth
+    if (!userData.IDAuth) {
+      // Créer un utilisateur Supabase Auth temporaire
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: user.email,
+        password: Math.random().toString(36).substring(2, 15), // Mot de passe aléatoire
+        options: {
+          data: {
+            nom: user.nom,
+            prenom: user.prenom,
+            internal_user_id: user.id
+          }
+        }
+      });
+
+      if (authError) {
+        console.error('Erreur lors de la création de l\'utilisateur Supabase:', authError);
+        throw new Error('Impossible de créer l\'utilisateur Supabase');
+      }
+
+      // Mettre à jour la table Utilisateurs avec l'IDAuth
+      const { error: updateError } = await supabase
+        .from('Utilisateurs')
+        .update({ IDAuth: authData.user?.id })
+        .eq('IDUtilisateurs', parseInt(user.id));
+
+      if (updateError) {
+        console.error('Erreur lors de la mise à jour de l\'IDAuth:', updateError);
+        throw new Error('Impossible de lier l\'utilisateur');
+      }
+
+      console.log('Utilisateur Supabase créé et lié avec succès');
+    }
+
+    // Maintenant, connecter l'utilisateur avec Supabase Auth
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: 'temporary_password' // Vous devrez adapter selon votre logique
+    });
+
+    if (signInError) {
+      console.log('Connexion Supabase nécessaire pour l\'upload');
+    }
+  };
+
   const uploadFile = async (
     file: File,
     categoryId: number,
@@ -27,6 +89,9 @@ export const useFileOperations = () => {
 
     setUploading(true);
     try {
+      // S'assurer que l'utilisateur est connecté à Supabase Auth
+      await ensureSupabaseAuth();
+
       // Générer un nom de fichier unique
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;

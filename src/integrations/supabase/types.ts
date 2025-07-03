@@ -3042,6 +3042,7 @@ export type Database = {
           EstDesactive: boolean
           EstRGPD: boolean
           Genre: string
+          IDAuth: string | null
           IDCatUtilisateurs: number | null
           IDUtilisateurs: number
           LangueSite: string
@@ -3061,6 +3062,7 @@ export type Database = {
           EstDesactive?: boolean
           EstRGPD?: boolean
           Genre: string
+          IDAuth?: string | null
           IDCatUtilisateurs?: number | null
           IDUtilisateurs?: number
           LangueSite: string
@@ -3080,6 +3082,7 @@ export type Database = {
           EstDesactive?: boolean
           EstRGPD?: boolean
           Genre?: string
+          IDAuth?: string | null
           IDCatUtilisateurs?: number | null
           IDUtilisateurs?: number
           LangueSite?: string
