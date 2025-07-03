@@ -34,10 +34,13 @@ export const useFileOperations = () => {
 
       console.log('Uploading file:', { fileName, filePath, size: file.size });
 
-      // Upload vers Supabase Storage
+      // Upload vers Supabase Storage (bucket public)
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('documents')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
         console.error('Upload error:', uploadError);
@@ -103,7 +106,7 @@ export const useFileOperations = () => {
     try {
       console.log('Downloading file:', fileDocument.URLFichier);
 
-      // Télécharger le fichier depuis l'URL
+      // Télécharger le fichier depuis l'URL publique
       const response = await fetch(fileDocument.URLFichier);
       
       if (!response.ok) {
