@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '../../stores/authStore';
 import { convertSupabaseUserToAppUser, getCategoryFromRole } from '../utils/userConversion';
@@ -42,7 +43,6 @@ export const useUserCrud = (
         DateNaissance: '1970-01-01',
         Adresse: 'Adresse non renseignée',
         Genre: 'Non précisé',
-        MotDePasse: userPassword,
         IDCatUtilisateurs: userData.categoryId,
         DateInscription: userData.dateInscription,
         Commentaire: '',
@@ -51,6 +51,7 @@ export const useUserCrud = (
         Photo: '',
         EstDesactive: false,
         EstRGPD: false
+        // IDAuth sera ajouté plus tard lors de l'intégration complète avec Supabase Auth
       };
 
       const { data, error: insertError } = await supabase

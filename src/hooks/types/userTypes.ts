@@ -3,6 +3,7 @@ import { User } from '../../stores/authStore';
 
 export interface SupabaseUser {
   IDUtilisateurs: number;
+  IDAuth?: string; // Nouvelle propriété pour lier avec Supabase Auth
   Nom: string;
   Prenom: string;
   Email: string;
@@ -10,7 +11,6 @@ export interface SupabaseUser {
   DateNaissance: string;
   Adresse: string;
   Genre: string;
-  MotDePasse: string;
   IDCatUtilisateurs: number;
   DateInscription: string;
   Commentaire: string;
@@ -37,7 +37,6 @@ export interface CreateUserData {
   email: string;
   categoryId: number;
   dateInscription: string;
-  languePreferee?: string; // ← à ajouter
-  devise?: string;         // ← à ajouter
+  languePreferee?: string;
+  devise?: string;
 }
-
