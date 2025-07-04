@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useFileOperationsRGPD } from "@/hooks/useFileOperationsRGPD";
+import { Upload, X, File } from "lucide-react";
 
 interface AddDocumentRGPDModalProps {
   isOpen: boolean;
@@ -18,46 +20,76 @@ interface AddDocumentRGPDModalProps {
 const AddDocumentRGPDModal = ({ isOpen, onClose, onSuccess }: AddDocumentRGPDModalProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { uploadDocumentRGPD, uploading } = useFileOperationsRGPD();
   const [formData, setFormData] = useState({
     titre: "",
-    typeDoc: "Politique de confidentialité",
-    urlFichier: ""
+    typeDoc: "Politique de confidentialité"
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Vérifier la taille du fichier (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "Erreur",
+          description: "Le fichier est trop volumineux. Taille maximale : 10MB",
+          variant: "destructive"
+        });
+        return;
+      }
+      setSelectedFile(file);
+      // Auto-remplir le titre avec le nom du fichier si vide
+      if (!formData.titre) {
+        setFormData(prev => ({ ...prev, titre: file.name.replace(/\.[^/.]+$/, "") }));
+      }
+    }
+  };
+
+  const removeSelectedFile = () => {
+    setSelectedFile(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    try {
-      const { error } = await supabase
-        .from("DocumentRGPD")
-        .insert({
-          Titre: formData.titre,
-          TypeDoc: formData.typeDoc,
-          URLFichier: formData.urlFichier
-        });
-
-      if (error) throw error;
-
-      queryClient.invalidateQueries({ queryKey: ["documents-rgpd"] });
-
-      toast({
-        title: "Document ajouté",
-        description: "Le document RGPD a été ajouté avec succès"
-      });
-
-      setFormData({
-        titre: "",
-        typeDoc: "Politique de confidentialité",
-        urlFichier: ""
-      });
-      onSuccess();
-      onClose();
-    } catch (error) {
+    if (!formData.titre) {
       toast({
         title: "Erreur",
-        description: "Impossible d'ajouter le document",
+        description: "Veuillez saisir un titre pour le document",
         variant: "destructive"
       });
+      return;
+    }
+
+    if (!selectedFile) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un fichier à uploader",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await uploadDocumentRGPD(
+        selectedFile,
+        formData.titre,
+        formData.typeDoc,
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["documents-rgpd"] });
+          setFormData({
+            titre: "",
+            typeDoc: "Politique de confidentialité"
+          });
+          setSelectedFile(null);
+          onSuccess();
+          onClose();
+        }
+      );
+    } catch (error) {
+      console.error('Erreur lors de l\'upload du document RGPD:', error);
     }
   };
 
@@ -95,21 +127,44 @@ const AddDocumentRGPDModal = ({ isOpen, onClose, onSuccess }: AddDocumentRGPDMod
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">URL du fichier</label>
-            <Textarea
-              value={formData.urlFichier}
-              onChange={(e) => setFormData(prev => ({ ...prev, urlFichier: e.target.value }))}
-              placeholder="https://exemple.com/document.pdf"
-              required
+            <label className="block text-sm font-medium mb-1">Sélectionner un fichier</label>
+            <Input
+              type="file"
+              onChange={handleFileSelect}
+              accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
+              disabled={uploading}
+              className="cursor-pointer"
             />
+            <p className="text-xs text-slate-500 mt-1">
+              Formats acceptés : PDF, DOC, DOCX, TXT, JPG, PNG, GIF (max 10MB)
+            </p>
           </div>
+
+          {selectedFile && (
+            <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg border">
+              <File className="h-4 w-4 text-blue-600" />
+              <span className="text-sm flex-1">{selectedFile.name}</span>
+              <span className="text-xs text-slate-500">
+                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={removeSelectedFile}
+                disabled={uploading}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button type="submit">
-              Ajouter
+            <Button type="submit" disabled={uploading}>
+              {uploading ? "Upload en cours..." : "Ajouter"}
             </Button>
           </div>
         </form>
