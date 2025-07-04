@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -11,21 +11,54 @@ interface Props {
 }
 
 export const AddPostMortemForm = ({ onClose, onSuccess }: Props) => {
-    const [prestataire, setPrestataire] = useState("");
+    const [prestataireId, setPrestataireId] = useState("");
     const [montant, setMontant] = useState("");
+    const [prestataires, setPrestataires] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchPrestataires = async () => {
+            // Essayer d'abord Partenaire, puis Organisme si vide
+            const { data: partenaireData } = await supabase
+                .from("Partenaire")
+                .select("IDPartenaire, RaisonSociale");
+            
+            if (partenaireData && partenaireData.length > 0) {
+                const formattedData = partenaireData.map(p => ({
+                    id: p.IDPartenaire,
+                    nom: p.RaisonSociale
+                }));
+                setPrestataires(formattedData);
+            } else {
+                const { data: orgData } = await supabase
+                    .from("Organisme")
+                    .select("IDOrganisme, Nom");
+                
+                if (orgData) {
+                    const formattedData = orgData.map(o => ({
+                        id: o.IDOrganisme,
+                        nom: o.Nom
+                    }));
+                    setPrestataires(formattedData);
+                }
+            }
+        };
+        fetchPrestataires();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!prestataire || !montant) return;
+        if (!prestataireId || !montant) return;
 
+        const selectedPrestataire = prestataires.find(p => p.id.toString() === prestataireId);
+        
         setLoading(true);
         const { error } = await supabase.from("ServicePostMortem").insert({
             NomService: "Service post-mortem",
             Description: "Ajout manuel",
             MontantUtilise: montant,
             DateService: new Date().toISOString().split("T")[0],
-            Prestataire: prestataire,
+            Prestataire: selectedPrestataire?.nom || "",
         });
 
         setLoading(false);
@@ -42,7 +75,19 @@ export const AddPostMortemForm = ({ onClose, onSuccess }: Props) => {
         <form onSubmit={handleSubmit} className="space-y-4">
             <div>
                 <Label>Prestataire</Label>
-                <Input value={prestataire} onChange={(e) => setPrestataire(e.target.value)} required />
+                <select
+                    value={prestataireId}
+                    onChange={(e) => setPrestataireId(e.target.value)}
+                    className="w-full border px-3 py-2 rounded"
+                    required
+                >
+                    <option value="">-- Choisir un prestataire --</option>
+                    {prestataires.map((p) => (
+                        <option key={p.id} value={p.id}>
+                            {p.nom}
+                        </option>
+                    ))}
+                </select>
             </div>
             <div>
                 <Label>Montant</Label>

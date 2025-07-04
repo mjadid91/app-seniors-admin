@@ -1,10 +1,11 @@
-// src/components/finances/forms/AddDonForm.tsx
 import { useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AddCagnotteForm } from "./AddCagnotteForm";
 
 interface Props {
     onClose: () => void;
@@ -18,6 +19,7 @@ const AddDonForm = ({ onClose, onSuccess }: Props) => {
     const [users, setUsers] = useState<any[]>([]);
     const [cagnottes, setCagnottes] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [isAddCagnotteModalOpen, setIsAddCagnotteModalOpen] = useState(false);
 
     useEffect(() => {
         const loadData = async () => {
@@ -33,6 +35,19 @@ const AddDonForm = ({ onClose, onSuccess }: Props) => {
         };
         loadData();
     }, []);
+
+    const handleAddCagnotteSuccess = (newCagnotte: any) => {
+        setCagnottes(prev => [...prev, newCagnotte]);
+        setCagnotteId(newCagnotte.IDCagnotteDeces.toString());
+    };
+
+    const handleCagnotteChange = (value: string) => {
+        if (value === "add_new") {
+            setIsAddCagnotteModalOpen(true);
+        } else {
+            setCagnotteId(value);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -80,7 +95,7 @@ const AddDonForm = ({ onClose, onSuccess }: Props) => {
                 <Label>Cagnotte</Label>
                 <select
                     value={cagnotteId}
-                    onChange={(e) => setCagnotteId(e.target.value)}
+                    onChange={(e) => handleCagnotteChange(e.target.value)}
                     required
                     className="w-full border rounded px-3 py-2"
                 >
@@ -90,6 +105,7 @@ const AddDonForm = ({ onClose, onSuccess }: Props) => {
                             {c.Titre}
                         </option>
                     ))}
+                    <option value="add_new">+ Ajouter une nouvelle cagnotte</option>
                 </select>
             </div>
 
@@ -107,6 +123,18 @@ const AddDonForm = ({ onClose, onSuccess }: Props) => {
             <Button type="submit" disabled={loading} className="w-full">
                 {loading ? "Ajout..." : "Ajouter"}
             </Button>
+
+            <Dialog open={isAddCagnotteModalOpen} onOpenChange={setIsAddCagnotteModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Créer une nouvelle cagnotte</DialogTitle>
+                    </DialogHeader>
+                    <AddCagnotteForm
+                        onClose={() => setIsAddCagnotteModalOpen(false)}
+                        onSuccess={handleAddCagnotteSuccess}
+                    />
+                </DialogContent>
+            </Dialog>
         </form>
     );
 };

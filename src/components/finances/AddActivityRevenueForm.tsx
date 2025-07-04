@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AddActivityForm } from "./AddActivityForm";
 
 interface Props {
     onClose: () => void;
@@ -17,6 +19,7 @@ const AddActivityRevenueForm = ({ onClose, onSuccess }: Props) => {
     const [loading, setLoading] = useState(false);
     const [users, setUsers] = useState<any[]>([]);
     const [activites, setActivites] = useState<any[]>([]);
+    const [isAddActivityModalOpen, setIsAddActivityModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -33,6 +36,26 @@ const AddActivityRevenueForm = ({ onClose, onSuccess }: Props) => {
 
         fetchData();
     }, []);
+
+    const refetchActivites = async () => {
+        const { data: activiteData } = await supabase
+            .from("ActiviteRemuneree")
+            .select("IDActiviteRemuneree, DescriptionActivite");
+        if (activiteData) setActivites(activiteData);
+    };
+
+    const handleAddActivitySuccess = (newActivity: any) => {
+        setActivites(prev => [...prev, newActivity]);
+        setActiviteId(newActivity.IDActiviteRemuneree.toString());
+    };
+
+    const handleActiviteChange = (value: string) => {
+        if (value === "add_new") {
+            setIsAddActivityModalOpen(true);
+        } else {
+            setActiviteId(value);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -86,7 +109,7 @@ const AddActivityRevenueForm = ({ onClose, onSuccess }: Props) => {
                 <Label>Activité</Label>
                 <select
                     value={activiteId}
-                    onChange={(e) => setActiviteId(e.target.value)}
+                    onChange={(e) => handleActiviteChange(e.target.value)}
                     required
                     className="w-full border border-gray-300 rounded-md px-3 py-2"
                 >
@@ -96,6 +119,7 @@ const AddActivityRevenueForm = ({ onClose, onSuccess }: Props) => {
                             {a.DescriptionActivite}
                         </option>
                     ))}
+                    <option value="add_new">+ Ajouter une activité</option>
                 </select>
             </div>
 
@@ -113,6 +137,18 @@ const AddActivityRevenueForm = ({ onClose, onSuccess }: Props) => {
             <Button type="submit" disabled={loading} className="w-full">
                 {loading ? "Ajout en cours..." : "Ajouter"}
             </Button>
+
+            <Dialog open={isAddActivityModalOpen} onOpenChange={setIsAddActivityModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Ajouter une nouvelle activité</DialogTitle>
+                    </DialogHeader>
+                    <AddActivityForm
+                        onClose={() => setIsAddActivityModalOpen(false)}
+                        onSuccess={handleAddActivitySuccess}
+                    />
+                </DialogContent>
+            </Dialog>
         </form>
     );
 };

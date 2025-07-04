@@ -13,19 +13,30 @@ interface Props {
 export const AddCommandeForm = ({ onClose, onSuccess }: Props) => {
     const [utilisateurId, setUtilisateurId] = useState("");
     const [montant, setMontant] = useState("");
+    const [typeCommande, setTypeCommande] = useState("");
+    const [moyenPaiementId, setMoyenPaiementId] = useState("");
     const [users, setUsers] = useState<any[]>([]);
+    const [moyensPaiement, setMoyensPaiement] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        supabase
-            .from("Utilisateurs")
-            .select("IDUtilisateurs, Nom, Prenom")
-            .then(({ data }) => setUsers(data || []));
+        const fetchData = async () => {
+            const { data: usersData } = await supabase
+                .from("Utilisateurs")
+                .select("IDUtilisateurs, Nom, Prenom");
+            if (usersData) setUsers(usersData);
+
+            const { data: moyensData } = await supabase
+                .from("MoyenPaiement")
+                .select("IDMoyenPaiement, MoyenPaiement");
+            if (moyensData) setMoyensPaiement(moyensData);
+        };
+        fetchData();
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!utilisateurId || !montant) return;
+        if (!utilisateurId || !montant || !typeCommande) return;
 
         setLoading(true);
         const { error } = await supabase.from("Commande").insert({
@@ -33,6 +44,8 @@ export const AddCommandeForm = ({ onClose, onSuccess }: Props) => {
             MontantTotal: parseFloat(montant),
             DateCommande: new Date().toISOString().split("T")[0],
             StatutCommande: "En cours",
+            TypeCommande: typeCommande,
+            IDMoyenPaiement: moyenPaiementId ? parseInt(moyenPaiementId) : null,
         });
 
         setLoading(false);
@@ -59,6 +72,35 @@ export const AddCommandeForm = ({ onClose, onSuccess }: Props) => {
                     {users.map((u) => (
                         <option key={u.IDUtilisateurs} value={u.IDUtilisateurs}>
                             {u.Prenom} {u.Nom}
+                        </option>
+                    ))}
+                </select>
+            </div>
+            <div>
+                <Label>Type de commande</Label>
+                <select
+                    value={typeCommande}
+                    onChange={(e) => setTypeCommande(e.target.value)}
+                    className="w-full border px-3 py-2 rounded"
+                    required
+                >
+                    <option value="">-- Choisir --</option>
+                    <option value="Prestation">Prestation</option>
+                    <option value="Produit">Produit</option>
+                    <option value="Autre">Autre</option>
+                </select>
+            </div>
+            <div>
+                <Label>Moyen de paiement</Label>
+                <select
+                    value={moyenPaiementId}
+                    onChange={(e) => setMoyenPaiementId(e.target.value)}
+                    className="w-full border px-3 py-2 rounded"
+                >
+                    <option value="">-- Optionnel --</option>
+                    {moyensPaiement.map((m) => (
+                        <option key={m.IDMoyenPaiement} value={m.IDMoyenPaiement}>
+                            {m.MoyenPaiement}
                         </option>
                     ))}
                 </select>

@@ -44,7 +44,19 @@ export const AddCommissionForm = ({ onClose, onSuccess }: Props) => {
             </div>
             <div>
                 <Label>Moyen de versement</Label>
-                <Input value={moyenVersement} onChange={(e) => setMoyenVersement(e.target.value)} required />
+                <select
+                    value={moyenVersement}
+                    onChange={(e) => setMoyenVersement(e.target.value)}
+                    className="w-full border px-3 py-2 rounded"
+                    required
+                >
+                    <option value="">-- Choisir --</option>
+                    <option value="Virement bancaire">Virement bancaire</option>
+                    <option value="Chèque">Chèque</option>
+                    <option value="Espèces">Espèces</option>
+                    <option value="Paypal">Paypal</option>
+                    <option value="Carte bancaire">Carte bancaire</option>
+                </select>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Ajout..." : "Ajouter commission"}
