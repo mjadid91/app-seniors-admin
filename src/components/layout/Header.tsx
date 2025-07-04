@@ -1,14 +1,17 @@
 
 import { Bell, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthStore } from "../../stores/authStore";
 import { useState } from "react";
 import NotificationsModal from "./NotificationsModal";
 import SettingsModal from "./SettingsModal";
 import { useNavigate } from "react-router-dom";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 const Header = () => {
   const { user } = useAuthStore();
+  const { profile } = useUserProfile();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -50,11 +53,12 @@ const Header = () => {
             </Button>
 
             <div className="flex items-center gap-2 ml-3 pl-3 border-l border-slate-200">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white font-medium text-sm">
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={profile?.photo || undefined} alt="Photo de profil" />
+                <AvatarFallback className="text-sm bg-gradient-to-br from-blue-500 to-blue-600 text-white">
                   {user?.prenom?.[0]}{user?.nom?.[0]}
-                </span>
-              </div>
+                </AvatarFallback>
+              </Avatar>
               <div className="hidden sm:block">
                 <p className="text-sm font-medium text-slate-800">
                   {user?.prenom} {user?.nom}

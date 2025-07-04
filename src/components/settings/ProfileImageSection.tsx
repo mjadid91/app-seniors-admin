@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Upload } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useProfileImage } from "@/hooks/useProfileImage";
 
 interface ProfileImageSectionProps {
   profileImage: string | null;
@@ -12,50 +12,23 @@ interface ProfileImageSectionProps {
 }
 
 const ProfileImageSection = ({ profileImage, initials, onImageChange }: ProfileImageSectionProps) => {
-  const { toast } = useToast();
+  const { uploadProfileImage, removeProfileImage, uploading } = useProfileImage();
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Vérifier le type de fichier
-      if (!file.type.startsWith('image/')) {
-        toast({
-          title: "Erreur",
-          description: "Veuillez sélectionner un fichier image valide.",
-          variant: "destructive",
-        });
-        return;
+      const imageUrl = await uploadProfileImage(file);
+      if (imageUrl) {
+        onImageChange(imageUrl);
       }
-
-      // Vérifier la taille du fichier (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: "Erreur",
-          description: "La taille du fichier ne doit pas dépasser 5MB.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        onImageChange(result);
-        toast({
-          title: "Image téléchargée",
-          description: "Votre photo de profil a été mise à jour. N'oubliez pas de sauvegarder.",
-        });
-      };
-      reader.readAsDataURL(file);
     }
   };
 
-  const handleRemoveImage = () => {
-    onImageChange(null);
-    toast({
-      title: "Image supprimée",
-      description: "Votre photo de profil a été supprimée. N'oubliez pas de sauvegarder.",
-    });
+  const handleRemoveImage = async () => {
+    const success = await removeProfileImage();
+    if (success) {
+      onImageChange(null);
+    }
   };
 
   return (
@@ -75,15 +48,17 @@ const ProfileImageSection = ({ profileImage, initials, onImageChange }: ProfileI
               variant="outline"
               size="sm"
               className="relative overflow-hidden"
+              disabled={uploading}
               asChild
             >
-              <label className="cursor-pointer">
+              <label className={uploading ? "cursor-not-allowed" : "cursor-pointer"}>
                 <Upload className="h-4 w-4 mr-2" />
-                Télécharger
+                {uploading ? "Upload..." : "Télécharger"}
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleImageUpload}
+                  disabled={uploading}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
               </label>
@@ -94,9 +69,10 @@ const ProfileImageSection = ({ profileImage, initials, onImageChange }: ProfileI
                 variant="outline"
                 size="sm"
                 onClick={handleRemoveImage}
+                disabled={uploading}
                 className="text-red-600 hover:text-red-700"
               >
-                Supprimer
+                {uploading ? "Suppression..." : "Supprimer"}
               </Button>
             )}
           </div>

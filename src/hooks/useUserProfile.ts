@@ -134,7 +134,7 @@ export const useUserProfile = () => {
     try {
       console.log('Sauvegarde du profil:', updatedProfile);
       
-      // Mettre à jour les données utilisateur de base
+      // Mettre à jour les données utilisateur de base (sans la photo qui est gérée par useProfileImage)
       const { error: userError } = await supabase
         .from('Utilisateurs')
         .update({
@@ -142,7 +142,6 @@ export const useUserProfile = () => {
           Prenom: updatedProfile.prenom,
           Email: updatedProfile.email,
           Telephone: updatedProfile.telephone,
-          Photo: updatedProfile.photo,
           DateModification: new Date().toISOString()
         })
         .eq('IDUtilisateurs', parseInt(user.id));
