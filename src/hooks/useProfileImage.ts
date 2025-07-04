@@ -62,22 +62,22 @@ export const useProfileImage = () => {
 
       console.log('Image uploaded successfully:', uploadData);
 
-      // Obtenir l'URL privée du fichier (pour bucket non-public)
-      const { data: urlData, error: urlError } = await supabase.storage
+      // Obtenir l'URL publique du fichier (pour bucket public)
+      const { data: urlData } = supabase.storage
         .from('avatars')
-        .createSignedUrl(filePath, 60 * 60 * 24 * 365); // URL valide 1 an
+        .getPublicUrl(filePath);
 
-      if (urlError || !urlData?.signedUrl) {
-        throw new Error(urlError?.message || 'Impossible de générer l\'URL de l\'image');
+      if (!urlData?.publicUrl) {
+        throw new Error('Impossible de générer l\'URL de l\'image');
       }
 
-      console.log('Image URL generated:', urlData.signedUrl);
+      console.log('Image URL generated:', urlData.publicUrl);
 
       // Mettre à jour la table Utilisateurs
       const { error: updateError } = await supabase
         .from('Utilisateurs')
         .update({
-          Photo: urlData.signedUrl,
+          Photo: urlData.publicUrl,
           DateModification: new Date().toISOString()
         })
         .eq('IDUtilisateurs', parseInt(user.id));
@@ -96,7 +96,7 @@ export const useProfileImage = () => {
         description: "Votre photo de profil a été mise à jour avec succès"
       });
 
-      return urlData.signedUrl;
+      return urlData.publicUrl;
 
     } catch (error) {
       console.error('Error uploading profile image:', error);
