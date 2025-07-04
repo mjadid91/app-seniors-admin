@@ -101,12 +101,27 @@ export const useUserProfile = () => {
 
       console.log('Données chargées:', { userData, langueData, deviseData });
 
+      // Décoder l'URL de la photo si elle est en format hexadécimal
+      let photoUrl = userData?.Photo || '';
+      if (photoUrl && photoUrl.startsWith('\\x')) {
+        try {
+          // Convertir la chaîne hexadécimale en URL
+          const hexString = photoUrl.slice(2); // Enlever le préfixe \\x
+          const bytes = hexString.match(/.{2}/g)?.map(byte => parseInt(byte, 16)) || [];
+          photoUrl = String.fromCharCode(...bytes);
+          console.log('URL de la photo décodée:', photoUrl);
+        } catch (error) {
+          console.error('Erreur lors du décodage de l\'URL de la photo:', error);
+          photoUrl = '';
+        }
+      }
+
       setProfile({
         nom: userData?.Nom || '',
         prenom: userData?.Prenom || '',
         email: userData?.Email || '',
         telephone: userData?.Telephone || '',
-        photo: userData?.Photo || '',
+        photo: photoUrl,
         languePreferee: langueData?.Langue?.Titre || 'Français',
         langueId: langueData?.IDLangue || 1,
         devise: deviseData?.Devise?.Titre || 'Euro (€)',
