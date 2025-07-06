@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,13 +22,33 @@ export const AddCagnotteForm = ({ onClose, onSuccess }: Props) => {
 
     useEffect(() => {
         const fetchSeniors = async () => {
-            const { data } = await supabase
-                .from("Seniors")
-                .select(`
-                    IDSeniors,
-                    Utilisateurs!inner(Nom, Prenom)
-                `);
-            if (data) setSeniors(data);
+            try {
+                // Récupérer tous les seniors avec leurs informations utilisateur
+                const { data: seniorsData, error } = await supabase
+                    .from("Seniors")
+                    .select(`
+                        IDSeniors,
+                        IDUtilisateurSenior,
+                        Utilisateurs!inner (
+                            Nom,
+                            Prenom
+                        )
+                    `);
+
+                if (error) {
+                    console.error("Erreur lors de la récupération des seniors:", error);
+                    toast.error("Erreur lors du chargement des seniors");
+                    return;
+                }
+
+                if (seniorsData) {
+                    console.log("Seniors récupérés:", seniorsData);
+                    setSeniors(seniorsData);
+                }
+            } catch (error) {
+                console.error("Erreur lors de la récupération des seniors:", error);
+                toast.error("Erreur lors du chargement des seniors");
+            }
         };
         fetchSeniors();
     }, []);
@@ -89,7 +110,7 @@ export const AddCagnotteForm = ({ onClose, onSuccess }: Props) => {
                 <select
                     value={idSeniors}
                     onChange={(e) => setIdSeniors(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white z-50"
                 >
                     <option value="">-- Aucun senior spécifique --</option>
                     {seniors.map((senior) => (
@@ -98,6 +119,11 @@ export const AddCagnotteForm = ({ onClose, onSuccess }: Props) => {
                         </option>
                     ))}
                 </select>
+                {seniors.length === 0 && (
+                    <p className="text-sm text-gray-500 mt-1">
+                        Aucun senior trouvé. Vérifiez que des seniors sont enregistrés dans le système.
+                    </p>
+                )}
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Création..." : "Créer la cagnotte"}
