@@ -24,12 +24,13 @@ export const AddCagnotteForm = ({ onClose, onSuccess }: Props) => {
         const fetchSeniors = async () => {
             try {
                 // Récupérer tous les seniors avec leurs informations utilisateur
+                // En spécifiant explicitement quelle relation utiliser
                 const { data: seniorsData, error } = await supabase
                     .from("Seniors")
                     .select(`
                         IDSeniors,
                         IDUtilisateurSenior,
-                        Utilisateurs!inner (
+                        Utilisateurs!Seniors_IDUtilisateurSenior_fkey (
                             Nom,
                             Prenom
                         )
