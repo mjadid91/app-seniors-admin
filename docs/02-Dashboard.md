@@ -1,111 +1,64 @@
 
-# 📊 Documentation – Dashboard (Tableau de Bord)
+# 📊 Documentation – Dashboard
 
-## 🧭 Objectif général
+## 🧭 Objectif
 
-Le **Dashboard** constitue la page d'accueil de l'application AppSeniors Admin. Il offre une vue d'ensemble synthétique de l'activité de la plateforme et des métriques clés pour faciliter la prise de décision des administrateurs.
-
----
-
-## 📈 Métriques principales
-
-### 👥 Statistiques utilisateurs
-- **Nombre total d'utilisateurs** : Compteur global
-- **Nouveaux utilisateurs** : Inscriptions récentes (période configurable)
-- **Utilisateurs actifs** : Connexions récentes
-- **Répartition par rôle** : Seniors, Aidants, Organismes, etc.
-
-### 🛠️ Activité des prestations
-- **Prestations en cours** : Services actuellement actifs
-- **Prestations terminées** : Historique des services complétés
-- **Taux de satisfaction** : Moyenne des évaluations
-- **Revenus générés** : Montant total des transactions
-
-### 💰 Finances
-- **Chiffre d'affaires** : Revenus de la plateforme
-- **Commissions perçues** : Montant total des commissions
-- **Transactions du jour** : Activité financière récente
-- **Évolution mensuelle** : Graphiques de tendance
+Le **Dashboard** (`Dashboard.tsx`) est la page d'accueil qui affiche les statistiques et activités récentes de la plateforme AppSeniors.
 
 ---
 
-## 📊 Widgets et graphiques
+## 📈 Composants implémentés
 
-### 📈 Graphiques d'évolution
-- **Courbes de croissance** : Évolution des utilisateurs dans le temps
-- **Barres d'activité** : Répartition des prestations par catégorie
-- **Camemberts** : Distribution des types d'utilisateurs
-- **Indicateurs de performance** : KPI sous forme de jauges
+### 📊 Cartes de statistiques (`StatsCard.tsx`)
+- **Composant réutilisable** : Affichage des métriques clés
+- **Props** : `title`, `value`, `icon`, `trend`
+- **Design** : Cards Shadcn/UI avec icônes Lucide
 
-### 📋 Listes récentes
-- **Dernières inscriptions** : Nouveaux utilisateurs avec détails
-- **Prestations récentes** : Services créés ou modifiés
-- **Transactions financières** : Dernières opérations monétaires
-- **Tickets de support** : Demandes d'aide en cours
+### 📈 Graphique d'activité (`ActivityChart.tsx`)
+- **Bibliothèque** : Recharts pour les visualisations
+- **Types de graphiques** : Courbes, barres, aires
+- **Données** : Métriques d'activité temporelles
 
----
-
-## 🎯 Alertes et notifications
-
-### 🚨 Alertes système
-- **Problèmes techniques** : Erreurs serveur ou base de données
-- **Seuils atteints** : Limites de stockage ou de performance
-- **Maintenance** : Notifications de maintenance programmée
-
-### 📢 Notifications métier
-- **Transactions importantes** : Montants élevés à valider
-- **Contenus signalés** : Modération requise
-- **Demandes RGPD** : Requêtes en attente de traitement
+### 📋 Activités récentes (`RecentActivity.tsx`)
+- **Liste d'activités** : Dernières actions sur la plateforme
+- **Formatage** : Dates, utilisateurs, actions
+- **Interface** : Liste scrollable avec détails
 
 ---
 
-## 🔧 Fonctionnalités interactives
+## 🔧 Hooks personnalisés
 
-### 🎛️ Filtres et périodes
-- **Sélection de dates** : Personnalisation des périodes d'analyse
-- **Filtres par catégorie** : Focus sur des segments spécifiques
-- **Comparaisons** : Périodes précédentes vs actuelles
+### 📊 `useDashboardStats.ts`
+- **Fonction** : Récupération des statistiques
+- **React Query** : Cache et synchronisation des données
+- **Types** : Interface TypeScript pour les stats
 
-### 🔍 Actions rapides
-- **Liens directs** : Accès rapide aux pages de détail
-- **Boutons d'action** : Création rapide de contenus
-- **Raccourcis** : Accès aux fonctionnalités les plus utilisées
-
----
-
-## 📱 Responsive design
-
-### 💻 Version desktop
-- **Layout en grille** : Organisation optimale de l'espace
-- **Graphiques interactifs** : Survol et zoom disponibles
-- **Multi-colonnes** : Affichage de plusieurs widgets simultanément
-
-### 📱 Version mobile
-- **Stack vertical** : Widgets empilés pour la lisibilité
-- **Graphs adaptés** : Versions simplifiées pour petit écran
-- **Navigation tactile** : Optimisée pour le touch
+### 📝 `useRecentActivities.ts`
+- **Fonction** : Récupération des activités récentes
+- **Données** : Historique des actions utilisateurs
+- **Pagination** : Gestion des listes longues
 
 ---
 
-## ⚡ Performance et temps réel
+## 🎨 Interface
 
-### 🔄 Actualisation
-- **Données en temps réel** : Mise à jour automatique des compteurs
+### 📱 Layout responsive
+- **Grid Tailwind** : Organisation des composants
+- **Cards** : Conteneurs pour chaque section
+- **Icônes** : Lucide React pour la visualisation
+
+### 🔄 Temps réel
+- **React Query** : Actualisation automatique
 - **Cache intelligent** : Optimisation des performances
-- **Lazy loading** : Chargement progressif des composants
-
-### 📊 Optimisations
-- **Requêtes optimisées** : Récupération efficace des données
-- **Pagination** : Gestion intelligente des listes
-- **Compression** : Réduction de la bande passante
+- **Loading states** : Indicateurs de chargement
 
 ---
 
 ## 🎯 Résumé
 
-Le Dashboard offre :
-- Une vue d'ensemble complète de l'activité
-- Des métriques clés pour la prise de décision
-- Une interface intuitive et responsive
-- Des données actualisées en temps réel
-- Des outils d'analyse et de filtrage avancés
+Le Dashboard comprend :
+- Cartes de statistiques avec métriques clés
+- Graphiques interactifs via Recharts
+- Liste des activités récentes
+- Hooks personnalisés pour la gestion des données
+- Interface responsive et moderne

@@ -1,177 +1,119 @@
 
 # 🤝 Documentation – Page Partenaires
 
-## 🧭 Objectif général
+## 🧭 Objectif
 
-La page **Partenaires** gère l'écosystème des organisations collaboratrices d'AppSeniors. Elle centralise la gestion des partenaires, leurs services, les bons plans proposés et les relations commerciales établies avec la plateforme.
-
----
-
-## 🏢 Types de partenaires
-
-### 🏥 Partenaires santé
-- **Établissements médicaux** : Hôpitaux, cliniques, cabinets
-- **Pharmacies** : Officines, parapharmacies
-- **Services à domicile** : Soins infirmiers, kinésithérapie
-- **Laboratoires** : Analyses médicales, imagerie
-
-### 🛍️ Partenaires commerciaux
-- **Commerces de proximité** : Alimentaire, services
-- **Grandes enseignes** : Supermarchés, magasins spécialisés
-- **E-commerce** : Boutiques en ligne, livraisons
-- **Services financiers** : Banques, assurances
-
-### 🎯 Partenaires associatifs
-- **Associations seniors** : Clubs, centres sociaux
-- **Collectivités** : Mairies, conseils départementaux
-- **Organismes sociaux** : CCAS, mutuelles
-- **Fondations** : Structures caritatives et sociales
-
-### 🏠 Partenaires immobiliers
-- **Résidences seniors** : Logements adaptés
-- **Services immobiliers** : Agences, notaires
-- **Aménagement** : Adaptation du logement
-- **Assurances habitat** : Protection du domicile
+La page **Partenaires** (`Partners.tsx`) gère l'écosystème des organisations partenaires et leurs offres promotionnelles sur AppSeniors.
 
 ---
 
-## 📋 Gestion des profils partenaires
+## 🏢 Composants principaux
 
-### 📝 Informations générales
-- **Identité** : Raison sociale, SIRET, forme juridique
-- **Contact** : Adresse, téléphone, email, site web
-- **Représentant** : Personne de contact principal
-- **Secteur d'activité** : Domaine de spécialisation
+### 📊 Statistiques (`PartnerStats.tsx`)
+- **Métriques** : Nombre de partenaires, bons plans actifs
+- **Cartes** : Affichage visuel des KPI
+- **Statuts** : Répartition par état des partenaires
 
-### 🤝 Relation commerciale
-- **Type de partenariat** : Gratuit, payant, commission
-- **Date de début** : Début de la collaboration
-- **Durée** : Période d'engagement
-- **Conditions** : Termes du partenariat
+### 🔍 Filtres (`PartnerFilters.tsx`)
+- **Critères** : Par statut, secteur, localisation
+- **Recherche** : Nom du partenaire ou service
+- **Interface** : Composants de filtrage Shadcn/UI
 
-### 📊 Statut et validation
-- **État** : Actif, Inactif, En attente, Suspendu
-- **Validation** : Vérification des documents
-- **Certification** : Labels qualité, agréments
-- **Assurances** : Couvertures professionnelles
+---
+
+## 🤝 Gestion des partenaires
+
+### 📋 Liste (`PartnersListSection.tsx`)
+- **Affichage** : Grid de cartes partenaires
+- **Composant** : `PartnerCard.tsx` pour chaque partenaire
+- **Actions** : Voir détails, éditer, gérer les offres
+
+### ➕ Ajout (`AddPartnerModal.tsx`)
+- **Formulaire** : Informations partenaire
+- **Champs** : Nom, secteur, contact, description
+- **Validation** : Contrôles de saisie obligatoires
+
+### 👁️ Détails (`PartnerDetailsModal.tsx`)
+- **Vue complète** : Toutes les informations partenaire
+- **Services** : Liste des prestations proposées
+- **Historique** : Activité et statistiques
 
 ---
 
 ## 🎁 Gestion des bons plans
 
-### 🏷️ Types d'offres
-- **Réductions** : Pourcentages ou montants fixes
-- **Offres spéciales** : Promotions temporaires
-- **Services gratuits** : Prestations offertes
-- **Cadeaux** : Produits ou services bonus
+### 📦 Section (`BonPlansSection.tsx`)
+- **Affichage** : Liste des offres promotionnelles
+- **Composant** : `BonPlanCard.tsx` pour chaque offre
+- **Statuts** : Actif, expiré, à venir
 
-### 📅 Paramétrage des offres
-- **Période de validité** : Dates de début et fin
-- **Conditions d'utilisation** : Restrictions, limites
-- **Codes promo** : Identifiants uniques
-- **Zones géographiques** : Périmètre d'application
+### ➕ Création (`AddBonPlanModal.tsx`)
+- **Formulaire** : Titre, description, réduction, validité
+- **Types** : Pourcentage, montant fixe, service gratuit
+- **Partenaire** : Association à un partenaire existant
 
-### 📈 Suivi des performances
-- **Utilisation** : Nombre de fois utilisé
-- **Conversion** : Taux de transformation
-- **Satisfaction** : Retours des utilisateurs
-- **Revenus générés** : Impact financier
+### ✏️ Modification (`EditBonPlanModal.tsx`)
+- **Édition** : Modification des offres existantes
+- **Validation** : Dates, montants, conditions
+- **Statut** : Activation/désactivation
 
----
+### 👁️ Visualisation (`ViewBonPlanModal.tsx`)
+- **Détails** : Informations complètes de l'offre
+- **Utilisation** : Statistiques d'usage
+- **Validité** : Dates et conditions
 
-## 🛍️ Services partenaires
-
-### 📦 Catalogue de services
-- **Description** : Détail des prestations proposées
-- **Tarification** : Grilles de prix, conditions
-- **Disponibilité** : Créneaux, zones couvertes
-- **Modalités** : Conditions de réservation
-
-### 🔄 Intégration plateforme
-- **API** : Connexions techniques
-- **Synchronisation** : Mise à jour automatique
-- **Réservation** : Système de booking intégré
-- **Paiement** : Traitement des transactions
+### 🗑️ Suppression (`DeleteBonPlanModal.tsx`)
+- **Confirmation** : Modal de suppression sécurisée
+- **Vérification** : Impact sur les utilisations en cours
 
 ---
 
-## 💼 Gestion commerciale
+## 🔧 Services et hooks
 
-### 💰 Modèles économiques
-- **Commission** : Pourcentage sur les ventes
-- **Abonnement** : Frais fixes périodiques
-- **Pay-per-use** : Paiement à l'utilisation
-- **Gratuit** : Partenariat non rémunéré
+### 📡 Gestion des données
+- **`usePartners.ts`** : Hook principal pour les partenaires
+- **`usePartnerServices.ts`** : Gestion des services partenaires
+- **`usePartnerPrestations.ts`** : Liaison avec les prestations
 
-### 📊 Suivi financier
-- **Chiffre d'affaires** : Revenus générés
-- **Commissions** : Montants dus/perçus
-- **Facturation** : Édition et suivi des factures
-- **Paiements** : Gestion des règlements
+### 🏗️ Types
+- **`types.ts`** : Définitions TypeScript
+- **Interfaces** : Partner, BonPlan, Service
+- **États** : Statuts et catégories
 
 ---
 
-## 📈 Analytics et reporting
+## 🗄️ Base de données
 
-### 📊 Métriques partenaires
-- **Activité** : Volume de transactions
-- **Performance** : Taux de conversion
-- **Satisfaction** : Évaluations clients
-- **Croissance** : Évolution dans le temps
-
-### 📋 Rapports
-- **Activité mensuelle** : Synthèse périodique
-- **Performance comparative** : Benchmarking
-- **Tendances** : Analyses prévisionnelles
-- **ROI** : Retour sur investissement
+### 📊 Tables utilisées
+- **`Partenaire`** : Informations des organisations
+- **`BonPlan`** : Offres promotionnelles
+- **`Partenaire_Services`** : Services proposés
+- **`BonPlan_Utilisateurs`** : Utilisation des offres
 
 ---
 
-## 🔧 Outils d'administration
+## 🎨 Interface
 
-### 🔍 Recherche et filtrage
-- **Par secteur** : Type d'activité
-- **Par statut** : État du partenariat
-- **Par localisation** : Zone géographique
-- **Par performance** : Critères de réussite
+### 📱 Layout adaptatif
+- **Tabs** : Onglets Partenaires/Bons Plans
+- **Grid responsive** : Cartes adaptatives
+- **Modals** : Actions détaillées
+- **Filters** : Panneau de filtrage
 
-### ⚙️ Actions de gestion
-- **Validation** : Approbation des demandes
-- **Activation/Désactivation** : Gestion du statut
-- **Modification** : Mise à jour des informations
-- **Communication** : Envoi de messages
-
-### 📧 Communication
-- **Messages individuels** : Contact direct
-- **Newsletters** : Diffusion d'informations
-- **Notifications** : Alertes importantes
-- **Formations** : Sessions d'information
-
----
-
-## 🎯 Processus de partenariat
-
-### 📝 Candidature
-1. **Demande** : Formulaire de candidature
-2. **Évaluation** : Analyse du dossier
-3. **Négociation** : Définition des conditions
-4. **Validation** : Approbation finale
-5. **Activation** : Mise en service
-
-### 🔄 Suivi
-- **Onboarding** : Accompagnement initial
-- **Formation** : Prise en main des outils
-- **Support** : Assistance continue
-- **Évaluation** : Revues périodiques
+### 🔄 Fonctionnalités
+- **Recherche** : Temps réel sur nom/secteur
+- **Tri** : Par statut, date, performance
+- **Actions** : CRUD complet
+- **Notifications** : Feedback utilisateur via Sonner
 
 ---
 
 ## 🎯 Résumé
 
 La page Partenaires permet :
-- Une gestion complète de l'écosystème partenaire
-- Le suivi des performances et de la satisfaction
-- La gestion des offres et bons plans
-- Une approche commerciale structurée
-- Des outils d'analyse et de reporting
-- Une communication efficace avec les partenaires
+- Gestion complète des organisations partenaires
+- Création et suivi des offres promotionnelles
+- Interface moderne avec Tabs et Cards
+- Système de filtrage et recherche avancé
+- Intégration complète avec la base Supabase
+- Actions CRUD pour partenaires et bons plans

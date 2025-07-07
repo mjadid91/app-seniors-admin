@@ -1,89 +1,45 @@
 
 # 🔐 Documentation – Page de Connexion
 
-## 🧭 Objectif général
+## 🧭 Objectif
 
-La page de **Connexion** constitue le point d'entrée sécurisé de l'application AppSeniors Admin. Elle permet aux administrateurs autorisés d'accéder aux outils de gestion de la plateforme.
+La page de **Connexion** (`LoginPage.tsx`) constitue le point d'entrée de l'application AppSeniors Admin avec authentification Supabase.
 
 ---
 
-## 🎯 Fonctionnalités principales
+## 🎯 Fonctionnalités implémentées
 
-### 🔑 Authentification
-- **Saisie des identifiants** : Email et mot de passe
-- **Validation en temps réel** : Vérification du format email
-- **Messages d'erreur** : Affichage clair des erreurs de connexion
-- **Sécurité** : Protection contre les attaques par force brute
+### 🔑 Authentification Supabase
+- **Formulaire de connexion** : Email et mot de passe
+- **Validation des champs** : Contrôles de saisie
+- **Gestion des erreurs** : Affichage des messages d'erreur
+- **Redirection automatique** : Vers le dashboard après connexion réussie
 
 ### 🛡️ Sécurité
-- **Chiffrement** : Toutes les données sont transmises de manière sécurisée
-- **Sessions** : Gestion automatique des sessions utilisateur
-- **Timeouts** : Déconnexion automatique après inactivité
-- **Logs** : Traçabilité des tentatives de connexion
+- **Protection des routes** : Via `ProtectedRoute.tsx`
+- **Sessions Supabase** : Gestion automatique des sessions
+- **State management** : Via Zustand (`authStore.ts`)
 
 ---
 
-## 🎨 Interface utilisateur
+## 🎨 Interface
 
-### 📱 Design responsive
-- **Bureau** : Interface optimisée pour grand écran
-- **Tablette** : Adaptation automatique
-- **Mobile** : Version mobile complète
+### 📱 Design
+- **Composants Shadcn/UI** : Card, Input, Button, Label
+- **Design responsive** : Adaptation mobile/desktop
+- **Feedback visuel** : États de chargement et erreurs
 
-### 🎭 Éléments visuels
-- **Logo AppSeniors** : Branding cohérent
-- **Formulaire centré** : Mise en page claire et accessible
-- **Feedback visuel** : Indicateurs de chargement et d'état
-
----
-
-## ⚙️ Fonctionnement technique
-
-### 🔌 Intégration Supabase
-- **Authentification** : Utilisation de l'auth Supabase
-- **Gestion des erreurs** : Messages d'erreur personnalisés
-- **Redirection** : Automatique vers le dashboard après connexion
-
-### 🔄 États de l'application
-- **Chargement** : Pendant la vérification des identifiants
-- **Succès** : Redirection vers le tableau de bord
-- **Erreur** : Affichage des messages d'erreur appropriés
-
----
-
-## 🎯 Expérience utilisateur
-
-### ✅ Bonnes pratiques
-- **Simplicité** : Interface épurée et intuitive
-- **Accessibilité** : Respect des standards d'accessibilité
-- **Performance** : Temps de réponse optimisé
-- **Feedback** : Retours utilisateur immédiats
-
-### 🔧 Fonctionnalités complémentaires
-- **Mot de passe oublié** : Lien de récupération
-- **Mémorisation** : Option "Se souvenir de moi"
-- **Validation** : Contrôles de saisie en temps réel
-
----
-
-## 🛠️ Administration
-
-### 📊 Suivi des connexions
-- **Historique** : Traçabilité des connexions
-- **Statistiques** : Analyses des tentatives de connexion
-- **Sécurité** : Détection des tentatives suspectes
-
-### 🔒 Gestion des accès
-- **Rôles** : Différents niveaux d'accès
-- **Permissions** : Contrôle granulaire des fonctionnalités
-- **Audit** : Suivi des actions administratives
+### 🔧 Structure technique
+- **Hook personnalisé** : `useSupabaseAuth.ts`
+- **Store Zustand** : Gestion de l'état d'authentification
+- **Client Supabase** : Intégration via `@/integrations/supabase/client`
 
 ---
 
 ## 🎯 Résumé
 
-La page de connexion garantit :
-- Un accès sécurisé à l'administration
-- Une expérience utilisateur fluide
-- Une protection des données sensibles
-- Une traçabilité complète des accès
+La page de connexion offre :
+- Authentification sécurisée via Supabase
+- Interface utilisateur moderne avec Shadcn/UI
+- Gestion d'état robuste avec Zustand
+- Protection des routes administratives

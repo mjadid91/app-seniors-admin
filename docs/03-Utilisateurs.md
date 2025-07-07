@@ -1,135 +1,106 @@
 
 # 👥 Documentation – Page Utilisateurs
 
-## 🧭 Objectif général
+## 🧭 Objectif
 
-La page **Utilisateurs** permet aux administrateurs de gérer l'ensemble des comptes utilisateurs de la plateforme AppSeniors. Elle offre une vue complète des profils, des outils de recherche avancés et des fonctionnalités de gestion complètes.
+La page **Utilisateurs** (`UserManagement.tsx`) permet de gérer les comptes utilisateurs administratifs de la plateforme AppSeniors.
 
 ---
 
-## 👤 Types d'utilisateurs
+## 👤 Types d'utilisateurs gérés
 
-### 🧓 Seniors
-- **Profil** : Personnes âgées bénéficiant des services
-- **Informations** : Niveau d'autonomie, contacts d'urgence, préférences
-- **Services** : Prestations reçues, cagnottes, activités
-
-### 🤝 Aidants
-- **Profil** : Personnes proposant de l'aide aux seniors
-- **Compétences** : Domaines d'expertise, certifications
-- **Tarification** : Tarifs horaires, disponibilités
-
-### 🏢 Organismes
-- **Profil** : Structures partenaires (associations, entreprises)
-- **Services** : Prestations proposées, bons plans
-- **Contacts** : Personnes référentes, informations légales
-
-### 🛡️ Équipe admin
+### 🛡️ Catégories administratives uniquement
 - **Administrateurs** : Accès complet à la plateforme
-- **Modérateurs** : Gestion du contenu et des signalements
+- **Modérateurs** : Gestion du contenu et modération
 - **Support** : Assistance aux utilisateurs
+- **Visualisateurs** : Accès en lecture seule
+
+**Note importante** : Cette page ne gère QUE les utilisateurs administratifs, pas les seniors ni les aidants de la plateforme.
 
 ---
 
-## 🔍 Fonctionnalités de recherche
+## 🔍 Composants implémentés
 
-### 🎯 Filtres avancés
-- **Par rôle** : Seniors, Aidants, Organismes, Admin
-- **Par statut** : Actif, Inactif, Suspendu, En attente
-- **Par localisation** : Ville, département, région
-- **Par date** : Inscription, dernière connexion
+### 📊 Statistiques (`UserStats.tsx`)
+- **Métriques** : Nombre d'utilisateurs par rôle
+- **Cartes** : Affichage visuel des statistiques
+- **Calculs** : Via `userStatsUtils.ts`
 
-### 📊 Tri et organisation
-- **Colonnes triables** : Nom, email, date d'inscription, statut
-- **Pagination** : Navigation efficace dans de grandes listes
-- **Export** : Possibilité d'exporter les données
+### 🔍 Recherche (`UserSearch.tsx`)
+- **Champ de recherche** : Filtrage par nom, email
+- **Filtres temps réel** : Mise à jour instantanée
+- **Utilities** : `userFilterUtils.ts` pour la logique
 
----
-
-## ✏️ Gestion des profils
-
-### 👁️ Consultation
-- **Profil complet** : Informations personnelles et professionnelles
-- **Historique d'activité** : Connexions, prestations, transactions
-- **Documents** : Pièces justificatives, certifications
-- **Évaluations** : Notes et commentaires reçus
-
-### ✏️ Modification
-- **Informations personnelles** : Nom, prénom, coordonnées
-- **Paramètres de compte** : Email, statut, permissions
-- **Données spécifiques** : Compétences, tarifs, disponibilités
-- **Documents** : Ajout, modification, suppression
-
-### 🔒 Actions administratives
-- **Suspension** : Blocage temporaire d'un compte
-- **Activation/Désactivation** : Gestion du statut
-- **Suppression** : Suppression définitive (avec confirmation)
-- **Réinitialisation** : Mot de passe, paramètres
+### 📋 Tableau (`UserTable.tsx`)
+- **Affichage** : Liste des utilisateurs administratifs
+- **Colonnes** : Nom, Email, Rôle, Statut, Actions
+- **Actions** : Modifier, Supprimer, Changer de rôle
 
 ---
 
-## 📋 Informations détaillées
+## ⚙️ Fonctionnalités de gestion
 
-### 📝 Données personnelles
-- **Identité** : Nom, prénom, date de naissance
-- **Contact** : Email, téléphone, adresse
-- **Préférences** : Langue, devise, notifications
-- **Localisation** : Adresse complète, coordonnées GPS
+### ➕ Création (`AddUserModal.tsx`)
+- **Formulaire** : Informations de base utilisateur
+- **Composants** :
+  - `UserCreationForm.tsx` : Formulaire principal
+  - `UserBasicInfoFields.tsx` : Champs de base
+  - `EmailField.tsx` : Validation email
+  - `RoleSelector.tsx` : Sélection du rôle
+  - `PasswordGenerator.tsx` : Génération de mot de passe
 
-### 🏷️ Données spécifiques par rôle
+### ✏️ Modification (`EditUserModal.tsx`)
+- **Édition** : Informations utilisateur existant
+- **Gestion des rôles** : `RoleManager.tsx`
+- **Préférences** : `PreferencesFields.tsx`
 
-#### 🧓 Pour les Seniors
-- **Autonomie** : Niveau d'indépendance évalué
-- **Santé** : Informations médicales pertinentes
-- **Urgence** : Contacts prioritaires
-- **Logement** : Type, adaptation, disponibilité
-
-#### 🤝 Pour les Aidants
-- **Expérience** : Années d'expérience, formations
-- **Compétences** : Domaines d'intervention
-- **Disponibilité** : Créneaux horaires, zones géographiques
-- **Tarification** : Tarifs par type de prestation
+### 🗑️ Suppression (`DeleteUserConfirm.tsx`)
+- **Confirmation** : Modal de confirmation sécurisée
+- **Vérification** : `PasswordConfirmation.tsx`
 
 ---
 
-## 📊 Statistiques et analyses
+## 🔧 Hooks et utilitaires
 
-### 📈 Métriques par utilisateur
-- **Activité** : Fréquence de connexion, utilisation
-- **Prestations** : Nombre de services donnés/reçus
-- **Évaluations** : Moyenne des notes, commentaires
-- **Financier** : Transactions, commissions générées
+### 📡 Hooks de données
+- **`useUserManagement.tsx`** : Logique principale
+- **`useSupabaseUsers.ts`** : Intégration Supabase
+- **`useEmailValidation.ts`** : Validation email
+- **`usePasswordUtils.ts`** : Utilitaires mot de passe
 
-### 📊 Analyses globales
-- **Répartition géographique** : Cartes de densité
-- **Évolution temporelle** : Croissance des inscriptions
-- **Taux d'engagement** : Utilisateurs actifs vs inactifs
-- **Satisfaction** : Moyennes des évaluations
+### 🏗️ Hooks CRUD
+- **`useUserCrud.ts`** : Opérations Create/Update/Delete
+- **`useUserFetch.ts`** : Récupération des données
+
+### 📊 Types et utilitaires
+- **`userTypes.ts`** : Définitions TypeScript
+- **`userMockData.ts`** : Données de test
+- **`userConversion.ts`** : Conversion de données
 
 ---
 
-## 🛠️ Outils d'administration
+## 🎨 Interface
 
-### 📧 Communication
-- **Messages individuels** : Contact direct avec un utilisateur
-- **Messages groupés** : Communication ciblée par segment
-- **Notifications** : Envoi d'alertes ou d'informations
-- **Newsletters** : Diffusion d'actualités
+### 📱 Layout principal
+- **Header** : Titre et bouton d'ajout
+- **Stats** : Cartes de statistiques
+- **Search** : Barre de recherche
+- **Table** : Liste des utilisateurs
+- **Modals** : Actions CRUD
 
-### 🔧 Outils de gestion
-- **Import/Export** : Gestion en masse des données
-- **Sauvegarde** : Backup des profils utilisateurs
-- **Audit** : Traçabilité des modifications
-- **Rapports** : Génération de rapports personnalisés
+### 🔄 États de l'interface
+- **Loading** : Skeletons pendant le chargement
+- **Empty** : Message si aucun utilisateur
+- **Error** : Gestion des erreurs
 
 ---
 
 ## 🎯 Résumé
 
-La page Utilisateurs offre :
-- Une gestion complète de tous les types d'utilisateurs
-- Des outils de recherche et de filtrage puissants
-- Une vue détaillée de chaque profil
-- Des fonctionnalités d'administration avancées
-- Des analyses et statistiques complètes
-- Une interface intuitive et efficace
+La page Utilisateurs permet :
+- Gestion exclusive des utilisateurs administratifs
+- CRUD complet (Create, Read, Update, Delete)
+- Recherche et filtrage en temps réel
+- Statistiques par rôle administratif
+- Interface moderne avec Shadcn/UI
+- Hooks personnalisés pour la gestion des données

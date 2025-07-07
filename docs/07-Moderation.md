@@ -1,177 +1,110 @@
 
 # 🎭 Documentation – Page Modération
 
-## 🧭 Objectif général
+## 🧭 Objectif
 
-La page **Modération** centralise tous les outils nécessaires pour maintenir un environnement sain et sécurisé sur la plateforme AppSeniors. Elle permet aux modérateurs de surveiller, analyser et traiter les contenus signalés, ainsi que de gérer les interactions entre utilisateurs.
-
----
-
-## 🚨 Types de contenus modérés
-
-### 💬 Messages et communications
-- **Messages privés** : Conversations entre utilisateurs
-- **Messages de groupes** : Communications dans les groupes communautaires
-- **Commentaires** : Avis et retours sur les prestations
-- **Messages forum** : Publications dans les espaces de discussion
-
-### 📝 Contenus créés
-- **Profils utilisateurs** : Descriptions, photos, informations
-- **Annonces de prestations** : Services proposés
-- **Offres seniors** : Activités et services de seniors
-- **Documents partagés** : Fichiers mis en ligne
-
-### 🎯 Évaluations et avis
-- **Notes et commentaires** : Évaluations des prestations
-- **Témoignages** : Retours d'expérience
-- **Recommandations** : Suggestions entre utilisateurs
+La page **Modération** (`Moderation.tsx`) centralise les outils de surveillance et de gestion des contenus sur la plateforme AppSeniors.
 
 ---
 
-## 🔍 Système de signalement
+## 📊 Composants principaux
 
-### 📢 Types de signalements
-- **Contenu inapproprié** : Langage offensant, contenus choquants
-- **Spam** : Messages publicitaires non sollicités
-- **Harcèlement** : Comportements abusifs répétés
-- **Fausses informations** : Contenus trompeurs ou mensongers
-- **Violation des CGU** : Non-respect des conditions d'utilisation
+### 📈 Statistiques (`ModerationStats.tsx`)
+- **Hook** : `useModerationStats.ts`
+- **Métriques** : Signalements, posts forum, messages groupes
+- **Cartes** : Affichage visuel des KPI de modération
+- **Tendances** : Évolution des contenus à modérer
 
-### 🎯 Origine des signalements
-- **Utilisateurs** : Signalements manuels par la communauté
-- **Système automatique** : Détection par algorithmes
-- **Partenaires** : Remontées des organisations partenaires
-- **Équipe interne** : Détection proactive
-
-### 📊 Statuts de traitement
-- **Nouveau** : Signalement non encore traité
-- **En cours** : Sous investigation
-- **Résolu** : Action prise, problème traité
-- **Rejeté** : Signalement non fondé
-- **Escaladé** : Transmis à un niveau supérieur
+### 🚨 Signalements (`SignalementsTable.tsx`)
+- **Liste** : Tous les signalements utilisateurs
+- **Statuts** : Nouveau, En cours, Résolu, Rejeté
+- **Actions** : Traiter, Valider, Rejeter
+- **Filtrage** : Par statut et date
 
 ---
 
-## 🛠️ Outils de modération
+## 📝 Gestion des contenus
 
-### 🔍 Interface de review
-- **Queue de modération** : Liste prioritaire des éléments à traiter
-- **Détail du signalement** : Contexte complet et historique
-- **Outils de décision** : Boutons d'action rapide
-- **Commentaires internes** : Notes entre modérateurs
+### 💬 Posts de forum (`ForumPostsTable.tsx`)
+- **Hook** : `useForumPosts.ts`
+- **Affichage** : Liste des publications forum
+- **Modération** : Validation, suppression, masquage
+- **Modal** : `ViewForumPostModal.tsx` pour consultation détaillée
 
-### ⚡ Actions disponibles
-- **Valider** : Contenu conforme, pas d'action
-- **Masquer** : Contenu caché temporairement
-- **Supprimer** : Suppression définitive du contenu
-- **Avertir** : Notification à l'utilisateur
-- **Suspendre** : Blocage temporaire du compte
-- **Bannir** : Exclusion définitive de la plateforme
-
-### 🎯 Actions automatisées
-- **Filtres de mots** : Détection automatique de termes interdits
-- **Analyse de sentiment** : Évaluation du ton des messages
-- **Détection de spam** : Identification de contenus répétitifs
-- **Vérification d'images** : Contrôle automatique des photos
+### 👥 Messages de groupes (`GroupMessagesTable.tsx`)
+- **Hook** : `useGroupMessages.ts`
+- **Surveillance** : Messages dans les groupes communautaires
+- **Actions** : Modération des conversations
+- **Modal** : `ViewGroupMessageModal.tsx` pour détails
 
 ---
 
-## 📊 Statistiques et métriques
+## ⚙️ Actions de modération
 
-### 📈 Indicateurs de performance
-- **Volume de signalements** : Nombre par période
-- **Temps de traitement** : Délai moyen de résolution
-- **Taux de validation** : Pourcentage de signalements fondés
-- **Récidive** : Utilisateurs avec signalements répétés
+### 🔧 Modal d'actions (`ModerationActionsModal.tsx`)
+- **Hook** : `useModerationActions.ts`
+- **Actions disponibles** :
+  - Valider le contenu
+  - Masquer temporairement
+  - Supprimer définitivement
+  - Avertir l'utilisateur
+  - Suspendre le compte
 
-### 📋 Analyses par catégorie
-- **Types de problèmes** : Répartition des signalements
-- **Heures de pointe** : Moments de forte activité
-- **Utilisateurs problématiques** : Profils à surveiller
-- **Tendances** : Évolution des comportements
-
----
-
-## 👥 Gestion des utilisateurs problématiques
-
-### 🔍 Identification
-- **Historique** : Suivi des signalements par utilisateur
-- **Patterns** : Détection de comportements récurrents
-- **Scores de risque** : Évaluation automatique
-- **Alertes** : Notifications pour les cas critiques
-
-### 📋 Actions graduées
-1. **Avertissement** : Notification éducative
-2. **Restriction** : Limitation des fonctionnalités
-3. **Suspension temporaire** : Blocage avec durée définie
-4. **Suspension permanente** : Exclusion définitive
-5. **Signalement légal** : Transmission aux autorités si nécessaire
-
-### 📝 Documentation
-- **Dossiers utilisateurs** : Historique complet des incidents
-- **Captures d'écran** : Preuves des violations
-- **Correspondances** : Échanges avec l'utilisateur
-- **Décisions** : Justifications des actions prises
+### ➕ Ajouts rapides
+- **Forum** : `AddForumModal.tsx` et `AddForumSubjectModal.tsx`
+- **Groupes** : `AddGroupMembersModal.tsx` et `AddGroupMessageModal.tsx`
+- **Signalements** : `AddSignalementModal.tsx`
 
 ---
 
-## 🏛️ Workflow de modération
+## 🔧 Hooks et utilitaires
 
-### 🔄 Processus standard
-1. **Réception** : Nouveau signalement dans la queue
-2. **Évaluation** : Analyse du contenu et du contexte
-3. **Recherche** : Vérification de l'historique
-4. **Décision** : Choix de l'action appropriée
-5. **Exécution** : Application de la mesure
-6. **Notification** : Information des parties concernées
-7. **Suivi** : Vérification de l'efficacité
+### 📡 Hooks de données
+- **`useModerationStats.ts`** : Statistiques globales
+- **`useForumPosts.ts`** : Gestion des posts forum
+- **`useGroupMessages.ts`** : Messages de groupes
+- **`useModerationActions.ts`** : Actions de modération
+- **`useSignalements.ts`** : Gestion des signalements
 
-### ⚖️ Processus d'appel
-- **Demande de révision** : Possibilité de contester une décision
-- **Examen secondaire** : Review par un autre modérateur
-- **Arbitrage** : Décision finale par un superviseur
-- **Communication** : Explication de la décision finale
+### 🛠️ Utilitaires
+- **`utils.ts`** : Fonctions utilitaires
+- **`types.ts`** : Définitions TypeScript
+- **`mockData.ts`** : Données de test pour développement
 
 ---
 
-## 🔧 Outils d'administration
+## 🗄️ Base de données
 
-### 📊 Tableau de bord
-- **Vue d'ensemble** : Métriques clés en temps réel
-- **Alertes** : Notifications pour les cas urgents
-- **Workload** : Répartition de la charge de travail
-- **Performance** : Efficacité de l'équipe de modération
-
-### 🎛️ Configuration
-- **Règles automatiques** : Paramétrage des filtres
-- **Seuils d'alerte** : Définition des limites
-- **Escalade** : Critères de transmission hiérarchique
-- **Templates** : Messages pré-rédigés pour les réponses
+### 📊 Tables utilisées
+- **`Forum`** et **`ReponseForum`** : Contenus forum
+- **`Groupe`** et **`MessageGroupe`** : Messages groupes
+- **`Signalement`** : Signalements utilisateurs (table supposée)
+- **`Utilisateurs`** : Informations modérateurs
 
 ---
 
-## 📱 Interface utilisateur
+## 🎨 Interface
 
-### 🖥️ Design adaptatif
-- **Vue liste** : Affichage compact des signalements
-- **Vue détaillée** : Analyse approfondie d'un cas
-- **Filtres avancés** : Recherche par critères multiples
-- **Actions groupées** : Traitement de plusieurs éléments
+### 📱 Layout principal
+- **Tabs** : Navigation entre types de contenus
+- **Tables** : Listes avec actions de modération
+- **Modals** : Actions détaillées et consultations
+- **Stats** : Cartes de métriques en en-tête
 
-### ⚡ Optimisations
-- **Raccourcis clavier** : Actions rapides
-- **Glisser-déposer** : Réorganisation des priorités
-- **Vues personnalisées** : Adaptation aux préférences
-- **Notifications temps réel** : Alertes instantanées
+### 🔄 Fonctionnalités
+- **Tri et filtrage** : Par statut, date, auteur
+- **Actions groupées** : Traitement multiple
+- **Statuts visuels** : Badges colorés
+- **Notifications** : Feedback des actions
 
 ---
 
 ## 🎯 Résumé
 
-La page Modération assure :
-- Un environnement sûr pour tous les utilisateurs
-- Des outils efficaces pour traiter les signalements
-- Une approche équilibrée entre automatisation et intervention humaine
-- Une traçabilité complète des décisions
-- Des métriques pour améliorer continuellement le service
-- Un respect des droits de chacun dans le processus
+La page Modération permet :
+- Surveillance des contenus forum et groupes
+- Gestion des signalements utilisateurs
+- Actions de modération graduées
+- Statistiques de l'activité de modération
+- Interface centralisée pour tous les contenus
+- Outils d'ajout rapide pour tests et gestion
