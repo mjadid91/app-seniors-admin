@@ -2075,34 +2075,19 @@ export type Database = {
           },
         ]
       }
-      parametrescommission: {
-        Row: {
-          idparametrecommission: number
-          pourcentage: number
-          typetransaction: string
-        }
-        Insert: {
-          idparametrecommission?: number
-          pourcentage?: number
-          typetransaction: string
-        }
-        Update: {
-          idparametrecommission?: number
-          pourcentage?: number
-          typetransaction?: string
-        }
-        Relationships: []
-      }
       ParametresCommission: {
         Row: {
+          IDParametreCommission: number
           Pourcentage: number
           TypeTransaction: string
         }
         Insert: {
+          IDParametreCommission?: number
           Pourcentage?: number
           TypeTransaction: string
         }
         Update: {
+          IDParametreCommission?: number
           Pourcentage?: number
           TypeTransaction?: string
         }

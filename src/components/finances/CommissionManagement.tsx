@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Trash2, Edit, Plus } from "lucide-react";
@@ -14,6 +15,12 @@ interface CommissionRate {
   TypeTransaction: string;
   Pourcentage: number;
 }
+
+const TRANSACTION_TYPES = [
+  { value: "Commande", label: "Commande" },
+  { value: "Activite", label: "Activité" },
+  { value: "PostMortem", label: "Post Mortem" }
+];
 
 const CommissionManagement = () => {
   const [commissionRates, setCommissionRates] = useState<CommissionRate[]>([]);
@@ -141,13 +148,30 @@ const CommissionManagement = () => {
             <div className="space-y-4">
               <div>
                 <Label htmlFor="typeTransaction">Type de Transaction</Label>
-                <Input
-                  id="typeTransaction"
-                  value={formData.TypeTransaction}
-                  onChange={(e) => setFormData(prev => ({ ...prev, TypeTransaction: e.target.value }))}
-                  placeholder="Ex: Commande, Activite, PostMortem..."
-                  disabled={!!editingRate}
-                />
+                {editingRate ? (
+                  <Input
+                    id="typeTransaction"
+                    value={formData.TypeTransaction}
+                    disabled
+                    className="bg-gray-100"
+                  />
+                ) : (
+                  <Select
+                    value={formData.TypeTransaction}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, TypeTransaction: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez un type de transaction" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TRANSACTION_TYPES.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
               <div>
                 <Label htmlFor="pourcentage">Pourcentage (%)</Label>
