@@ -3384,7 +3384,10 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      update_expired_cagnottes: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
