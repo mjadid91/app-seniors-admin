@@ -63,7 +63,7 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
         updateResult = await supabase
           .from("ServicePostMortem")
           .update({
-            MontantPrestation: formData.montant,
+            MontantUtilise: formData.montant.toString(),
             StatutService: formData.statut
           })
           .eq("IDServicePostMortem", transaction.id);
