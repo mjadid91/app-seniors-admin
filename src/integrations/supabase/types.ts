@@ -2093,6 +2093,21 @@ export type Database = {
         }
         Relationships: []
       }
+      ParametresCommission: {
+        Row: {
+          Pourcentage: number
+          TypeTransaction: string
+        }
+        Insert: {
+          Pourcentage?: number
+          TypeTransaction: string
+        }
+        Update: {
+          Pourcentage?: number
+          TypeTransaction?: string
+        }
+        Relationships: []
+      }
       Partenaire: {
         Row: {
           Adresse: string
@@ -3188,47 +3203,32 @@ export type Database = {
       VersementCommissions: {
         Row: {
           DateVersement: string
-          IDActiviteRemuneree: number | null
           IDCommande: number | null
-          IDDonCagnotte: number | null
           IDPrestation: number | null
-          IDServicePostMortem: number | null
           IDVersementCommissions: number
           MontantCommission: number
           MoyenVersement: string
-          pourcentagecommission: number
           PourcentageCommission: number
-          typetransaction: string
           TypeTransaction: string
         }
         Insert: {
           DateVersement: string
-          IDActiviteRemuneree?: number | null
           IDCommande?: number | null
-          IDDonCagnotte?: number | null
           IDPrestation?: number | null
-          IDServicePostMortem?: number | null
           IDVersementCommissions?: number
           MontantCommission?: number
           MoyenVersement: string
-          pourcentagecommission?: number
           PourcentageCommission?: number
-          typetransaction?: string
           TypeTransaction?: string
         }
         Update: {
           DateVersement?: string
-          IDActiviteRemuneree?: number | null
           IDCommande?: number | null
-          IDDonCagnotte?: number | null
           IDPrestation?: number | null
-          IDServicePostMortem?: number | null
           IDVersementCommissions?: number
           MontantCommission?: number
           MoyenVersement?: string
-          pourcentagecommission?: number
           PourcentageCommission?: number
-          typetransaction?: string
           TypeTransaction?: string
         }
         Relationships: [
