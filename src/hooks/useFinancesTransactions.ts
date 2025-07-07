@@ -31,7 +31,7 @@ export const useFinancesTransactions = () => {
           MontantTotal,
           StatutCommande,
           DateCommande,
-          Utilisateurs!Commande_IDUtilisateurPayeur_fkey(Nom, Prenom)
+          IDUtilisateurPayeur
         `);
 
       // Récupérer les activités rémunérées
@@ -42,36 +42,56 @@ export const useFinancesTransactions = () => {
           MontantRevenu,
           StatutPaiement,
           DateTransaction,
-          Utilisateurs!ActiviteRemuneree_Utilisateurs_IDUtilisateurs_fkey(Nom, Prenom)
+          IDUtilisateurs
         `);
 
-      // Récupérer les services post-mortem
-      const { data: services, error: errorServices } = await supabase
-        .from("ServicePostMortem")
-        .select(`
-          IDServicePostMortem,
-          MontantUtilise,
-          StatutService,
-          DateService,
-          Utilisateurs!ServicePostMortem_IDUtilisateurs_fkey(Nom, Prenom)
-        `);
+      // Pour l'instant, on ne récupère pas les services post-mortem car la table n'existe pas
+      // const { data: services, error: errorServices } = await supabase
+      //   .from("ServicePostMortem")
+      //   .select(`...`);
 
-      if (errorCommandes || errorActivites || errorServices) {
-        console.error("Erreurs lors du chargement:", { errorCommandes, errorActivites, errorServices });
+      if (errorCommandes || errorActivites) {
+        console.error("Erreurs lors du chargement:", { errorCommandes, errorActivites });
         throw new Error("Erreur lors du chargement des transactions");
       }
 
       const transactions: FinanceTransaction[] = [];
 
+      // Récupérer les informations des utilisateurs en une seule requête
+      const allUserIds = [
+        ...(commandes?.map(c => c.IDUtilisateurPayeur).filter(Boolean) || []),
+        ...(activites?.map(a => a.IDUtilisateurs).filter(Boolean) || [])
+      ];
+
+      const uniqueUserIds = [...new Set(allUserIds)];
+      
+      let usersData: { [key: number]: { Nom: string; Prenom: string } } = {};
+      
+      if (uniqueUserIds.length > 0) {
+        const { data: users } = await supabase
+          .from("Utilisateurs")
+          .select("IDUtilisateurs, Nom, Prenom")
+          .in("IDUtilisateurs", uniqueUserIds);
+        
+        if (users) {
+          usersData = users.reduce((acc, user) => {
+            acc[user.IDUtilisateurs] = { Nom: user.Nom, Prenom: user.Prenom };
+            return acc;
+          }, {} as { [key: number]: { Nom: string; Prenom: string } });
+        }
+      }
+
       // Traiter les commandes
       commandes?.forEach(commande => {
         const commission = commande.MontantTotal * 0.05; // 5% de commission par défaut
+        const user = commande.IDUtilisateurPayeur ? usersData[commande.IDUtilisateurPayeur] : null;
+        
         transactions.push({
           id: commande.IDCommande,
           originalId: commande.IDCommande,
           idCommande: commande.IDCommande,
           type: "Commande",
-          utilisateur: commande.Utilisateurs ? `${commande.Utilisateurs.Prenom} ${commande.Utilisateurs.Nom}` : "Inconnu",
+          utilisateur: user ? `${user.Prenom} ${user.Nom}` : "Inconnu",
           montant: commande.MontantTotal || 0,
           commission: commission,
           date: commande.DateCommande,
@@ -82,33 +102,18 @@ export const useFinancesTransactions = () => {
       // Traiter les activités
       activites?.forEach(activite => {
         const commission = activite.MontantRevenu * 0.05;
+        const user = activite.IDUtilisateurs ? usersData[activite.IDUtilisateurs] : null;
+        
         transactions.push({
-          id: activite.IDActiviteRemuneree,
+          id: activite.IDActiviteRemuneree || 0,
           originalId: activite.IDActiviteRemuneree,
           idActiviteRemuneree: activite.IDActiviteRemuneree,
           type: "Activite",
-          utilisateur: activite.Utilisateurs ? `${activite.Utilisateurs.Prenom} ${activite.Utilisateurs.Nom}` : "Inconnu",
+          utilisateur: user ? `${user.Prenom} ${user.Nom}` : "Inconnu",
           montant: activite.MontantRevenu || 0,
           commission: commission,
           date: activite.DateTransaction,
           statut: activite.StatutPaiement || "En attente"
-        });
-      });
-
-      // Traiter les services post-mortem
-      services?.forEach(service => {
-        const montant = parseFloat(service.MontantUtilise || "0");
-        const commission = montant * 0.05;
-        transactions.push({
-          id: service.IDServicePostMortem,
-          originalId: service.IDServicePostMortem,
-          idServicePostMortem: service.IDServicePostMortem,
-          type: "PostMortem",
-          utilisateur: service.Utilisateurs ? `${service.Utilisateurs.Prenom} ${service.Utilisateurs.Nom}` : "Inconnu",
-          montant: montant,
-          commission: commission,
-          date: service.DateService,
-          statut: service.StatutService || "En attente"
         });
       });
 
