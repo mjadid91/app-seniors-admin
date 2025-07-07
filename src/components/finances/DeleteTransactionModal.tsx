@@ -24,25 +24,34 @@ const DeleteTransactionModal = ({ isOpen, onClose, transaction, onTransactionDel
     try {
       let deleteResult;
       
-      // Déterminer quelle table utiliser selon le type
+      console.log("Suppression de la transaction:", {
+        type: transaction.type,
+        id: transaction.originalId || transaction.id
+      });
+      
       if (transaction.type === "Commande") {
         deleteResult = await supabase
           .from("Commande")
           .delete()
-          .eq("IDCommande", transaction.id);
+          .eq("IDCommande", transaction.idCommande || transaction.originalId || transaction.id);
       } else if (transaction.type === "Activite") {
         deleteResult = await supabase
           .from("ActiviteRemuneree_Utilisateurs")
           .delete()
-          .eq("IDActiviteRemuneree", transaction.id);
+          .eq("IDActiviteRemuneree", transaction.idActiviteRemuneree || transaction.originalId || transaction.id);
       } else if (transaction.type === "PostMortem") {
         deleteResult = await supabase
           .from("ServicePostMortem")
           .delete()
-          .eq("IDServicePostMortem", transaction.id);
+          .eq("IDServicePostMortem", transaction.idServicePostMortem || transaction.originalId || transaction.id);
       }
 
-      if (deleteResult?.error) throw deleteResult.error;
+      console.log("Résultat de la suppression:", deleteResult);
+
+      if (deleteResult?.error) {
+        console.error("Erreur lors de la suppression:", deleteResult.error);
+        throw deleteResult.error;
+      }
 
       toast.success("Transaction supprimée avec succès");
       onTransactionDeleted();
@@ -75,6 +84,7 @@ const DeleteTransactionModal = ({ isOpen, onClose, transaction, onTransactionDel
             <p><strong>Montant :</strong> {transaction.montant?.toFixed(2)} €</p>
             <p><strong>Utilisateur :</strong> {transaction.utilisateur}</p>
             <p><strong>Date :</strong> {transaction.date}</p>
+            <p><strong>ID :</strong> {transaction.originalId || transaction.id}</p>
           </div>
           
           <div className="bg-red-50 border border-red-200 p-4 rounded-lg">

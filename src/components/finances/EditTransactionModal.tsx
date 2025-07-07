@@ -42,7 +42,12 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
     try {
       let updateResult;
       
-      // Déterminer quelle table mettre à jour selon le type
+      console.log("Mise à jour de la transaction:", {
+        type: transaction.type,
+        id: transaction.originalId || transaction.id,
+        formData
+      });
+      
       if (transaction.type === "Commande") {
         updateResult = await supabase
           .from("Commande")
@@ -50,7 +55,7 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
             MontantTotal: formData.montant,
             StatutCommande: formData.statut
           })
-          .eq("IDCommande", transaction.id);
+          .eq("IDCommande", transaction.idCommande || transaction.originalId || transaction.id);
       } else if (transaction.type === "Activite") {
         updateResult = await supabase
           .from("ActiviteRemuneree_Utilisateurs")
@@ -58,7 +63,7 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
             MontantRevenu: formData.montant,
             StatutPaiement: formData.statut
           })
-          .eq("IDActiviteRemuneree", transaction.id);
+          .eq("IDActiviteRemuneree", transaction.idActiviteRemuneree || transaction.originalId || transaction.id);
       } else if (transaction.type === "PostMortem") {
         updateResult = await supabase
           .from("ServicePostMortem")
@@ -66,10 +71,15 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
             MontantUtilise: formData.montant.toString(),
             StatutService: formData.statut
           })
-          .eq("IDServicePostMortem", transaction.id);
+          .eq("IDServicePostMortem", transaction.idServicePostMortem || transaction.originalId || transaction.id);
       }
 
-      if (updateResult?.error) throw updateResult.error;
+      console.log("Résultat de la mise à jour:", updateResult);
+
+      if (updateResult?.error) {
+        console.error("Erreur lors de la mise à jour:", updateResult.error);
+        throw updateResult.error;
+      }
 
       toast.success("Transaction mise à jour avec succès");
       onTransactionUpdated();
