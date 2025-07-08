@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus } from "lucide-react";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import UserStats from "./UserStats";
 import UserSearch from "./UserSearch";
@@ -15,9 +16,11 @@ import EditSeniorModal from "./EditSeniorModal";
 import EditAidantModal from "./EditAidantModal";
 import DeleteSeniorModal from "./DeleteSeniorModal";
 import DeleteAidantModal from "./DeleteAidantModal";
+import AddSeniorModal from "./AddSeniorModal";
 import { useUserManagement } from "./useUserManagement";
 import { useSupabaseUsers } from "../../hooks/useSupabaseUsers";
 import { useSeniors } from "../seniors/useSeniors";
+import { usePermissions, PERMISSIONS } from "../../hooks/usePermissions";
 
 const UserManagement = () => {
   const {
@@ -43,6 +46,8 @@ const UserManagement = () => {
   } = useUserManagement();
 
   const { loading: usersLoading, error: usersError, fetchUsers } = useSupabaseUsers();
+  const { hasPermission } = usePermissions();
+  const canManageUsers = hasPermission(PERMISSIONS.MANAGE_USERS);
 
   const {
     searchTerm: seniorsSearchTerm,
@@ -54,22 +59,26 @@ const UserManagement = () => {
     loading: seniorsLoading,
     error: seniorsError,
     setSearchTerm: setSeniorsSearchTerm,
+    handleAddSenior,
     handleEditSenior,
     handleDeleteSenior,
     handleEditAidant,
     handleDeleteAidant,
+    handleAddSeniorSubmit,
     handleSaveSenior,
     handleSaveAidant,
     handleConfirmDeleteSenior,
     handleConfirmDeleteAidant,
     refetch: refetchSeniors,
     // Modal states
+    isAddSeniorModalOpen,
     isEditSeniorModalOpen,
     isEditAidantModalOpen,
     isDeleteSeniorModalOpen,
     isDeleteAidantModalOpen,
     selectedSenior,
     selectedAidant,
+    setIsAddSeniorModalOpen,
     setIsEditSeniorModalOpen,
     setIsEditAidantModalOpen,
     setIsDeleteSeniorModalOpen,
@@ -183,6 +192,16 @@ const UserManagement = () => {
           <TabsContent value="seniors" className="space-y-6">
             <SeniorsStats stats={seniorsStats} />
             
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Seniors</h2>
+              {canManageUsers && (
+                <Button onClick={handleAddSenior} className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Ajouter un senior
+                </Button>
+              )}
+            </div>
+            
             <Card>
               <CardHeader>
                 <CardTitle>
@@ -238,6 +257,13 @@ const UserManagement = () => {
           onUserAdded={handleUserAdded}
           onUserEdited={handleUserEdited}
           onUserDeleted={handleUserDeleted}
+        />
+
+        {/* Modal d'ajout de senior */}
+        <AddSeniorModal
+          isOpen={isAddSeniorModalOpen}
+          onClose={() => setIsAddSeniorModalOpen(false)}
+          onAddSenior={handleAddSeniorSubmit}
         />
 
         {/* Modales pour les seniors */}

@@ -216,6 +216,280 @@ export const useSupabaseSeniors = () => {
     }
   };
 
+  // Fonction pour ajouter un senior
+  const addSenior = async (seniorData: {
+    nom: string;
+    prenom: string;
+    email: string;
+    telephone?: string;
+    dateNaissance?: string;
+    adresse?: string;
+    genre?: string;
+    niveauAutonomie?: 'faible' | 'moyen' | 'eleve';
+  }) => {
+    try {
+      console.log('Ajout d\'un nouveau senior:', seniorData);
+      
+      // Insérer dans la table Utilisateurs avec IDCatUtilisateurs = 1 (senior)
+      const { data: userData, error: userError } = await supabase
+        .from('Utilisateurs')
+        .insert({
+          Nom: seniorData.nom,
+          Prenom: seniorData.prenom,
+          Email: seniorData.email,
+          Telephone: seniorData.telephone || '0000000000',
+          DateNaissance: seniorData.dateNaissance || '1970-01-01',
+          Adresse: seniorData.adresse || 'Adresse non renseignée',
+          Genre: seniorData.genre || 'Non précisé',
+          MotDePasse: 'motdepasse123', // Mot de passe temporaire
+          IDCatUtilisateurs: 1, // Catégorie Senior
+          DateInscription: new Date().toISOString(),
+          Commentaire: '',
+          DateModification: new Date().toISOString(),
+          LangueSite: 'fr',
+          Photo: '',
+          EstDesactive: false,
+          EstRGPD: false
+        })
+        .select()
+        .single();
+
+      if (userError) {
+        console.error('Erreur lors de l\'insertion de l\'utilisateur:', userError);
+        throw new Error(`Erreur lors de l'ajout du senior: ${userError.message}`);
+      }
+
+      console.log('Utilisateur senior créé:', userData);
+      
+      // Le trigger se chargera automatiquement de créer l'entrée dans la table Seniors
+      
+      // Rafraîchir les données
+      await fetchData();
+      
+      return userData;
+    } catch (err) {
+      console.error('Erreur lors de l\'ajout du senior:', err);
+      throw err;
+    }
+  };
+
+  // Fonction pour mettre à jour un senior
+  const updateSenior = async (seniorId: string, updates: Partial<Senior>) => {
+    try {
+      console.log('Mise à jour du senior:', seniorId, updates);
+      
+      // Récupérer l'ID utilisateur correspondant
+      const { data: seniorData, error: seniorError } = await supabase
+        .from('Seniors')
+        .select('IDUtilisateurSenior')
+        .eq('IDSeniors', parseInt(seniorId))
+        .single();
+
+      if (seniorError) {
+        throw new Error(`Erreur lors de la récupération du senior: ${seniorError.message}`);
+      }
+
+      // Mettre à jour les informations utilisateur
+      const userUpdates: any = {};
+      if (updates.nom) userUpdates.Nom = updates.nom;
+      if (updates.prenom) userUpdates.Prenom = updates.prenom;
+      if (updates.email) userUpdates.Email = updates.email;
+      if (updates.telephone) userUpdates.Telephone = updates.telephone;
+      if (updates.adresse) userUpdates.Adresse = updates.adresse;
+      if (updates.dateNaissance) userUpdates.DateNaissance = updates.dateNaissance;
+      if (updates.genre) userUpdates.Genre = updates.genre;
+      
+      userUpdates.DateModification = new Date().toISOString();
+
+      const { error: updateError } = await supabase
+        .from('Utilisateurs')
+        .update(userUpdates)
+        .eq('IDUtilisateurs', seniorData.IDUtilisateurSenior);
+
+      if (updateError) {
+        throw new Error(`Erreur lors de la mise à jour: ${updateError.message}`);
+      }
+
+      // Mettre à jour les informations spécifiques au senior
+      if (updates.niveauAutonomie) {
+        const niveauValue = updates.niveauAutonomie === 'faible' ? 1 : 
+                           updates.niveauAutonomie === 'moyen' ? 2 : 3;
+        
+        const { error: seniorUpdateError } = await supabase
+          .from('Seniors')
+          .update({ NiveauAutonomie: niveauValue })
+          .eq('IDSeniors', parseInt(seniorId));
+
+        if (seniorUpdateError) {
+          throw new Error(`Erreur lors de la mise à jour du niveau d'autonomie: ${seniorUpdateError.message}`);
+        }
+      }
+
+      console.log('Senior mis à jour avec succès');
+      
+      // Rafraîchir les données
+      await fetchData();
+    } catch (err) {
+      console.error('Erreur lors de la mise à jour du senior:', err);
+      throw err;
+    }
+  };
+
+  // Fonction pour supprimer un senior
+  const deleteSenior = async (seniorId: string) => {
+    try {
+      console.log('Suppression du senior:', seniorId);
+      
+      // Récupérer l'ID utilisateur correspondant
+      const { data: seniorData, error: seniorError } = await supabase
+        .from('Seniors')
+        .select('IDUtilisateurSenior')
+        .eq('IDSeniors', parseInt(seniorId))
+        .single();
+
+      if (seniorError) {
+        throw new Error(`Erreur lors de la récupération du senior: ${seniorError.message}`);
+      }
+
+      // Supprimer d'abord l'entrée Senior
+      const { error: deleteSeniorError } = await supabase
+        .from('Seniors')
+        .delete()
+        .eq('IDSeniors', parseInt(seniorId));
+
+      if (deleteSeniorError) {
+        throw new Error(`Erreur lors de la suppression du profil senior: ${deleteSeniorError.message}`);
+      }
+
+      // Supprimer l'utilisateur (cela supprimera aussi les références liées)
+      const { error: deleteUserError } = await supabase
+        .from('Utilisateurs')
+        .delete()
+        .eq('IDUtilisateurs', seniorData.IDUtilisateurSenior);
+
+      if (deleteUserError) {
+        throw new Error(`Erreur lors de la suppression de l'utilisateur: ${deleteUserError.message}`);
+      }
+
+      console.log('Senior supprimé avec succès');
+      
+      // Rafraîchir les données
+      await fetchData();
+    } catch (err) {
+      console.error('Erreur lors de la suppression du senior:', err);
+      throw err;
+    }
+  };
+
+  // Fonction pour mettre à jour un aidant
+  const updateAidant = async (aidantId: string, updates: Partial<Aidant>) => {
+    try {
+      console.log('Mise à jour de l\'aidant:', aidantId, updates);
+      
+      // Récupérer l'ID utilisateur correspondant
+      const { data: aidantData, error: aidantError } = await supabase
+        .from('Aidant')
+        .select('IDUtilisateurs')
+        .eq('IDAidant', parseInt(aidantId))
+        .single();
+
+      if (aidantError) {
+        throw new Error(`Erreur lors de la récupération de l'aidant: ${aidantError.message}`);
+      }
+
+      // Mettre à jour les informations utilisateur
+      const userUpdates: any = {};
+      if (updates.nom) userUpdates.Nom = updates.nom;
+      if (updates.prenom) userUpdates.Prenom = updates.prenom;
+      if (updates.email) userUpdates.Email = updates.email;
+      if (updates.telephone) userUpdates.Telephone = updates.telephone;
+      if (updates.adresse) userUpdates.Adresse = updates.adresse;
+      if (updates.dateNaissance) userUpdates.DateNaissance = updates.dateNaissance;
+      if (updates.genre) userUpdates.Genre = updates.genre;
+      
+      userUpdates.DateModification = new Date().toISOString();
+
+      const { error: updateError } = await supabase
+        .from('Utilisateurs')
+        .update(userUpdates)
+        .eq('IDUtilisateurs', aidantData.IDUtilisateurs);
+
+      if (updateError) {
+        throw new Error(`Erreur lors de la mise à jour: ${updateError.message}`);
+      }
+
+      // Mettre à jour les informations spécifiques à l'aidant
+      const aidantUpdates: any = {};
+      if (updates.experience) aidantUpdates.Experience = updates.experience;
+      if (updates.tarifHoraire !== undefined) aidantUpdates.TarifAidant = updates.tarifHoraire;
+
+      if (Object.keys(aidantUpdates).length > 0) {
+        const { error: aidantUpdateError } = await supabase
+          .from('Aidant')
+          .update(aidantUpdates)
+          .eq('IDAidant', parseInt(aidantId));
+
+        if (aidantUpdateError) {
+          throw new Error(`Erreur lors de la mise à jour des informations aidant: ${aidantUpdateError.message}`);
+        }
+      }
+
+      console.log('Aidant mis à jour avec succès');
+      
+      // Rafraîchir les données
+      await fetchData();
+    } catch (err) {
+      console.error('Erreur lors de la mise à jour de l\'aidant:', err);
+      throw err;
+    }
+  };
+
+  // Fonction pour supprimer un aidant
+  const deleteAidant = async (aidantId: string) => {
+    try {
+      console.log('Suppression de l\'aidant:', aidantId);
+      
+      // Récupérer l'ID utilisateur correspondant
+      const { data: aidantData, error: aidantError } = await supabase
+        .from('Aidant')
+        .select('IDUtilisateurs')
+        .eq('IDAidant', parseInt(aidantId))
+        .single();
+
+      if (aidantError) {
+        throw new Error(`Erreur lors de la récupération de l'aidant: ${aidantError.message}`);
+      }
+
+      // Supprimer d'abord l'entrée Aidant
+      const { error: deleteAidantError } = await supabase
+        .from('Aidant')
+        .delete()
+        .eq('IDAidant', parseInt(aidantId));
+
+      if (deleteAidantError) {
+        throw new Error(`Erreur lors de la suppression du profil aidant: ${deleteAidantError.message}`);
+      }
+
+      // Supprimer l'utilisateur (cela supprimera aussi les références liées)
+      const { error: deleteUserError } = await supabase
+        .from('Utilisateurs')
+        .delete()
+        .eq('IDUtilisateurs', aidantData.IDUtilisateurs);
+
+      if (deleteUserError) {
+        throw new Error(`Erreur lors de la suppression de l'utilisateur: ${deleteUserError.message}`);
+      }
+
+      console.log('Aidant supprimé avec succès');
+      
+      // Rafraîchir les données
+      await fetchData();
+    } catch (err) {
+      console.error('Erreur lors de la suppression de l\'aidant:', err);
+      throw err;
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -225,6 +499,11 @@ export const useSupabaseSeniors = () => {
     aidants,
     loading,
     error,
-    refetch: fetchData
+    refetch: fetchData,
+    addSenior,
+    updateSenior,
+    deleteSenior,
+    updateAidant,
+    deleteAidant
   };
 };

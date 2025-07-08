@@ -18,6 +18,7 @@ export const useSeniors = () => {
   });
 
   // États pour les modales
+  const [isAddSeniorModalOpen, setIsAddSeniorModalOpen] = useState(false);
   const [isEditSeniorModalOpen, setIsEditSeniorModalOpen] = useState(false);
   const [isEditAidantModalOpen, setIsEditAidantModalOpen] = useState(false);
   const [isDeleteSeniorModalOpen, setIsDeleteSeniorModalOpen] = useState(false);
@@ -25,7 +26,18 @@ export const useSeniors = () => {
   const [selectedSenior, setSelectedSenior] = useState<Senior | null>(null);
   const [selectedAidant, setSelectedAidant] = useState<Aidant | null>(null);
 
-  const { seniors, aidants, loading, error, refetch } = useSupabaseSeniors();
+  const { 
+    seniors, 
+    aidants, 
+    loading, 
+    error, 
+    refetch, 
+    addSenior, 
+    updateSenior, 
+    deleteSenior, 
+    updateAidant, 
+    deleteAidant 
+  } = useSupabaseSeniors();
   const { toast } = useToast();
 
   // Calculate stats when data changes
@@ -60,6 +72,10 @@ export const useSeniors = () => {
     setFilteredAidants(filterData(aidants, searchTerm) as Aidant[]);
   }, [searchTerm, seniors, aidants]);
 
+  const handleAddSenior = () => {
+    setIsAddSeniorModalOpen(true);
+  };
+
   const handleEditSenior = (senior: Senior) => {
     setSelectedSenior(senior);
     setIsEditSeniorModalOpen(true);
@@ -80,32 +96,98 @@ export const useSeniors = () => {
     setIsDeleteAidantModalOpen(true);
   };
 
-  const handleSaveSenior = (updatedSenior: Senior) => {
-    // Ici, vous pouvez ajouter la logique pour sauvegarder en base de données
-    console.log('Sauvegarde senior:', updatedSenior);
-    // Pour l'instant, on simule juste la sauvegarde
-    refetch();
+  const handleAddSeniorSubmit = async (seniorData: {
+    nom: string;
+    prenom: string;
+    email: string;
+    telephone?: string;
+    dateNaissance?: string;
+    adresse?: string;
+    genre?: string;
+    niveauAutonomie?: 'faible' | 'moyen' | 'eleve';
+  }) => {
+    try {
+      await addSenior(seniorData);
+      toast({
+        title: "Senior ajouté",
+        description: `${seniorData.prenom} ${seniorData.nom} a été ajouté avec succès.`,
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout du senior:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'ajouter le senior.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleSaveAidant = (updatedAidant: Aidant) => {
-    // Ici, vous pouvez ajouter la logique pour sauvegarder en base de données
-    console.log('Sauvegarde aidant:', updatedAidant);
-    // Pour l'instant, on simule juste la sauvegarde
-    refetch();
+  const handleSaveSenior = async (updatedSenior: Senior) => {
+    try {
+      await updateSenior(updatedSenior.id, updatedSenior);
+      toast({
+        title: "Senior modifié",
+        description: `${updatedSenior.prenom} ${updatedSenior.nom} a été modifié avec succès.`,
+      });
+    } catch (error) {
+      console.error('Erreur lors de la modification du senior:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier le senior.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleConfirmDeleteSenior = (senior: Senior) => {
-    // Ici, vous pouvez ajouter la logique pour supprimer en base de données
-    console.log('Suppression senior:', senior);
-    // Pour l'instant, on simule juste la suppression
-    refetch();
+  const handleSaveAidant = async (updatedAidant: Aidant) => {
+    try {
+      await updateAidant(updatedAidant.id, updatedAidant);
+      toast({
+        title: "Aidant modifié",
+        description: `${updatedAidant.prenom} ${updatedAidant.nom} a été modifié avec succès.`,
+      });
+    } catch (error) {
+      console.error('Erreur lors de la modification de l\'aidant:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier l'aidant.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleConfirmDeleteAidant = (aidant: Aidant) => {
-    // Ici, vous pouvez ajouter la logique pour supprimer en base de données
-    console.log('Suppression aidant:', aidant);
-    // Pour l'instant, on simule juste la suppression
-    refetch();
+  const handleConfirmDeleteSenior = async (senior: Senior) => {
+    try {
+      await deleteSenior(senior.id);
+      toast({
+        title: "Senior supprimé",
+        description: `${senior.prenom} ${senior.nom} a été supprimé avec succès.`,
+      });
+    } catch (error) {
+      console.error('Erreur lors de la suppression du senior:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le senior.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleConfirmDeleteAidant = async (aidant: Aidant) => {
+    try {
+      await deleteAidant(aidant.id);
+      toast({
+        title: "Aidant supprimé",
+        description: `${aidant.prenom} ${aidant.nom} a été supprimé avec succès.`,
+      });
+    } catch (error) {
+      console.error('Erreur lors de la suppression de l\'aidant:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer l'aidant.",
+        variant: "destructive"
+      });
+    }
   };
 
   return {
@@ -120,6 +202,7 @@ export const useSeniors = () => {
     error,
     
     // Modal states
+    isAddSeniorModalOpen,
     isEditSeniorModalOpen,
     isEditAidantModalOpen,
     isDeleteSeniorModalOpen,
@@ -129,10 +212,12 @@ export const useSeniors = () => {
     
     // Actions
     setSearchTerm,
+    handleAddSenior,
     handleEditSenior,
     handleDeleteSenior,
     handleEditAidant,
     handleDeleteAidant,
+    handleAddSeniorSubmit,
     handleSaveSenior,
     handleSaveAidant,
     handleConfirmDeleteSenior,
@@ -140,6 +225,7 @@ export const useSeniors = () => {
     refetch,
     
     // Modal controls
+    setIsAddSeniorModalOpen,
     setIsEditSeniorModalOpen,
     setIsEditAidantModalOpen,
     setIsDeleteSeniorModalOpen,
