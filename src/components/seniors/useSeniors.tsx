@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Senior, Aidant, SeniorsStats } from "../../types/seniors";
 import { useSupabaseSeniors } from "../../hooks/useSupabaseSeniors";
@@ -19,6 +18,7 @@ export const useSeniors = () => {
 
   // États pour les modales
   const [isAddSeniorModalOpen, setIsAddSeniorModalOpen] = useState(false);
+  const [isAddAidantModalOpen, setIsAddAidantModalOpen] = useState(false);
   const [isEditSeniorModalOpen, setIsEditSeniorModalOpen] = useState(false);
   const [isEditAidantModalOpen, setIsEditAidantModalOpen] = useState(false);
   const [isDeleteSeniorModalOpen, setIsDeleteSeniorModalOpen] = useState(false);
@@ -34,7 +34,8 @@ export const useSeniors = () => {
     refetch, 
     addSenior, 
     updateSenior, 
-    deleteSenior, 
+    deleteSenior,
+    addAidant,
     updateAidant, 
     deleteAidant 
   } = useSupabaseSeniors();
@@ -76,6 +77,10 @@ export const useSeniors = () => {
     setIsAddSeniorModalOpen(true);
   };
 
+  const handleAddAidant = () => {
+    setIsAddAidantModalOpen(true);
+  };
+
   const handleEditSenior = (senior: Senior) => {
     setSelectedSenior(senior);
     setIsEditSeniorModalOpen(true);
@@ -105,6 +110,7 @@ export const useSeniors = () => {
     adresse?: string;
     genre?: string;
     niveauAutonomie?: 'faible' | 'moyen' | 'eleve';
+    motDePasse: string;
   }) => {
     try {
       await addSenior(seniorData);
@@ -117,6 +123,34 @@ export const useSeniors = () => {
       toast({
         title: "Erreur",
         description: "Impossible d'ajouter le senior.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleAddAidantSubmit = async (aidantData: {
+    nom: string;
+    prenom: string;
+    email: string;
+    telephone?: string;
+    dateNaissance?: string;
+    adresse?: string;
+    genre?: string;
+    experience: string;
+    tarifHoraire: number;
+    motDePasse: string;
+  }) => {
+    try {
+      await addAidant(aidantData);
+      toast({
+        title: "Aidant ajouté",
+        description: `${aidantData.prenom} ${aidantData.nom} a été ajouté avec succès.`,
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout de l\'aidant:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'ajouter l'aidant.",
         variant: "destructive"
       });
     }
@@ -203,6 +237,7 @@ export const useSeniors = () => {
     
     // Modal states
     isAddSeniorModalOpen,
+    isAddAidantModalOpen,
     isEditSeniorModalOpen,
     isEditAidantModalOpen,
     isDeleteSeniorModalOpen,
@@ -213,11 +248,13 @@ export const useSeniors = () => {
     // Actions
     setSearchTerm,
     handleAddSenior,
+    handleAddAidant,
     handleEditSenior,
     handleDeleteSenior,
     handleEditAidant,
     handleDeleteAidant,
     handleAddSeniorSubmit,
+    handleAddAidantSubmit,
     handleSaveSenior,
     handleSaveAidant,
     handleConfirmDeleteSenior,
@@ -226,6 +263,7 @@ export const useSeniors = () => {
     
     // Modal controls
     setIsAddSeniorModalOpen,
+    setIsAddAidantModalOpen,
     setIsEditSeniorModalOpen,
     setIsEditAidantModalOpen,
     setIsDeleteSeniorModalOpen,

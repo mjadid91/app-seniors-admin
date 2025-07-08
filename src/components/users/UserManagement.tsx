@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,6 +16,7 @@ import EditAidantModal from "./EditAidantModal";
 import DeleteSeniorModal from "./DeleteSeniorModal";
 import DeleteAidantModal from "./DeleteAidantModal";
 import AddSeniorModal from "./AddSeniorModal";
+import AddAidantModal from "./AddAidantModal";
 import { useUserManagement } from "./useUserManagement";
 import { useSupabaseUsers } from "../../hooks/useSupabaseUsers";
 import { useSeniors } from "../seniors/useSeniors";
@@ -60,11 +60,13 @@ const UserManagement = () => {
     error: seniorsError,
     setSearchTerm: setSeniorsSearchTerm,
     handleAddSenior,
+    handleAddAidant,
     handleEditSenior,
     handleDeleteSenior,
     handleEditAidant,
     handleDeleteAidant,
     handleAddSeniorSubmit,
+    handleAddAidantSubmit,
     handleSaveSenior,
     handleSaveAidant,
     handleConfirmDeleteSenior,
@@ -72,6 +74,7 @@ const UserManagement = () => {
     refetch: refetchSeniors,
     // Modal states
     isAddSeniorModalOpen,
+    isAddAidantModalOpen,
     isEditSeniorModalOpen,
     isEditAidantModalOpen,
     isDeleteSeniorModalOpen,
@@ -79,6 +82,7 @@ const UserManagement = () => {
     selectedSenior,
     selectedAidant,
     setIsAddSeniorModalOpen,
+    setIsAddAidantModalOpen,
     setIsEditSeniorModalOpen,
     setIsEditAidantModalOpen,
     setIsDeleteSeniorModalOpen,
@@ -225,6 +229,16 @@ const UserManagement = () => {
           <TabsContent value="aidants" className="space-y-6">
             <SeniorsStats stats={seniorsStats} />
             
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Aidants</h2>
+              {canManageUsers && (
+                <Button onClick={handleAddAidant} className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Ajouter un aidant
+                </Button>
+              )}
+            </div>
+            
             <Card>
               <CardHeader>
                 <CardTitle>
@@ -264,6 +278,13 @@ const UserManagement = () => {
           isOpen={isAddSeniorModalOpen}
           onClose={() => setIsAddSeniorModalOpen(false)}
           onAddSenior={handleAddSeniorSubmit}
+        />
+
+        {/* Modal d'ajout d'aidant */}
+        <AddAidantModal
+          isOpen={isAddAidantModalOpen}
+          onClose={() => setIsAddAidantModalOpen(false)}
+          onAddAidant={handleAddAidantSubmit}
         />
 
         {/* Modales pour les seniors */}

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Senior, Aidant } from '../types/seniors';
@@ -101,6 +100,148 @@ export const useSupabaseSeniors = () => {
     }
   };
 
+  // Fonction pour ajouter un senior
+  const addSenior = async (seniorData: {
+    nom: string;
+    prenom: string;
+    email: string;
+    telephone?: string;
+    dateNaissance?: string;
+    adresse?: string;
+    genre?: string;
+    niveauAutonomie?: 'faible' | 'moyen' | 'eleve';
+    motDePasse: string;
+  }) => {
+    try {
+      console.log('Ajout d\'un nouveau senior:', seniorData);
+      
+      // Insérer dans la table Utilisateurs avec IDCatUtilisateurs = 1 (senior)
+      const { data: userData, error: userError } = await supabase
+        .from('Utilisateurs')
+        .insert({
+          Nom: seniorData.nom,
+          Prenom: seniorData.prenom,
+          Email: seniorData.email,
+          Telephone: seniorData.telephone || '0000000000',
+          DateNaissance: seniorData.dateNaissance || '1970-01-01',
+          Adresse: seniorData.adresse || 'Adresse non renseignée',
+          Genre: seniorData.genre || 'Non précisé',
+          MotDePasse: seniorData.motDePasse,
+          IDCatUtilisateurs: 1, // Catégorie Senior
+          DateInscription: new Date().toISOString(),
+          Commentaire: '',
+          DateModification: new Date().toISOString(),
+          LangueSite: 'fr',
+          Photo: '',
+          EstDesactive: false,
+          EstRGPD: false
+        })
+        .select()
+        .single();
+
+      if (userError) {
+        console.error('Erreur lors de l\'insertion de l\'utilisateur:', userError);
+        throw new Error(`Erreur lors de l'ajout du senior: ${userError.message}`);
+      }
+
+      console.log('Utilisateur senior créé:', userData);
+      
+      // Mettre à jour le niveau d'autonomie si spécifié
+      if (seniorData.niveauAutonomie) {
+        const niveauValue = seniorData.niveauAutonomie === 'faible' ? 1 : 
+                           seniorData.niveauAutonomie === 'moyen' ? 2 : 3;
+        
+        const { error: seniorUpdateError } = await supabase
+          .from('Seniors')
+          .update({ NiveauAutonomie: niveauValue })
+          .eq('IDUtilisateurSenior', userData.IDUtilisateurs);
+
+        if (seniorUpdateError) {
+          console.warn('Avertissement lors de la mise à jour du niveau d\'autonomie:', seniorUpdateError);
+        }
+      }
+      
+      // Rafraîchir les données
+      await fetchData();
+      
+      return userData;
+    } catch (err) {
+      console.error('Erreur lors de l\'ajout du senior:', err);
+      throw err;
+    }
+  };
+
+  // Fonction pour ajouter un aidant
+  const addAidant = async (aidantData: {
+    nom: string;
+    prenom: string;
+    email: string;
+    telephone?: string;
+    dateNaissance?: string;
+    adresse?: string;
+    genre?: string;
+    experience: string;
+    tarifHoraire: number;
+    motDePasse: string;
+  }) => {
+    try {
+      console.log('Ajout d\'un nouvel aidant:', aidantData);
+      
+      // Insérer dans la table Utilisateurs avec IDCatUtilisateurs = 4 (aidant)
+      const { data: userData, error: userError } = await supabase
+        .from('Utilisateurs')
+        .insert({
+          Nom: aidantData.nom,
+          Prenom: aidantData.prenom,
+          Email: aidantData.email,
+          Telephone: aidantData.telephone || '0000000000',
+          DateNaissance: aidantData.dateNaissance || '1970-01-01',
+          Adresse: aidantData.adresse || 'Adresse non renseignée',
+          Genre: aidantData.genre || 'Non précisé',
+          MotDePasse: aidantData.motDePasse,
+          IDCatUtilisateurs: 4, // Catégorie Aidant
+          DateInscription: new Date().toISOString(),
+          Commentaire: '',
+          DateModification: new Date().toISOString(),
+          LangueSite: 'fr',
+          Photo: '',
+          EstDesactive: false,
+          EstRGPD: false
+        })
+        .select()
+        .single();
+
+      if (userError) {
+        console.error('Erreur lors de l\'insertion de l\'utilisateur aidant:', userError);
+        throw new Error(`Erreur lors de l'ajout de l'aidant: ${userError.message}`);
+      }
+
+      console.log('Utilisateur aidant créé:', userData);
+      
+      // Le trigger se chargera automatiquement de créer l'entrée dans la table Aidant
+      // Mais on peut aussi mettre à jour l'expérience et le tarif
+      const { error: aidantUpdateError } = await supabase
+        .from('Aidant')
+        .update({
+          Experience: aidantData.experience,
+          TarifAidant: aidantData.tarifHoraire
+        })
+        .eq('IDUtilisateurs', userData.IDUtilisateurs);
+
+      if (aidantUpdateError) {
+        console.warn('Avertissement lors de la mise à jour des informations aidant:', aidantUpdateError);
+      }
+      
+      // Rafraîchir les données
+      await fetchData();
+      
+      return userData;
+    } catch (err) {
+      console.error('Erreur lors de l\'ajout de l\'aidant:', err);
+      throw err;
+    }
+  };
+
   const fetchAidants = async () => {
     try {
       console.log('Fetching aidants...');
@@ -199,81 +340,6 @@ export const useSupabaseSeniors = () => {
     }
   };
 
-  const fetchData = async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      await Promise.all([
-        fetchSeniors(),
-        fetchAidants()
-      ]);
-    } catch (err) {
-      console.error('Erreur globale:', err);
-      setError(err instanceof Error ? err.message : 'Erreur inconnue');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fonction pour ajouter un senior
-  const addSenior = async (seniorData: {
-    nom: string;
-    prenom: string;
-    email: string;
-    telephone?: string;
-    dateNaissance?: string;
-    adresse?: string;
-    genre?: string;
-    niveauAutonomie?: 'faible' | 'moyen' | 'eleve';
-  }) => {
-    try {
-      console.log('Ajout d\'un nouveau senior:', seniorData);
-      
-      // Insérer dans la table Utilisateurs avec IDCatUtilisateurs = 1 (senior)
-      const { data: userData, error: userError } = await supabase
-        .from('Utilisateurs')
-        .insert({
-          Nom: seniorData.nom,
-          Prenom: seniorData.prenom,
-          Email: seniorData.email,
-          Telephone: seniorData.telephone || '0000000000',
-          DateNaissance: seniorData.dateNaissance || '1970-01-01',
-          Adresse: seniorData.adresse || 'Adresse non renseignée',
-          Genre: seniorData.genre || 'Non précisé',
-          MotDePasse: 'motdepasse123', // Mot de passe temporaire
-          IDCatUtilisateurs: 1, // Catégorie Senior
-          DateInscription: new Date().toISOString(),
-          Commentaire: '',
-          DateModification: new Date().toISOString(),
-          LangueSite: 'fr',
-          Photo: '',
-          EstDesactive: false,
-          EstRGPD: false
-        })
-        .select()
-        .single();
-
-      if (userError) {
-        console.error('Erreur lors de l\'insertion de l\'utilisateur:', userError);
-        throw new Error(`Erreur lors de l'ajout du senior: ${userError.message}`);
-      }
-
-      console.log('Utilisateur senior créé:', userData);
-      
-      // Le trigger se chargera automatiquement de créer l'entrée dans la table Seniors
-      
-      // Rafraîchir les données
-      await fetchData();
-      
-      return userData;
-    } catch (err) {
-      console.error('Erreur lors de l\'ajout du senior:', err);
-      throw err;
-    }
-  };
-
-  // Fonction pour mettre à jour un senior
   const updateSenior = async (seniorId: string, updates: Partial<Senior>) => {
     try {
       console.log('Mise à jour du senior:', seniorId, updates);
@@ -335,7 +401,6 @@ export const useSupabaseSeniors = () => {
     }
   };
 
-  // Fonction pour supprimer un senior
   const deleteSenior = async (seniorId: string) => {
     try {
       console.log('Suppression du senior:', seniorId);
@@ -381,7 +446,6 @@ export const useSupabaseSeniors = () => {
     }
   };
 
-  // Fonction pour mettre à jour un aidant
   const updateAidant = async (aidantId: string, updates: Partial<Aidant>) => {
     try {
       console.log('Mise à jour de l\'aidant:', aidantId, updates);
@@ -444,7 +508,6 @@ export const useSupabaseSeniors = () => {
     }
   };
 
-  // Fonction pour supprimer un aidant
   const deleteAidant = async (aidantId: string) => {
     try {
       console.log('Suppression de l\'aidant:', aidantId);
@@ -490,6 +553,23 @@ export const useSupabaseSeniors = () => {
     }
   };
 
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      await Promise.all([
+        fetchSeniors(),
+        fetchAidants()
+      ]);
+    } catch (err) {
+      console.error('Erreur globale:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -501,6 +581,7 @@ export const useSupabaseSeniors = () => {
     error,
     refetch: fetchData,
     addSenior,
+    addAidant,
     updateSenior,
     deleteSenior,
     updateAidant,

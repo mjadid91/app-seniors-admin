@@ -8,10 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import PasswordGenerator from "./PasswordGenerator";
 
-interface AddSeniorModalProps {
+interface AddAidantModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddSenior: (seniorData: {
+  onAddAidant: (aidantData: {
     nom: string;
     prenom: string;
     email: string;
@@ -19,12 +19,13 @@ interface AddSeniorModalProps {
     dateNaissance?: string;
     adresse?: string;
     genre?: string;
-    niveauAutonomie?: 'faible' | 'moyen' | 'eleve';
+    experience: string;
+    tarifHoraire: number;
     motDePasse: string;
   }) => void;
 }
 
-const AddSeniorModal = ({ isOpen, onClose, onAddSenior }: AddSeniorModalProps) => {
+const AddAidantModal = ({ isOpen, onClose, onAddAidant }: AddAidantModalProps) => {
   const [formData, setFormData] = useState({
     nom: '',
     prenom: '',
@@ -33,7 +34,8 @@ const AddSeniorModal = ({ isOpen, onClose, onAddSenior }: AddSeniorModalProps) =
     dateNaissance: '',
     adresse: '',
     genre: '',
-    niveauAutonomie: 'moyen' as 'faible' | 'moyen' | 'eleve'
+    experience: 'Expérience à définir',
+    tarifHoraire: 0
   });
   const [password, setPassword] = useState('');
   const { toast } = useToast();
@@ -50,7 +52,7 @@ const AddSeniorModal = ({ isOpen, onClose, onAddSenior }: AddSeniorModalProps) =
       return;
     }
 
-    const seniorData = {
+    const aidantData = {
       nom: formData.nom.trim(),
       prenom: formData.prenom.trim(),
       email: formData.email.trim(),
@@ -58,11 +60,12 @@ const AddSeniorModal = ({ isOpen, onClose, onAddSenior }: AddSeniorModalProps) =
       dateNaissance: formData.dateNaissance || undefined,
       adresse: formData.adresse || undefined,
       genre: formData.genre || undefined,
-      niveauAutonomie: formData.niveauAutonomie,
+      experience: formData.experience,
+      tarifHoraire: formData.tarifHoraire,
       motDePasse: password
     };
 
-    onAddSenior(seniorData);
+    onAddAidant(aidantData);
     
     // Reset form
     setFormData({
@@ -73,14 +76,15 @@ const AddSeniorModal = ({ isOpen, onClose, onAddSenior }: AddSeniorModalProps) =
       dateNaissance: '',
       adresse: '',
       genre: '',
-      niveauAutonomie: 'moyen'
+      experience: 'Expérience à définir',
+      tarifHoraire: 0
     });
     setPassword('');
     
     onClose();
   };
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: string | number) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -91,7 +95,7 @@ const AddSeniorModal = ({ isOpen, onClose, onAddSenior }: AddSeniorModalProps) =
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Ajouter un nouveau senior</DialogTitle>
+          <DialogTitle>Ajouter un nouvel aidant</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -178,21 +182,25 @@ const AddSeniorModal = ({ isOpen, onClose, onAddSenior }: AddSeniorModalProps) =
               </Select>
             </div>
             <div>
-              <Label htmlFor="niveauAutonomie">Niveau d'autonomie</Label>
-              <Select 
-                value={formData.niveauAutonomie} 
-                onValueChange={(value) => handleChange('niveauAutonomie', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="faible">Faible</SelectItem>
-                  <SelectItem value="moyen">Moyen</SelectItem>
-                  <SelectItem value="eleve">Élevé</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="tarifHoraire">Tarif horaire (€)</Label>
+              <Input
+                id="tarifHoraire"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.tarifHoraire}
+                onChange={(e) => handleChange('tarifHoraire', parseFloat(e.target.value) || 0)}
+              />
             </div>
+          </div>
+
+          <div>
+            <Label htmlFor="experience">Expérience</Label>
+            <Input
+              id="experience"
+              value={formData.experience}
+              onChange={(e) => handleChange('experience', e.target.value)}
+            />
           </div>
           
           <div className="flex justify-end gap-2 pt-4">
@@ -200,7 +208,7 @@ const AddSeniorModal = ({ isOpen, onClose, onAddSenior }: AddSeniorModalProps) =
               Annuler
             </Button>
             <Button type="submit">
-              Ajouter le senior
+              Ajouter l'aidant
             </Button>
           </div>
         </form>
@@ -209,4 +217,4 @@ const AddSeniorModal = ({ isOpen, onClose, onAddSenior }: AddSeniorModalProps) =
   );
 };
 
-export default AddSeniorModal;
+export default AddAidantModal;
