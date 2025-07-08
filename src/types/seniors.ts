@@ -13,6 +13,16 @@ export interface Senior {
   dateInscription: string;
   statut: 'actif' | 'inactif' | 'suspendu';
   genre?: string;
+  situationFamiliale?: string;
+  handicap?: boolean;
+  pathologies?: string[];
+  humeurJour?: {
+    humeur: 'tres_content' | 'content' | 'neutre' | 'triste' | 'tres_triste';
+    date: string;
+    commentaire?: string;
+  };
+  derniereConnexion?: string;
+  aidantsAssignes?: string[];
 }
 
 export interface Aidant {
@@ -35,6 +45,14 @@ export interface Aidant {
     jours: string[];
     heures: string;
   };
+  formations?: string[];
+  certifications?: string[];
+  evaluations?: {
+    note: number;
+    date: string;
+    commentaire?: string;
+  }[];
+  seniorsAssignes?: string[];
 }
 
 export interface SeniorsStats {
