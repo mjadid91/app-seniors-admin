@@ -5,9 +5,9 @@ import { Users, UserCheck, UserX, Shield } from "lucide-react";
 interface UserStatsProps {
   stats: {
     total: number;
-    actifs: number;
-    inactifs: number;
-    administrateurs: number;
+    active: number;
+    inactive: number;
+    admins: number;
   };
 }
 
@@ -23,7 +23,7 @@ const UserStats = ({ stats }: UserStatsProps) => {
     },
     {
       title: "Utilisateurs actifs",
-      value: stats.actifs,
+      value: stats.active,
       icon: UserCheck,
       bgColor: "bg-green-50",
       iconColor: "text-green-600",
@@ -31,7 +31,7 @@ const UserStats = ({ stats }: UserStatsProps) => {
     },
     {
       title: "Utilisateurs inactifs",
-      value: stats.inactifs,
+      value: stats.inactive,
       icon: UserX,
       bgColor: "bg-orange-50",
       iconColor: "text-orange-600",
@@ -39,7 +39,7 @@ const UserStats = ({ stats }: UserStatsProps) => {
     },
     {
       title: "Administrateurs",
-      value: stats.administrateurs,
+      value: stats.admins,
       icon: Shield,
       bgColor: "bg-purple-50",
       iconColor: "text-purple-600",
