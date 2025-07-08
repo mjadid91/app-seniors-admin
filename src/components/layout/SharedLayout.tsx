@@ -1,13 +1,9 @@
 
-import { ReactNode } from "react";
+import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 
-interface SharedLayoutProps {
-  children: ReactNode;
-}
-
-const SharedLayout = ({ children }: SharedLayoutProps) => {
+const SharedLayout = () => {
   return (
     <div className="min-h-screen bg-slate-50 flex">
       <Sidebar />
@@ -16,8 +12,8 @@ const SharedLayout = ({ children }: SharedLayoutProps) => {
         <Header />
         
         <main className="flex-1 p-6 overflow-auto">
-          <div className="w-full">
-            {children}
+          <div className="max-w-7xl mx-auto">
+            <Outlet />
           </div>
         </main>
       </div>

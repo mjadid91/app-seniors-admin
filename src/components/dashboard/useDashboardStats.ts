@@ -1,79 +1,70 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-export interface DashboardStats {
-  totalUsers: number;
-  activeServices: number;
-  totalRevenue: number;
-  supportTickets: number;
+interface DashboardStats {
+  utilisateurs: number;
+  prestations: number;
+  messages: number;
+  signalements: number;
+  revenus: number;
 }
 
 export const useDashboardStats = () => {
-  const [stats, setStats] = useState<DashboardStats>({
-    totalUsers: 0,
-    activeServices: 0,
-    totalRevenue: 0,
-    supportTickets: 0
-  });
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
+      setLoading(true);
+      setError(null);
+
       try {
-        setLoading(true);
-        setError(null);
+        // Nombre d'utilisateurs
+        const { count: usersCount } = await supabase
+          .from("Utilisateurs")
+          .select("*", { count: "exact", head: true });
 
-        // Récupérer le nombre total d'utilisateurs
-        const { count: usersCount, error: usersError } = await supabase
-          .from('Utilisateurs')
-          .select('*', { count: 'exact', head: true })
-          .gte('IDCatUtilisateurs', 1);
+        // Nombre de prestations
+        const { count: prestationsCount } = await supabase
+          .from("Prestation")
+          .select("*", { count: "exact", head: true });
 
-        if (usersError) {
-          console.error('Erreur utilisateurs:', usersError);
-        }
+        // Nombre de messages actifs (par exemple groupe, forum ou autre)
+        const { count: messagesCount } = await supabase
+          .from("MessageGroupe") // adapter si un autre type de messages
+          .select("*", { count: "exact", head: true });
 
-        // Récupérer le nombre de prestations actives
-        const { count: prestationsCount, error: prestationsError } = await supabase
-          .from('MiseEnRelation')
-          .select('*', { count: 'exact', head: true })
-          .eq('Statut', 'en_cours');
+        // Nombre de signalements
+        const { count: reportsCount } = await supabase
+          .from("SignalementContenu")
+          .select("*", { count: "exact", head: true });
 
-        if (prestationsError) {
-          console.error('Erreur prestations:', prestationsError);
-        }
+        // Pour les revenus, on va utiliser les commandes existantes car VersementCommission n'existe pas
+        const { data: commandesData, error: commandesError } = await supabase
+          .from("Commande")
+          .select("MontantTotal");
 
-        // Récupérer le montant total des commissions (revenus)
-        const { data: revenueData, error: revenueError } = await supabase
-          .from('VersementCommissions')
-          .select('MontantCommission');
-
-        if (revenueError) {
-          console.error('Erreur revenus:', revenueError);
-        }
-
-        const totalRevenue = revenueData?.reduce((sum, record) => {
-          return sum + (parseFloat(record.MontantCommission?.toString() || '0') || 0);
-        }, 0) || 0;
-
-        // Récupérer le nombre de tickets de support (simulé pour l'instant)
-        const supportTickets = Math.floor(Math.random() * 50) + 10;
+        const revenus = commandesError || !commandesData
+          ? 0
+          : commandesData.reduce(
+              (sum: number, row: any) => sum + (Number(row.MontantTotal) || 0),
+              0
+            );
 
         setStats({
-          totalUsers: usersCount || 0,
-          activeServices: prestationsCount || 0,
-          totalRevenue: Math.round(totalRevenue * 100) / 100, // Arrondir à 2 décimales
-          supportTickets
+          utilisateurs: usersCount ?? 0,
+          prestations: prestationsCount ?? 0,
+          messages: messagesCount ?? 0,
+          signalements: reportsCount ?? 0,
+          revenus,
         });
-
-      } catch (err) {
-        console.error('Erreur lors de la récupération des statistiques:', err);
-        setError('Erreur lors du chargement des statistiques');
-      } finally {
-        setLoading(false);
+      } catch (err: any) {
+        setError("Erreur lors du chargement des statistiques.");
+        setStats(null);
       }
+      setLoading(false);
     };
 
     fetchStats();
