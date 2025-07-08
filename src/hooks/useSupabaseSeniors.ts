@@ -75,6 +75,8 @@ export const useSupabaseSeniors = () => {
       const seniorsWithUserInfo: Senior[] = (seniorsData || []).map(senior => {
         const userInfo = utilisateursMap.get(senior.IDUtilisateurSenior);
         
+        console.log('Processing senior:', senior.IDSeniors, 'User info genre:', userInfo?.Genre);
+        
         return {
           id: senior.IDSeniors.toString(),
           nom: userInfo?.Nom || 'Nom non renseigné',
@@ -83,6 +85,7 @@ export const useSupabaseSeniors = () => {
           telephone: userInfo?.Telephone || 'Non renseigné',
           dateNaissance: userInfo?.DateNaissance || '1970-01-01',
           adresse: userInfo?.Adresse || 'Non renseigné',
+          genre: userInfo?.Genre || undefined,
           niveauAutonomie: senior.NiveauAutonomie === 1 ? 'faible' : senior.NiveauAutonomie === 2 ? 'moyen' : 'eleve',
           dateInscription: userInfo?.DateInscription || new Date().toISOString(),
           statut: 'actif' as const,
@@ -100,7 +103,6 @@ export const useSupabaseSeniors = () => {
     }
   };
 
-  // Fonction pour ajouter un senior
   const addSenior = async (seniorData: {
     nom: string;
     prenom: string;
@@ -171,7 +173,6 @@ export const useSupabaseSeniors = () => {
     }
   };
 
-  // Fonction pour ajouter un aidant
   const addAidant = async (aidantData: {
     nom: string;
     prenom: string;
@@ -309,6 +310,8 @@ export const useSupabaseSeniors = () => {
       const aidantsWithUserInfo: Aidant[] = (aidantsData || []).map(aidant => {
         const userInfo = utilisateursMap.get(aidant.IDUtilisateurs);
         
+        console.log('Processing aidant:', aidant.IDAidant, 'User info genre:', userInfo?.Genre);
+        
         return {
           id: aidant.IDAidant.toString(),
           nom: userInfo?.Nom || 'Nom non renseigné',
@@ -317,6 +320,7 @@ export const useSupabaseSeniors = () => {
           telephone: userInfo?.Telephone || 'Non renseigné',
           dateNaissance: userInfo?.DateNaissance || '1970-01-01',
           adresse: userInfo?.Adresse || 'Non renseigné',
+          genre: userInfo?.Genre || undefined,
           profession: 'Aidant professionnel',
           experience: aidant.Experience || 'Expérience à définir',
           dateInscription: userInfo?.DateInscription || new Date().toISOString(),
@@ -363,7 +367,7 @@ export const useSupabaseSeniors = () => {
       if (updates.telephone) userUpdates.Telephone = updates.telephone;
       if (updates.adresse) userUpdates.Adresse = updates.adresse;
       if (updates.dateNaissance) userUpdates.DateNaissance = updates.dateNaissance;
-      if (updates.genre) userUpdates.Genre = updates.genre;
+      if (updates.genre !== undefined) userUpdates.Genre = updates.genre;
       
       userUpdates.DateModification = new Date().toISOString();
 
@@ -469,7 +473,7 @@ export const useSupabaseSeniors = () => {
       if (updates.telephone) userUpdates.Telephone = updates.telephone;
       if (updates.adresse) userUpdates.Adresse = updates.adresse;
       if (updates.dateNaissance) userUpdates.DateNaissance = updates.dateNaissance;
-      if (updates.genre) userUpdates.Genre = updates.genre;
+      if (updates.genre !== undefined) userUpdates.Genre = updates.genre;
       
       userUpdates.DateModification = new Date().toISOString();
 

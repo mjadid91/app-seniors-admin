@@ -41,6 +41,10 @@ const SeniorsTable = ({ seniors, onEditSenior, onDeleteSenior }: SeniorsTablePro
     return <Badge variant="outline" className={config.className}>{niveau}</Badge>;
   };
 
+  const displayGenre = (genre?: string) => {
+    return genre && genre !== 'Non précisé' ? genre : 'Non renseigné';
+  };
+
   if (seniors.length === 0) {
     return (
       <div className="text-center py-8">
@@ -56,6 +60,7 @@ const SeniorsTable = ({ seniors, onEditSenior, onDeleteSenior }: SeniorsTablePro
           <TableHead>Senior</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>Téléphone</TableHead>
+          <TableHead>Genre</TableHead>
           <TableHead>Autonomie</TableHead>
           <TableHead>Date d'inscription</TableHead>
           <TableHead>Statut</TableHead>
@@ -80,6 +85,7 @@ const SeniorsTable = ({ seniors, onEditSenior, onDeleteSenior }: SeniorsTablePro
             </TableCell>
             <TableCell>{senior.email}</TableCell>
             <TableCell>{senior.telephone}</TableCell>
+            <TableCell>{displayGenre(senior.genre)}</TableCell>
             <TableCell>
               {getAutonomieBadge(senior.niveauAutonomie || 'moyen')}
             </TableCell>

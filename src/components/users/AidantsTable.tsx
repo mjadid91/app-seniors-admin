@@ -31,6 +31,10 @@ const AidantsTable = ({ aidants, onEditAidant, onDeleteAidant }: AidantsTablePro
     return <Badge variant={config.variant} className={config.className}>{statut.replace('_', ' ')}</Badge>;
   };
 
+  const displayGenre = (genre?: string) => {
+    return genre && genre !== 'Non précisé' ? genre : 'Non renseigné';
+  };
+
   if (aidants.length === 0) {
     return (
       <div className="text-center py-8">
@@ -66,7 +70,7 @@ const AidantsTable = ({ aidants, onEditAidant, onDeleteAidant }: AidantsTablePro
             </TableCell>
             <TableCell>{aidant.email}</TableCell>
             <TableCell>{aidant.telephone}</TableCell>
-            <TableCell>{aidant.genre || 'Non renseigné'}</TableCell>
+            <TableCell>{displayGenre(aidant.genre)}</TableCell>
             <TableCell>
               {formatDate(aidant.dateInscription)}
             </TableCell>
