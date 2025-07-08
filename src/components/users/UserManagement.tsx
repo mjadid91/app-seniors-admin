@@ -83,7 +83,7 @@ const UserManagement = () => {
 
   return (
     <ProtectedRoute requiredPage="users">
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-none">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-slate-800">Gestion des utilisateurs</h1>
           <UserManagementActions 
@@ -92,25 +92,31 @@ const UserManagement = () => {
           />
         </div>
 
-        <UserStats stats={stats} />
+        <div className="w-full">
+          <UserStats stats={stats} />
+        </div>
 
-        <Card>
+        <Card className="w-full">
           <CardHeader>
             <CardTitle>
               Utilisateurs ({users.length})
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <UserSearch 
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-            />
-            <UserTable 
-              users={filteredUsers}
-              onRoleChange={handleRoleChange}
-              onEditUser={handleEditUser}
-              onDeleteUser={handleDeleteUser}
-            />
+          <CardContent className="p-0">
+            <div className="p-6 pb-0">
+              <UserSearch 
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+              />
+            </div>
+            <div className="px-6 pb-6">
+              <UserTable 
+                users={filteredUsers}
+                onRoleChange={handleRoleChange}
+                onEditUser={handleEditUser}
+                onDeleteUser={handleDeleteUser}
+              />
+            </div>
           </CardContent>
         </Card>
 
