@@ -18,6 +18,8 @@ import PartnersPage from "./pages/PartnersPage";
 import RGPDPage from "./pages/RGPDPage";
 import FinancesPage from "./pages/FinancesPage";
 import LoginPage from "./components/auth/LoginPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +32,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/connexion" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/settings" element={<Settings />} />
           
           {/* Prestations routes with shared layout */}

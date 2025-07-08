@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuthStore } from "../../stores/authStore";
 import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
 import { AlertCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -117,6 +117,16 @@ const LoginPage = () => {
                 )}
               </Button>
             </form>
+            
+            <div className="text-center">
+              <Link
+                to="/forgot-password"
+                className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
+              >
+                Mot de passe oublié ?
+              </Link>
+            </div>
+            
             <div className="mt-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-xs text-blue-800 font-medium mb-2">Informations importantes :</p>
               <div className="text-xs text-blue-700 space-y-1">
