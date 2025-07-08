@@ -17,6 +17,14 @@ export const useSeniors = () => {
     humeurNegative: 0
   });
 
+  // États pour les modales
+  const [isEditSeniorModalOpen, setIsEditSeniorModalOpen] = useState(false);
+  const [isEditAidantModalOpen, setIsEditAidantModalOpen] = useState(false);
+  const [isDeleteSeniorModalOpen, setIsDeleteSeniorModalOpen] = useState(false);
+  const [isDeleteAidantModalOpen, setIsDeleteAidantModalOpen] = useState(false);
+  const [selectedSenior, setSelectedSenior] = useState<Senior | null>(null);
+  const [selectedAidant, setSelectedAidant] = useState<Aidant | null>(null);
+
   const { seniors, aidants, loading, error, refetch } = useSupabaseSeniors();
   const { toast } = useToast();
 
@@ -53,33 +61,51 @@ export const useSeniors = () => {
   }, [searchTerm, seniors, aidants]);
 
   const handleEditSenior = (senior: Senior) => {
-    toast({
-      title: "Modification senior",
-      description: `Modification de ${senior.prenom} ${senior.nom} (fonctionnalité à implémenter)`,
-    });
+    setSelectedSenior(senior);
+    setIsEditSeniorModalOpen(true);
   };
 
   const handleDeleteSenior = (senior: Senior) => {
-    toast({
-      title: "Suppression senior",
-      description: `Suppression de ${senior.prenom} ${senior.nom} (fonctionnalité à implémenter)`,
-      variant: "destructive"
-    });
+    setSelectedSenior(senior);
+    setIsDeleteSeniorModalOpen(true);
   };
 
   const handleEditAidant = (aidant: Aidant) => {
-    toast({
-      title: "Modification aidant",
-      description: `Modification de ${aidant.prenom} ${aidant.nom} (fonctionnalité à implémenter)`,
-    });
+    setSelectedAidant(aidant);
+    setIsEditAidantModalOpen(true);
   };
 
   const handleDeleteAidant = (aidant: Aidant) => {
-    toast({
-      title: "Suppression aidant",
-      description: `Suppression de ${aidant.prenom} ${aidant.nom} (fonctionnalité à implémenter)`,
-      variant: "destructive"
-    });
+    setSelectedAidant(aidant);
+    setIsDeleteAidantModalOpen(true);
+  };
+
+  const handleSaveSenior = (updatedSenior: Senior) => {
+    // Ici, vous pouvez ajouter la logique pour sauvegarder en base de données
+    console.log('Sauvegarde senior:', updatedSenior);
+    // Pour l'instant, on simule juste la sauvegarde
+    refetch();
+  };
+
+  const handleSaveAidant = (updatedAidant: Aidant) => {
+    // Ici, vous pouvez ajouter la logique pour sauvegarder en base de données
+    console.log('Sauvegarde aidant:', updatedAidant);
+    // Pour l'instant, on simule juste la sauvegarde
+    refetch();
+  };
+
+  const handleConfirmDeleteSenior = (senior: Senior) => {
+    // Ici, vous pouvez ajouter la logique pour supprimer en base de données
+    console.log('Suppression senior:', senior);
+    // Pour l'instant, on simule juste la suppression
+    refetch();
+  };
+
+  const handleConfirmDeleteAidant = (aidant: Aidant) => {
+    // Ici, vous pouvez ajouter la logique pour supprimer en base de données
+    console.log('Suppression aidant:', aidant);
+    // Pour l'instant, on simule juste la suppression
+    refetch();
   };
 
   return {
@@ -93,12 +119,30 @@ export const useSeniors = () => {
     loading,
     error,
     
+    // Modal states
+    isEditSeniorModalOpen,
+    isEditAidantModalOpen,
+    isDeleteSeniorModalOpen,
+    isDeleteAidantModalOpen,
+    selectedSenior,
+    selectedAidant,
+    
     // Actions
     setSearchTerm,
     handleEditSenior,
     handleDeleteSenior,
     handleEditAidant,
     handleDeleteAidant,
-    refetch
+    handleSaveSenior,
+    handleSaveAidant,
+    handleConfirmDeleteSenior,
+    handleConfirmDeleteAidant,
+    refetch,
+    
+    // Modal controls
+    setIsEditSeniorModalOpen,
+    setIsEditAidantModalOpen,
+    setIsDeleteSeniorModalOpen,
+    setIsDeleteAidantModalOpen
   };
 };

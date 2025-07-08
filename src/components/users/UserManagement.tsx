@@ -11,6 +11,10 @@ import UserManagementModals from "./UserManagementModals";
 import SeniorsTable from "./SeniorsTable";
 import AidantsTable from "./AidantsTable";
 import SeniorsStats from "../seniors/SeniorsStats";
+import EditSeniorModal from "./EditSeniorModal";
+import EditAidantModal from "./EditAidantModal";
+import DeleteSeniorModal from "./DeleteSeniorModal";
+import DeleteAidantModal from "./DeleteAidantModal";
 import { useUserManagement } from "./useUserManagement";
 import { useSupabaseUsers } from "../../hooks/useSupabaseUsers";
 import { useSeniors } from "../seniors/useSeniors";
@@ -54,7 +58,22 @@ const UserManagement = () => {
     handleDeleteSenior,
     handleEditAidant,
     handleDeleteAidant,
-    refetch: refetchSeniors
+    handleSaveSenior,
+    handleSaveAidant,
+    handleConfirmDeleteSenior,
+    handleConfirmDeleteAidant,
+    refetch: refetchSeniors,
+    // Modal states
+    isEditSeniorModalOpen,
+    isEditAidantModalOpen,
+    isDeleteSeniorModalOpen,
+    isDeleteAidantModalOpen,
+    selectedSenior,
+    selectedAidant,
+    setIsEditSeniorModalOpen,
+    setIsEditAidantModalOpen,
+    setIsDeleteSeniorModalOpen,
+    setIsDeleteAidantModalOpen
   } = useSeniors();
 
   console.log('UserManagement render:', { 
@@ -219,6 +238,36 @@ const UserManagement = () => {
           onUserAdded={handleUserAdded}
           onUserEdited={handleUserEdited}
           onUserDeleted={handleUserDeleted}
+        />
+
+        {/* Modales pour les seniors */}
+        <EditSeniorModal
+          isOpen={isEditSeniorModalOpen}
+          onClose={() => setIsEditSeniorModalOpen(false)}
+          senior={selectedSenior}
+          onSave={handleSaveSenior}
+        />
+
+        <DeleteSeniorModal
+          isOpen={isDeleteSeniorModalOpen}
+          onClose={() => setIsDeleteSeniorModalOpen(false)}
+          senior={selectedSenior}
+          onConfirm={handleConfirmDeleteSenior}
+        />
+
+        {/* Modales pour les aidants */}
+        <EditAidantModal
+          isOpen={isEditAidantModalOpen}
+          onClose={() => setIsEditAidantModalOpen(false)}
+          aidant={selectedAidant}
+          onSave={handleSaveAidant}
+        />
+
+        <DeleteAidantModal
+          isOpen={isDeleteAidantModalOpen}
+          onClose={() => setIsDeleteAidantModalOpen(false)}
+          aidant={selectedAidant}
+          onConfirm={handleConfirmDeleteAidant}
         />
       </div>
     </ProtectedRoute>

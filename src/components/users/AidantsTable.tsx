@@ -43,13 +43,15 @@ const AidantsTable = ({ aidants, onEditAidant, onDeleteAidant }: AidantsTablePro
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Aidant</TableHead>
+          <TableHead>Nom</TableHead>
+          <TableHead>Prénom</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>Téléphone</TableHead>
-          <TableHead>Tarif/h</TableHead>
-          <TableHead>Disponibilités</TableHead>
+          <TableHead>Genre</TableHead>
           <TableHead>Date d'inscription</TableHead>
           <TableHead>Statut</TableHead>
+          <TableHead>Tarif/h</TableHead>
+          <TableHead>Expérience</TableHead>
           <TableHead>Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -57,34 +59,27 @@ const AidantsTable = ({ aidants, onEditAidant, onDeleteAidant }: AidantsTablePro
         {aidants.map((aidant) => (
           <TableRow key={aidant.id}>
             <TableCell>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-medium text-sm">
-                    {aidant.prenom[0]}{aidant.nom[0]}
-                  </span>
-                </div>
-                <div>
-                  <p className="font-medium">{aidant.prenom} {aidant.nom}</p>
-                  <p className="text-sm text-gray-500">{aidant.profession || 'Aidant professionnel'}</p>
-                </div>
-              </div>
+              <div className="font-medium">{aidant.nom}</div>
+            </TableCell>
+            <TableCell>
+              <div className="font-medium">{aidant.prenom}</div>
             </TableCell>
             <TableCell>{aidant.email}</TableCell>
             <TableCell>{aidant.telephone}</TableCell>
-            <TableCell>
-              <span className="font-medium">{aidant.tarifHoraire || 0}€</span>
-            </TableCell>
-            <TableCell>
-              <div className="text-sm">
-                <div>{aidant.disponibilites?.jours?.join(', ') || 'Non renseigné'}</div>
-                <div className="text-gray-500">{aidant.disponibilites?.heures || ''}</div>
-              </div>
-            </TableCell>
+            <TableCell>{aidant.genre || 'Non renseigné'}</TableCell>
             <TableCell>
               {formatDate(aidant.dateInscription)}
             </TableCell>
             <TableCell>
               {getStatusBadge(aidant.statut)}
+            </TableCell>
+            <TableCell>
+              <span className="font-medium">{aidant.tarifHoraire || 0}€</span>
+            </TableCell>
+            <TableCell>
+              <div className="text-sm max-w-32 truncate" title={aidant.experience}>
+                {aidant.experience || 'Non renseigné'}
+              </div>
             </TableCell>
             <TableCell>
               <div className="flex items-center gap-2">
