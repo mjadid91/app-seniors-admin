@@ -1,128 +1,117 @@
 
-import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { UserCheck, Phone, MapPin, Star, Calendar, Eye } from "lucide-react";
 import { Aidant } from "../../types/seniors";
-import AidantDetailsModal from "../seniors/AidantDetailsModal";
+import { usePermissions, PERMISSIONS } from "../../hooks/usePermissions";
 
 interface AidantsTableProps {
   aidants: Aidant[];
+  onEditAidant: (aidant: Aidant) => void;
+  onDeleteAidant: (aidant: Aidant) => void;
 }
 
-const AidantsTable = ({ aidants }: AidantsTableProps) => {
-  const [selectedAidant, setSelectedAidant] = useState<Aidant | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+const AidantsTable = ({ aidants, onEditAidant, onDeleteAidant }: AidantsTableProps) => {
+  const { hasPermission, isViewer } = usePermissions();
+  const canManageUsers = hasPermission(PERMISSIONS.MANAGE_USERS);
 
-  const getStatusBadgeClass = (statut: string) => {
-    switch (statut) {
-      case 'actif':
-        return 'bg-green-100 text-green-700 border-green-200';
-      case 'inactif':
-        return 'bg-gray-100 text-gray-700 border-gray-200';
-      case 'en_attente':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
-    }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR');
   };
 
-  const handleViewDetails = (aidant: Aidant) => {
-    setSelectedAidant(aidant);
-    setIsModalOpen(true);
+  const getStatusBadge = (statut: string) => {
+    const statusConfig = {
+      'actif': { variant: 'default' as const, className: 'bg-green-50 text-green-700 border-green-200' },
+      'inactif': { variant: 'secondary' as const, className: 'bg-gray-50 text-gray-700 border-gray-200' },
+      'en_attente': { variant: 'outline' as const, className: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
+      'suspendu': { variant: 'destructive' as const, className: 'bg-red-50 text-red-700 border-red-200' }
+    };
+    
+    const config = statusConfig[statut as keyof typeof statusConfig] || statusConfig.inactif;
+    return <Badge variant={config.variant} className={config.className}>{statut.replace('_', ' ')}</Badge>;
   };
+
+  if (aidants.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">Aucun aidant trouvé</p>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nom & Prénom</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Localisation</TableHead>
-              <TableHead>Profession</TableHead>
-              <TableHead>Disponibilités</TableHead>
-              <TableHead>Évaluation</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {aidants.map((aidant) => (
-              <TableRow key={aidant.id}>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center">
-                      <UserCheck className="h-4 w-4 text-white" />
-                    </div>
-                    <div>
-                      <div className="font-medium">{aidant.prenom} {aidant.nom}</div>
-                      <div className="text-sm text-muted-foreground">{aidant.email}</div>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone className="h-4 w-4" />
-                    <span>{aidant.telephone}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="h-4 w-4" />
-                    <span>{aidant.ville || 'Non renseigné'}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <span className="font-medium text-sm">{aidant.profession}</span>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="h-4 w-4" />
-                    <span>{aidant.disponibilites?.heures || 'Non renseigné'}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {aidant.evaluations && aidant.evaluations.length > 0 ? (
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                      <span className="text-yellow-600 font-medium">
-                        {aidant.evaluations[0].note}/5
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">Aucune</span>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <Badge className={getStatusBadgeClass(aidant.statut)}>
-                    {aidant.statut.replace('_', ' ')}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Aidant</TableHead>
+          <TableHead>Email</TableHead>
+          <TableHead>Téléphone</TableHead>
+          <TableHead>Tarif/h</TableHead>
+          <TableHead>Disponibilités</TableHead>
+          <TableHead>Date d'inscription</TableHead>
+          <TableHead>Statut</TableHead>
+          <TableHead>Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {aidants.map((aidant) => (
+          <TableRow key={aidant.id}>
+            <TableCell>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-medium text-sm">
+                    {aidant.prenom[0]}{aidant.nom[0]}
+                  </span>
+                </div>
+                <div>
+                  <p className="font-medium">{aidant.prenom} {aidant.nom}</p>
+                  <p className="text-sm text-gray-500">{aidant.profession || 'Aidant professionnel'}</p>
+                </div>
+              </div>
+            </TableCell>
+            <TableCell>{aidant.email}</TableCell>
+            <TableCell>{aidant.telephone}</TableCell>
+            <TableCell>
+              <span className="font-medium">{aidant.tarifHoraire || 0}€</span>
+            </TableCell>
+            <TableCell>
+              <div className="text-sm">
+                <div>{aidant.disponibilites?.jours?.join(', ') || 'Non renseigné'}</div>
+                <div className="text-gray-500">{aidant.disponibilites?.heures || ''}</div>
+              </div>
+            </TableCell>
+            <TableCell>
+              {formatDate(aidant.dateInscription)}
+            </TableCell>
+            <TableCell>
+              {getStatusBadge(aidant.statut)}
+            </TableCell>
+            <TableCell>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  disabled={isViewer()}
+                  onClick={() => onEditAidant(aidant)}
+                >
+                  Modifier
+                </Button>
+                {canManageUsers && !isViewer() && (
                   <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleViewDetails(aidant)}
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-red-600 hover:text-red-700"
+                    onClick={() => onDeleteAidant(aidant)}
                   >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Voir
+                    Supprimer
                   </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      <AidantDetailsModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        aidant={selectedAidant}
-      />
-    </>
+                )}
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 };
 

@@ -1,140 +1,120 @@
 
-import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, Phone, MapPin, Heart, Eye } from "lucide-react";
 import { Senior } from "../../types/seniors";
-import SeniorDetailsModal from "../seniors/SeniorDetailsModal";
+import { usePermissions, PERMISSIONS } from "../../hooks/usePermissions";
 
 interface SeniorsTableProps {
   seniors: Senior[];
+  onEditSenior: (senior: Senior) => void;
+  onDeleteSenior: (senior: Senior) => void;
 }
 
-const SeniorsTable = ({ seniors }: SeniorsTableProps) => {
-  const [selectedSenior, setSelectedSenior] = useState<Senior | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+const SeniorsTable = ({ seniors, onEditSenior, onDeleteSenior }: SeniorsTableProps) => {
+  const { hasPermission, isViewer } = usePermissions();
+  const canManageUsers = hasPermission(PERMISSIONS.MANAGE_USERS);
 
-  const getHumeurColor = (humeur?: string) => {
-    switch (humeur) {
-      case 'tres_content':
-        return 'bg-green-100 text-green-700 border-green-200';
-      case 'content':
-        return 'bg-lime-100 text-lime-700 border-lime-200';
-      case 'neutre':
-        return 'bg-gray-100 text-gray-700 border-gray-200';
-      case 'triste':
-        return 'bg-orange-100 text-orange-700 border-orange-200';
-      case 'tres_triste':
-        return 'bg-red-100 text-red-700 border-red-200';
-      default:
-        return 'bg-gray-100 text-gray-700 border-gray-200';
-    }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR');
   };
 
-  const getHumeurLabel = (humeur?: string) => {
-    switch (humeur) {
-      case 'tres_content':
-        return 'Très content';
-      case 'content':
-        return 'Content';
-      case 'neutre':
-        return 'Neutre';
-      case 'triste':
-        return 'Triste';
-      case 'tres_triste':
-        return 'Très triste';
-      default:
-        return 'Non renseigné';
-    }
+  const getStatusBadge = (statut: string) => {
+    const statusConfig = {
+      'actif': { variant: 'default' as const, className: 'bg-green-50 text-green-700 border-green-200' },
+      'inactif': { variant: 'secondary' as const, className: 'bg-gray-50 text-gray-700 border-gray-200' },
+      'suspendu': { variant: 'destructive' as const, className: 'bg-red-50 text-red-700 border-red-200' }
+    };
+    
+    const config = statusConfig[statut as keyof typeof statusConfig] || statusConfig.inactif;
+    return <Badge variant={config.variant} className={config.className}>{statut}</Badge>;
   };
 
-  const handleViewDetails = (senior: Senior) => {
-    setSelectedSenior(senior);
-    setIsModalOpen(true);
+  const getAutonomieBadge = (niveau: string) => {
+    const autonomieConfig = {
+      'faible': { className: 'bg-red-50 text-red-700 border-red-200' },
+      'moyen': { className: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
+      'eleve': { className: 'bg-green-50 text-green-700 border-green-200' }
+    };
+    
+    const config = autonomieConfig[niveau as keyof typeof autonomieConfig] || autonomieConfig.moyen;
+    return <Badge variant="outline" className={config.className}>{niveau}</Badge>;
   };
+
+  if (seniors.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">Aucun senior trouvé</p>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nom & Prénom</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Localisation</TableHead>
-              <TableHead>Autonomie</TableHead>
-              <TableHead>Humeur du jour</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {seniors.map((senior) => (
-              <TableRow key={senior.id}>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-slate-400 to-slate-500 rounded-full flex items-center justify-center">
-                      <User className="h-4 w-4 text-white" />
-                    </div>
-                    <div>
-                      <div className="font-medium">{senior.prenom} {senior.nom}</div>
-                      <div className="text-sm text-muted-foreground">{senior.email}</div>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Phone className="h-4 w-4" />
-                    <span>{senior.telephone || 'Non renseigné'}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="h-4 w-4" />
-                    <span>{senior.ville || 'Non renseigné'}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="text-xs">
-                    {senior.niveauAutonomie}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-pink-500" />
-                    <Badge className={getHumeurColor(senior.humeurJour?.humeur)}>
-                      {getHumeurLabel(senior.humeurJour?.humeur)}
-                    </Badge>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge variant={senior.statut === 'actif' ? 'default' : 'secondary'}>
-                    {senior.statut}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Senior</TableHead>
+          <TableHead>Email</TableHead>
+          <TableHead>Téléphone</TableHead>
+          <TableHead>Autonomie</TableHead>
+          <TableHead>Date d'inscription</TableHead>
+          <TableHead>Statut</TableHead>
+          <TableHead>Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {seniors.map((senior) => (
+          <TableRow key={senior.id}>
+            <TableCell>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-medium text-sm">
+                    {senior.prenom[0]}{senior.nom[0]}
+                  </span>
+                </div>
+                <div>
+                  <p className="font-medium">{senior.prenom} {senior.nom}</p>
+                  <p className="text-sm text-gray-500">{senior.ville || 'Ville non renseignée'}</p>
+                </div>
+              </div>
+            </TableCell>
+            <TableCell>{senior.email}</TableCell>
+            <TableCell>{senior.telephone}</TableCell>
+            <TableCell>
+              {getAutonomieBadge(senior.niveauAutonomie || 'moyen')}
+            </TableCell>
+            <TableCell>
+              {formatDate(senior.dateInscription)}
+            </TableCell>
+            <TableCell>
+              {getStatusBadge(senior.statut)}
+            </TableCell>
+            <TableCell>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  disabled={isViewer()}
+                  onClick={() => onEditSenior(senior)}
+                >
+                  Modifier
+                </Button>
+                {canManageUsers && !isViewer() && (
                   <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleViewDetails(senior)}
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-red-600 hover:text-red-700"
+                    onClick={() => onDeleteSenior(senior)}
                   >
-                    <Eye className="h-4 w-4 mr-2" />
-                    Voir
+                    Supprimer
                   </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      <SeniorDetailsModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        senior={selectedSenior}
-      />
-    </>
+                )}
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 };
 

@@ -1,14 +1,19 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import UserStats from "./UserStats";
 import UserSearch from "./UserSearch";
 import UserTable from "./UserTable";
 import UserManagementActions from "./UserManagementActions";
 import UserManagementModals from "./UserManagementModals";
+import SeniorsTable from "./SeniorsTable";
+import AidantsTable from "./AidantsTable";
+import SeniorsStats from "../seniors/SeniorsStats";
 import { useUserManagement } from "./useUserManagement";
 import { useSupabaseUsers } from "../../hooks/useSupabaseUsers";
+import { useSeniors } from "../seniors/useSeniors";
 
 const UserManagement = () => {
   const {
@@ -33,11 +38,36 @@ const UserManagement = () => {
     setIsDeleteConfirmOpen
   } = useUserManagement();
 
-  const { loading, error, fetchUsers } = useSupabaseUsers();
+  const { loading: usersLoading, error: usersError, fetchUsers } = useSupabaseUsers();
 
-  console.log('UserManagement render:', { loading, error, users: users.length });
+  const {
+    searchTerm: seniorsSearchTerm,
+    seniors,
+    aidants,
+    filteredSeniors,
+    filteredAidants,
+    stats: seniorsStats,
+    loading: seniorsLoading,
+    error: seniorsError,
+    setSearchTerm: setSeniorsSearchTerm,
+    handleEditSenior,
+    handleDeleteSenior,
+    handleEditAidant,
+    handleDeleteAidant,
+    refetch: refetchSeniors
+  } = useSeniors();
 
-  if (loading) {
+  console.log('UserManagement render:', { 
+    usersLoading, 
+    usersError, 
+    users: users.length,
+    seniorsLoading,
+    seniorsError,
+    seniors: seniors.length,
+    aidants: aidants.length
+  });
+
+  if (usersLoading || seniorsLoading) {
     return (
       <ProtectedRoute requiredPage="users">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -50,7 +80,8 @@ const UserManagement = () => {
     );
   }
 
-  if (error) {
+  if (usersError || seniorsError) {
+    const error = usersError || seniorsError;
     return (
       <ProtectedRoute requiredPage="users">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -62,7 +93,10 @@ const UserManagement = () => {
             <p className="text-slate-600 mb-4">{error}</p>
             <div className="space-y-2">
               <Button 
-                onClick={() => fetchUsers()}
+                onClick={() => {
+                  fetchUsers();
+                  refetchSeniors();
+                }}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
                 Réessayer
@@ -86,33 +120,93 @@ const UserManagement = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold text-slate-800">Gestion des utilisateurs</h1>
-          <UserManagementActions 
-            users={users}
-            onAddUser={handleAddUser}
-          />
         </div>
 
-        <UserStats stats={stats} />
+        <Tabs defaultValue="admins" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="admins">Administratifs ({users.length})</TabsTrigger>
+            <TabsTrigger value="seniors">Seniors ({seniors.length})</TabsTrigger>
+            <TabsTrigger value="aidants">Aidants ({aidants.length})</TabsTrigger>
+          </TabsList>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Utilisateurs ({users.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <UserSearch 
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-            />
-            <UserTable 
-              users={filteredUsers}
-              onRoleChange={handleRoleChange}
-              onEditUser={handleEditUser}
-              onDeleteUser={handleDeleteUser}
-            />
-          </CardContent>
-        </Card>
+          <TabsContent value="admins" className="space-y-6">
+            <UserStats stats={stats} />
+            
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Utilisateurs administratifs</h2>
+              <UserManagementActions 
+                users={users}
+                onAddUser={handleAddUser}
+              />
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  Utilisateurs administratifs ({users.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <UserSearch 
+                  searchTerm={searchTerm}
+                  onSearchChange={setSearchTerm}
+                />
+                <UserTable 
+                  users={filteredUsers}
+                  onRoleChange={handleRoleChange}
+                  onEditUser={handleEditUser}
+                  onDeleteUser={handleDeleteUser}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="seniors" className="space-y-6">
+            <SeniorsStats stats={seniorsStats} />
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  Seniors ({seniors.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <UserSearch 
+                  searchTerm={seniorsSearchTerm}
+                  onSearchChange={setSeniorsSearchTerm}
+                />
+                <SeniorsTable 
+                  seniors={filteredSeniors}
+                  onEditSenior={handleEditSenior}
+                  onDeleteSenior={handleDeleteSenior}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="aidants" className="space-y-6">
+            <SeniorsStats stats={seniorsStats} />
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  Aidants ({aidants.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <UserSearch 
+                  searchTerm={seniorsSearchTerm}
+                  onSearchChange={setSeniorsSearchTerm}
+                />
+                <AidantsTable 
+                  aidants={filteredAidants}
+                  onEditAidant={handleEditAidant}
+                  onDeleteAidant={handleDeleteAidant}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         <UserManagementModals 
           isAddUserModalOpen={isAddUserModalOpen}

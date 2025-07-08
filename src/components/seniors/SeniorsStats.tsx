@@ -1,75 +1,54 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserCheck, Heart, Frown } from "lucide-react";
+import { Users, UserCheck, Heart, HeartHandshake } from "lucide-react";
+import { SeniorsStats as SeniorsStatsType } from "../../types/seniors";
 
 interface SeniorsStatsProps {
-  stats: {
-    totalSeniors: number;
-    seniorsActifs: number;
-    totalAidants: number;
-    aidantsActifs: number;
-    humeurPositive: number;
-    humeurNegative: number;
-  };
+  stats: SeniorsStatsType;
 }
 
 const SeniorsStats = ({ stats }: SeniorsStatsProps) => {
-  const statsCards = [
-    {
-      title: "Total Seniors",
-      value: stats.totalSeniors,
-      subtitle: `${stats.seniorsActifs} actifs`,
-      icon: Users,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50"
-    },
-    {
-      title: "Total Aidants",
-      value: stats.totalAidants,
-      subtitle: `${stats.aidantsActifs} actifs`,
-      icon: UserCheck,
-      color: "text-green-600",
-      bgColor: "bg-green-50"
-    },
-    {
-      title: "Humeur Positive",
-      value: stats.humeurPositive,
-      subtitle: "aujourd'hui",
-      icon: Heart,
-      color: "text-pink-600",
-      bgColor: "bg-pink-50"
-    },
-    {
-      title: "Humeur Négative",
-      value: stats.humeurNegative,
-      subtitle: "à surveiller",
-      icon: Frown,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50"
-    }
-  ];
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {statsCards.map((stat, index) => {
-        const Icon = stat.icon;
-        return (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">
-                {stat.title}
-              </CardTitle>
-              <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                <Icon className={`h-5 w-5 ${stat.color}`} />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-slate-800">{stat.value}</div>
-              <p className="text-xs text-slate-500 mt-1">{stat.subtitle}</p>
-            </CardContent>
-          </Card>
-        );
-      })}
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Total Seniors</CardTitle>
+          <Users className="h-4 w-4 text-blue-600" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-blue-600">{stats.totalSeniors}</div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Seniors Actifs</CardTitle>
+          <UserCheck className="h-4 w-4 text-green-600" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-green-600">{stats.seniorsActifs}</div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Total Aidants</CardTitle>
+          <HeartHandshake className="h-4 w-4 text-purple-600" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-purple-600">{stats.totalAidants}</div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Aidants Actifs</CardTitle>
+          <Heart className="h-4 w-4 text-green-600" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-green-600">{stats.aidantsActifs}</div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
