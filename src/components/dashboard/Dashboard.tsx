@@ -1,165 +1,83 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  Users,
-  Calendar,
-  Shield,
-  FileText,
-  DollarSign,
-  MessageSquare,
-  Activity,
-} from "lucide-react";
+
+import { Users, Calendar, Euro, Headphones } from "lucide-react";
 import StatsCard from "./StatsCard";
+import ActivityChart from "./ActivityChart";
 import RecentActivity from "./RecentActivity";
 import { useDashboardStats } from "./useDashboardStats";
 
 const Dashboard = () => {
   const { stats, loading, error } = useDashboardStats();
-  const navigate = useNavigate();
 
-  const statCards = [
-    {
-      title: "Utilisateurs actifs",
-      value: stats ? stats.utilisateurs.toLocaleString("fr-FR") : "-",
-      change: "",
-      trend: "up" as const,
-      icon: Users,
-      color: "blue" as const,
-    },
-    {
-      title: "Prestations ce mois",
-      value: stats ? stats.prestations.toLocaleString("fr-FR") : "-",
-      change: "",
-      trend: "up" as const,
-      icon: Calendar,
-      color: "green" as const,
-    },
-    {
-      title: "Messages actifs",
-      value: stats ? stats.messages.toLocaleString("fr-FR") : "-",
-      change: "",
-      trend: "up" as const,
-      icon: MessageSquare,
-      color: "purple" as const,
-    },
-    {
-      title: "Signalements",
-      value: stats ? stats.signalements.toLocaleString("fr-FR") : "-",
-      change: "",
-      trend: "down" as const,
-      icon: Shield,
-      color: "orange" as const,
-    },
-    {
-      title: "Revenus",
-      value: stats ? "€" + stats.revenus.toLocaleString("fr-FR") : "-",
-      change: "",
-      trend: "up" as const,
-      icon: DollarSign,
-      color: "green" as const,
-    },
-  ];
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600">Chargement du tableau de bord...</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Actions rapides : routes mises à jour
-  const quickActions = [
-    {
-      icon: Users,
-      title: "Gérer les utilisateurs",
-      desc: "Ajouter, modifier ou supprimer des comptes",
-      onClick: () => navigate("/users"),
-      iconColor: "text-blue-600",
-    },
-    {
-      icon: Calendar,
-      title: "Suivre les prestations",
-      desc: "Consulter et valider les services",
-      onClick: () => navigate("/prestations"),
-      iconColor: "text-green-600",
-    },
-    {
-      icon: Shield,
-      title: "Modération",
-      desc: "Examiner les signalements",
-      onClick: () => navigate("/moderation"),
-      iconColor: "text-orange-600",
-    },
-  ];
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-red-600 text-xl">⚠</span>
+          </div>
+          <h3 className="text-lg font-medium text-slate-800 mb-2">Erreur de chargement</h3>
+          <p className="text-slate-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-slate-800">Tableau de bord</h1>
-        <div className="flex items-center gap-2 text-sm text-slate-500 mt-2 sm:mt-0">
-          <Activity className="h-4 w-4" />
-          <span>
-            Dernière mise à jour :&nbsp;
-            <span className="font-semibold text-blue-700">
-              {new Date().toLocaleString("fr-FR", {
-                dateStyle: "short",
-                timeStyle: "short",
-              })}
-            </span>
-          </span>
+        <div className="text-sm text-slate-500">
+          Dernière mise à jour : {new Date().toLocaleTimeString('fr-FR')}
         </div>
       </div>
 
-      {/* Cartes statistiques */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
-        {loading ? (
-          <div className="col-span-5 text-center text-slate-500 py-12">
-            <span>Chargement des statistiques…</span>
-          </div>
-        ) : error ? (
-          <div className="col-span-5 text-center text-red-500 py-12">
-            <span>{error}</span>
-          </div>
-        ) : (
-          statCards.map((stat, index) => (
-            <StatsCard
-              key={stat.title}
-              className="animate-fade-in-up"
-              style={{ animationDelay: `${index * 100}ms` }}
-              {...stat}
-            />
-          ))
-        )}
+      {/* Cartes de statistiques */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatsCard
+          title="Utilisateurs totaux"
+          value={stats.totalUsers}
+          icon={Users}
+          trend={{ value: 12, isPositive: true }}
+        />
+        <StatsCard
+          title="Services actifs"
+          value={stats.activeServices}
+          icon={Calendar}
+          trend={{ value: 8, isPositive: true }}
+        />
+        <StatsCard
+          title="Revenus (Commissions)"
+          value={stats.totalRevenue}
+          icon={Euro}
+          trend={{ value: 23, isPositive: true }}
+          currency={true}
+        />
+        <StatsCard
+          title="Tickets Support"
+          value={stats.supportTickets}
+          icon={Headphones}
+          trend={{ value: 5, isPositive: false }}
+        />
       </div>
 
-      {/* Grille Activité récente + Actions rapides */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Activity className="h-5 w-5 text-blue-600" />
-            <h2 className="text-lg font-semibold text-slate-800">
-              Activité récente
-            </h2>
-          </div>
-          {/* Affichage activité */}
+      {/* Graphique d'activité */}
+      <div className="grid gap-4 md:grid-cols-7">
+        <div className="md:col-span-4">
+          <ActivityChart />
+        </div>
+        <div className="md:col-span-3">
           <RecentActivity />
-        </div>
-
-        {/* Actions rapides */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h2 className="text-lg font-semibold text-slate-800 mb-4">
-            Actions rapides
-          </h2>
-          <div className="space-y-3">
-            {quickActions.map((action, idx) => (
-              <button
-                key={action.title}
-                className="w-full text-left p-3 rounded-lg hover:bg-slate-50 transition-colors border border-slate-100 flex items-center gap-3"
-                onClick={action.onClick}
-                type="button"
-              >
-                <action.icon className={`h-5 w-5 ${action.iconColor}`} />
-                <div>
-                  <p className="font-medium text-slate-800">{action.title}</p>
-                  <p className="text-sm text-slate-500">{action.desc}</p>
-                </div>
-              </button>
-            ))}
-          </div>
         </div>
       </div>
     </div>

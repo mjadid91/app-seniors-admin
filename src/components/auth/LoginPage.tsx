@@ -1,132 +1,151 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuthStore } from "../../stores/authStore";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
-import { AlertCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { Eye, EyeOff, LogIn } from "lucide-react";
+import ForgotPasswordModal from "./ForgotPasswordModal";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const { setUser, setAuthenticated } = useAuthStore();
-  const { signIn, user, isAuthenticated } = useSupabaseAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+  const { signIn } = useSupabaseAuth();
   const navigate = useNavigate();
-
-  // Rediriger vers dashboard si déjà authentifié
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      console.log('LoginPage: User already authenticated, redirecting to dashboard');
-      navigate("/dashboard");
-    }
-  }, [isAuthenticated, user, navigate]);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setIsLoading(true);
-
-    if (!email.trim() || !password) {
-      setError("Veuillez saisir votre email et mot de passe");
-      setIsLoading(false);
-      return;
-    }
+    setLoading(true);
 
     try {
-      console.log('LoginPage: Attempting login for:', email);
-      const result = await signIn(email.trim(), password);
-
-      if (!result.success) {
-        setError(result.error || "Erreur de connexion");
+      const result = await signIn(email, password);
+      
+      if (result.success) {
+        toast({
+          title: "Connexion réussie",
+          description: "Bienvenue dans AppSeniors Admin",
+        });
+        navigate("/dashboard");
       } else {
-        console.log('LoginPage: Login successful, auth state will be handled by useSupabaseAuth');
-        // La redirection sera gérée par useEffect quand l'état d'auth changera
+        toast({
+          title: "Erreur de connexion",
+          description: result.error || "Email ou mot de passe incorrect",
+          variant: "destructive"
+        });
       }
-    } catch (err) {
-      setError("Une erreur est survenue lors de la connexion");
+    } catch (error) {
+      console.error('Erreur de connexion:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur inattendue s'est produite",
+        variant: "destructive"
+      });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
-      <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,#fff,rgba(255,255,255,0.6))]" />
-      <div className="w-full max-w-md mx-auto relative z-10">
-        <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-          <CardHeader className="text-center pb-2">
-            <div className="mx-auto mb-4 w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-xl">AS</span>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center pb-4">
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+              <span className="text-white font-bold text-lg">AS</span>
             </div>
-            <CardTitle className="text-2xl font-bold text-slate-800">AppSeniors Admin</CardTitle>
-            <CardDescription className="text-slate-600">
-              Connexion à l'interface d'administration
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-700 font-medium">Adresse email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@appseniors.fr"
-                  required
-                  className="border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
-                  disabled={isLoading}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-slate-700 font-medium">Mot de passe</Label>
+          </div>
+          <CardTitle className="text-2xl font-bold text-slate-800">
+            AppSeniors Admin
+          </CardTitle>
+          <p className="text-slate-600">
+            Connectez-vous à votre espace d'administration
+          </p>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+                placeholder="votre@email.com"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password">Mot de passe</Label>
+              <div className="relative">
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  disabled={loading}
+                  placeholder="Votre mot de passe"
                   required
-                  className="border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
-                  disabled={isLoading}
                 />
-              </div>
-              {error && (
-                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm animate-fade-in">
-                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                  {error}
-                </div>
-              )}
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200 hover:shadow-xl"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Connexion...
-                  </div>
-                ) : (
-                  "Se connecter"
-                )}
-              </Button>
-            </form>
-            <div className="mt-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-xs text-blue-800 font-medium mb-2">Informations importantes :</p>
-              <div className="text-xs text-blue-700 space-y-1">
-                <div><strong>Seuls les administrateurs, modérateurs, support et visualisateur</strong> peuvent se connecter</div>
-                <div>Utilisez l'email et mot de passe exacts de votre compte</div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="link"
+                className="px-0 text-sm text-blue-600 hover:text-blue-700"
+                onClick={() => setIsForgotPasswordOpen(true)}
+              >
+                Mot de passe oublié ?
+              </Button>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? (
+                "Connexion..."
+              ) : (
+                <>
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Se connecter
+                </>
+              )}
+            </Button>
+          </form>
+
+          <div className="mt-6 pt-6 border-t border-slate-200 text-center">
+            <p className="text-sm text-slate-600">
+              Plateforme d'administration AppSeniors
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <ForgotPasswordModal 
+        isOpen={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
+      />
     </div>
   );
 };
