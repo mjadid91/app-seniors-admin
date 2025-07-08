@@ -13,47 +13,50 @@ La page **Finances** (`Finances.tsx`) centralise la gestion des transactions fin
 - **Tabs** : Transactions et Gestion des Commissions
 - **Tableau** : Historique complet des transactions
 - **Métriques** : Montants, commissions, montants nets
-- **Tooltips** : Explications des calculs
+- **Tooltips** : Explications des calculs de commission
 
 ---
 
 ## 💳 Gestion des transactions
 
-### 📋 Affichage
-- **Colonnes** : Date, Type, Utilisateur, Montant, Commission, Net, Statut
+### 📋 Affichage (`TransactionTable`)
+- **Colonnes** : Date, Type, Utilisateur, Montant, Commission, Net, Statut, Actions
 - **Calculs automatiques** : Commission = Montant × Pourcentage
 - **Statuts** : Payé, En attente, Annulé, Remboursé
-- **Actions** : Menu déroulant par transaction
+- **Actions** : Menu déroulant par transaction (Voir, Modifier, Supprimer)
 
 ### ➕ Ajout (`AddTransactionModal.tsx`)
 - **Types supportés** :
   - Activité rémunérée (`AddActivityRevenueForm.tsx`)
   - Don (`AddDonForm.tsx`)
-  - Commande (`AddCommandeForm.tsx`)
+  - Commande (`AddCommandeForm.tsx`) 
   - Commission (`AddCommissionForm.tsx`)
   - Service post-mortem (`AddPostMortemForm.tsx`)
 
 ### ⚙️ Actions sur transactions
 
 #### 👁️ Détails (`TransactionDetailsModal.tsx`)
-- **Vue complète** : Toutes les informations
-- **Calculs détaillés** : Montant, commission, net
-- **Formules** : Explication des calculs
+- **Vue complète** : Toutes les informations de la transaction
+- **Calculs détaillés** : Montant, commission, net avec formules
+- **Interface** : Cards avec icônes et couleurs par type
+- **Formules** : Explication step-by-step des calculs
 
 #### ✏️ Modification (`EditTransactionModal.tsx`)
-- **Champs éditables** : Montant, statut, moyen de paiement
-- **Validation** : Contrôles de cohérence
-- **Mise à jour** : Tables concernées selon le type
+- **Champs éditables** : Montant, statut
+- **Validation** : Contrôles de cohérence des données
+- **Mise à jour** : Tables concernées selon le type de transaction
+- **Support** : Commande, Activité, PostMortem
 
 #### 🗑️ Suppression (`DeleteTransactionModal.tsx`)
-- **Confirmation** : Modal sécurisée avec détails
+- **Confirmation** : Modal sécurisée avec détails complets
 - **Impact** : Suppression transaction + commission associée
 - **Vérification** : Affichage des informations critiques
+- **Sécurité** : Avertissement irréversibilité
 
 #### 🔧 Menu actions (`TransactionActionsMenu.tsx`)
 - **Dropdown** : Actions disponibles par transaction
-- **Icônes** : Voir, Modifier, Supprimer
-- **Permissions** : Actions selon les droits
+- **Icônes** : Voir (Eye), Modifier (Edit), Supprimer (Trash)
+- **États** : Gestion des modals multiples
 
 ---
 
@@ -61,16 +64,15 @@ La page **Finances** (`Finances.tsx`) centralise la gestion des transactions fin
 
 ### ⚙️ Interface (`CommissionManagement.tsx`)
 - **Table** : Taux par type de transaction
-- **CRUD** : Ajout, modification, suppression des taux
-- **Types** : Commande, Activité, Post Mortem
+- **CRUD complet** : Ajout, modification, suppression des taux
+- **Types supportés** : Commande, Activité, Post Mortem
 - **Validation** : Contrôles 0-100% et types autorisés
+- **Interface** : Dialog pour édition, confirmation pour suppression
 
 ### 🔄 Calcul automatique
-- **Triggers Supabase** : Calcul à l'insertion
-- **Fonctions** :
-  - `create_commission_from_commande()`
-  - `create_commission_from_activite()`
-  - `create_commission_from_postmortem()`
+- **Taux par défaut** : 5% si aucun taux configuré
+- **Application** : Automatique lors du chargement des transactions
+- **Formule** : Commission = Montant × (Pourcentage / 100)
 
 ---
 
@@ -78,54 +80,64 @@ La page **Finances** (`Finances.tsx`) centralise la gestion des transactions fin
 
 ### 📊 Tables utilisées
 - **`ParametresCommission`** : Taux par type de transaction
-- **`VersementCommissions`** : Commissions calculées
 - **`Commande`** : Commandes marketplace
 - **`ActiviteRemuneree_Utilisateurs`** : Revenus activités
-- **`ServicePostMortem`** : Services post-mortem
-- **`DonCagnotte`** : Dons (sans commission)
+- **`Utilisateurs`** : Informations utilisateurs (nom, prénom)
 
-### 🔧 Fonctions automatiques
-- **Calcul de commission** : Automatique à l'insertion
-- **Pourcentages configurables** : Via table ParametresCommission
-- **Défaut 5%** : Si aucun taux configuré
+### 🔧 Relations
+- **Jointures** : Récupération des noms utilisateurs
+- **Calculs** : Commissions calculées côté client
+- **Tri** : Par date décroissante
 
 ---
 
 ## 🔧 Hook principal
 
 ### 📡 `useFinancesTransactions.ts`
-- **Requête unifiée** : Récupère toutes les transactions
-- **Jointures** : Avec utilisateurs et commissions
-- **Calculs** : Montants nets automatiques
-- **Types** : Différenciation par source de données
+- **Requête unifiée** : Récupère toutes les transactions de sources multiples
+- **Sources** : Commandes et Activités rémunérées
+- **Jointures** : Avec table Utilisateurs pour noms complets
+- **Calculs** : Commissions automatiques (5% par défaut)
+- **Tri** : Par date décroissante
+- **IDs tracking** : originalId, idCommande, idActiviteRemuneree pour actions
 
 ---
 
 ## 🎨 Interface
 
 ### 📱 Design responsive
-- **Tabs Shadcn/UI** : Navigation entre sections
+- **Tabs Shadcn/UI** : Navigation entre Transactions et Commissions
 - **Table responsive** : Défilement horizontal si nécessaire
-- **Tooltips** : Aide contextuelle sur les calculs
-- **Badges colorés** : Statuts et types visuels
+- **Tooltips** : Aide contextuelle sur calculs de commission
+- **Badges colorés** : Statuts (vert/jaune/gris) et types visuels
+- **Cards** : Présentation moderne pour détails
 
 ### 🔄 Fonctionnalités
-- **Tri** : Par toutes les colonnes
-- **Calculs temps réel** : Commissions et nets
-- **Actions contextuelles** : Menu par ligne
-- **Notifications** : Feedback via Sonner
+- **Actions contextuelles** : Menu dropdown par ligne
+- **Modals multiples** : Gestion d'état indépendante
+- **Notifications** : Feedback via Sonner toast
+- **Validation** : Contrôles formulaires avant soumission
+- **Calculs temps réel** : Affichage commission et net
 
 ---
 
-## 🎯 Résumé
+## 🎯 Fonctionnalités implémentées
 
-**Note importante** : Cette page ne contient que les éléments actuellement implémentés dans le code. Aucune fonctionnalité de filtrage avancé, export ou analytics n'est présente.
-
-La page Finances comprend :
-- Tableau des transactions avec calculs automatiques
-- Gestion des taux de commission configurables
-- Actions CRUD sur les transactions
-- Formulaires d'ajout par type de transaction
-- Calcul automatique des commissions via triggers Supabase
+### ✅ Actuellement disponible
+- Affichage transactions avec calculs automatiques
+- Gestion CRUD complète des taux de commission
+- Actions complètes sur transactions (voir/modifier/supprimer)
 - Interface moderne avec Tabs et composants Shadcn/UI
 - Tooltips explicatifs pour les calculs financiers
+- Support multi-types de transactions
+- Validation et feedback utilisateur
+
+### ⏳ Non implémenté
+- Triggers Supabase automatiques pour calculs
+- Export de données
+- Filtrage avancé par période/type
+- Analytics et graphiques
+- Historique des modifications
+- Justificatifs/documents attachés
+
+La page Finances offre une interface complète pour la gestion financière avec calculs automatiques et actions CRUD sur transactions et commissions.

@@ -3,104 +3,179 @@
 
 ## 🧭 Objectif
 
-La page **Utilisateurs** (`UserManagement.tsx`) permet de gérer les comptes utilisateurs administratifs de la plateforme AppSeniors.
+La page **Utilisateurs** centralise la gestion complète des utilisateurs de la plateforme AppSeniors, incluant les seniors, aidants, et autres types d'utilisateurs.
 
 ---
 
-## 👤 Types d'utilisateurs gérés
+## 📊 Composants principaux
 
-### 🛡️ Catégories administratives uniquement
-- **Administrateurs** : Accès complet à la plateforme
-- **Modérateurs** : Gestion du contenu et modération
-- **Support** : Assistance aux utilisateurs
-- **Visualisateurs** : Accès en lecture seule
-
-**Note importante** : Cette page ne gère QUE les utilisateurs administratifs, pas les seniors ni les aidants de la plateforme.
+### 👥 Interface principale (`UserManagement.tsx`)
+- **Tabs** : Seniors et Aidants
+- **Statistiques** : Cartes de métriques par catégorie
+- **Recherche** : Filtrage en temps réel
+- **Actions** : Ajout d'utilisateurs par type
 
 ---
 
-## 🔍 Composants implémentés
+## 👴 Gestion des Seniors
 
-### 📊 Statistiques (`UserStats.tsx`)
-- **Métriques** : Nombre d'utilisateurs par rôle
-- **Cartes** : Affichage visuel des statistiques
-- **Calculs** : Via `userStatsUtils.ts`
+### 📋 Affichage (`SeniorsTable.tsx`)
+- **Colonnes** : 
+  - Senior (avatar + nom/prénom + ville)
+  - Email, Téléphone, Genre
+  - Niveau autonomie (badges colorés)
+  - Date d'inscription, Statut
+  - Actions (Modifier/Supprimer)
 
-### 🔍 Recherche (`UserSearch.tsx`)
-- **Champ de recherche** : Filtrage par nom, email
-- **Filtres temps réel** : Mise à jour instantanée
-- **Utilities** : `userFilterUtils.ts` pour la logique
+### ➕ Ajout (`AddSeniorModal.tsx`)
+- **Formulaire complet** : Informations personnelles et préférences
+- **Champs** : Nom, prénom, email, téléphone, genre, ville, niveau autonomie
+- **Validation** : Contrôles email unique et champs requis
 
-### 📋 Tableau (`UserTable.tsx`)
-- **Affichage** : Liste des utilisateurs administratifs
-- **Colonnes** : Nom, Email, Rôle, Statut, Actions
-- **Actions** : Modifier, Supprimer, Changer de rôle
+### ✏️ Modification (`EditSeniorModal.tsx`)
+- **Édition** : Tous les champs modifiables
+- **Pré-remplissage** : Données existantes chargées automatiquement
+- **Mise à jour** : Refresh automatique après modification
 
----
-
-## ⚙️ Fonctionnalités de gestion
-
-### ➕ Création (`AddUserModal.tsx`)
-- **Formulaire** : Informations de base utilisateur
-- **Composants** :
-  - `UserCreationForm.tsx` : Formulaire principal
-  - `UserBasicInfoFields.tsx` : Champs de base
-  - `EmailField.tsx` : Validation email
-  - `RoleSelector.tsx` : Sélection du rôle
-  - `PasswordGenerator.tsx` : Génération de mot de passe
-
-### ✏️ Modification (`EditUserModal.tsx`)
-- **Édition** : Informations utilisateur existant
-- **Gestion des rôles** : `RoleManager.tsx`
-- **Préférences** : `PreferencesFields.tsx`
-
-### 🗑️ Suppression (`DeleteUserConfirm.tsx`)
-- **Confirmation** : Modal de confirmation sécurisée
-- **Vérification** : `PasswordConfirmation.tsx`
+### 🗑️ Suppression (`DeleteSeniorModal.tsx`)
+- **Confirmation** : Modal sécurisée avec détails
+- **Cascade** : Suppression senior + utilisateur associé
+- **Vérification** : Affichage des informations à supprimer
 
 ---
 
-## 🔧 Hooks et utilitaires
+## 🤝 Gestion des Aidants  
 
-### 📡 Hooks de données
-- **`useUserManagement.tsx`** : Logique principale
-- **`useSupabaseUsers.ts`** : Intégration Supabase
-- **`useEmailValidation.ts`** : Validation email
-- **`usePasswordUtils.ts`** : Utilitaires mot de passe
+### 📋 Affichage (`AidantsTable.tsx`)
+- **Colonnes** :
+  - Nom, Prénom, Email, Téléphone, Genre
+  - Date d'inscription, Statut (badges colorés)
+  - Tarif horaire, Expérience
+  - Actions (Modifier/Supprimer)
 
-### 🏗️ Hooks CRUD
-- **`useUserCrud.ts`** : Opérations Create/Update/Delete
-- **`useUserFetch.ts`** : Récupération des données
+### ➕ Ajout (`AddAidantModal.tsx`)
+- **Formulaire** : Informations personnelles + professionnelles
+- **Champs** : Données de base + tarif horaire + expérience
+- **Création** : Utilisateur + profil Aidant liés
 
-### 📊 Types et utilitaires
-- **`userTypes.ts`** : Définitions TypeScript
-- **`userMockData.ts`** : Données de test
-- **`userConversion.ts`** : Conversion de données
+### ✏️ Modification (`EditAidantModal.tsx`)
+- **Édition complète** : Informations personnelles et professionnelles
+- **Tarification** : Modification tarif horaire
+- **Expérience** : Mise à jour description
 
----
-
-## 🎨 Interface
-
-### 📱 Layout principal
-- **Header** : Titre et bouton d'ajout
-- **Stats** : Cartes de statistiques
-- **Search** : Barre de recherche
-- **Table** : Liste des utilisateurs
-- **Modals** : Actions CRUD
-
-### 🔄 États de l'interface
-- **Loading** : Skeletons pendant le chargement
-- **Empty** : Message si aucun utilisateur
-- **Error** : Gestion des erreurs
+### 🗑️ Suppression (`DeleteAidantModal.tsx`)
+- **Confirmation sécurisée** : Détails avant suppression
+- **Cascade** : Aidant + Utilisateur + relations
+- **Impact** : Vérification des dépendances
 
 ---
 
-## 🎯 Résumé
+## 📊 Statistiques (`UserStats.tsx`)
 
-La page Utilisateurs permet :
-- Gestion exclusive des utilisateurs administratifs
-- CRUD complet (Create, Read, Update, Delete)
+### 📈 Métriques affichées
+- **Total utilisateurs** : Comptage global
+- **Seniors actifs** : Statut actif uniquement  
+- **Aidants disponibles** : Aidants avec statut actif
+- **Nouvelles inscriptions** : Derniers 30 jours
+
+### 🎨 Présentation
+- **Cards** : Interface moderne avec icônes
+- **Couleurs** : Différenciation par type de métrique
+- **Animations** : Transitions fluides
+
+---
+
+## 🔍 Recherche et filtrage
+
+### 🔎 Composant recherche (`UserSearch.tsx`)
+- **Recherche temps réel** : Filtrage instantané
+- **Champs** : Nom, prénom, email
+- **Performance** : Debouncing pour optimisation
+
+### 🏷️ Badges et statuts
+- **Statuts** : actif (vert), inactif (gris), suspendu (rouge), en_attente (jaune)
+- **Autonomie** : faible (rouge), moyen (jaune), élevé (vert)
+- **Genre** : Affichage "Non renseigné" si vide ou "Non précisé"
+
+---
+
+## 🗄️ Base de données
+
+### 📊 Tables utilisées
+- **`Utilisateurs`** : Table principale des utilisateurs
+- **`Seniors`** : Profils seniors (niveau autonomie, ville)
+- **`Aidant`** : Profils aidants (tarif, expérience)
+- **`CatUtilisateurs`** : Catégories d'utilisateurs
+
+### 🔗 Relations
+- **Seniors** → Utilisateurs (IDUtilisateurs)
+- **Aidant** → Utilisateurs (IDUtilisateurs)
+- **Cascade** : Suppression en cascade lors de la suppression
+
+---
+
+## 🔧 Hooks personnalisés
+
+### 📡 `useSeniors.tsx`
+- **Récupération** : Seniors avec jointure Utilisateurs
+- **Mutations** : Ajout, modification, suppression
+- **Cache** : Invalidation automatique après modifications
+
+### 🔄 `useUserManagement.tsx`
+- **Gestion globale** : Coordination des actions utilisateurs
+- **États** : Modals, loading, erreurs
+- **Permissions** : Vérification des droits d'accès
+
+---
+
+## 🎨 Interface utilisateur
+
+### 📱 Design responsive
+- **Tables** : Défilement horizontal sur mobile
+- **Modals** : Adaptées aux petits écrans
+- **Navigation** : Tabs Shadcn/UI
+- **Formulaires** : Layout responsive avec grid
+
+### 🔄 Interactions
+- **Actions rapides** : Boutons modifier/supprimer
+- **Feedback** : Notifications toast
+- **Loading** : États de chargement
+- **Validation** : Messages d'erreur contextuels
+
+---
+
+## 🔐 Permissions
+
+### 👀 Rôles et accès
+- **Viewers** : Actions de modification désactivées
+- **Managers** : Accès complet CRUD
+- **Permissions** : Vérification via `usePermissions`
+
+### 🛡️ Sécurité
+- **Validation** : Côté client et serveur
+- **Confirmation** : Actions destructives sécurisées
+- **Audit** : Tracking des modifications
+
+---
+
+## 🎯 Fonctionnalités implémentées
+
+### ✅ Actuellement disponible
+- Gestion complète Seniors et Aidants
+- CRUD complet avec modals dédiées
 - Recherche et filtrage en temps réel
-- Statistiques par rôle administratif
-- Interface moderne avec Shadcn/UI
-- Hooks personnalisés pour la gestion des données
+- Statistiques et métriques
+- Interface responsive et moderne
+- Gestion des permissions et rôles
+- Validation et feedback utilisateur
+- Tables avec actions contextuelles
+
+### ⏳ Potentielles améliorations
+- Import/Export en masse
+- Historique des modifications
+- Photos de profil
+- Système de notifications
+- Analytics avancées
+- Filtrage avancé par critères multiples
+
+La page Utilisateurs offre une interface complète pour la gestion des utilisateurs avec des fonctionnalités CRUD avancées et une expérience utilisateur optimisée.

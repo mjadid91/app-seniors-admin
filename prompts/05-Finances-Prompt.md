@@ -2,214 +2,205 @@
 # 💰 Prompt Lovable - Gestion Financière
 
 ## 🎯 Objectif
-Créer la page de gestion des transactions financières avec calcul automatique des commissions.
+Créer la page de gestion des transactions financières avec calcul automatique des commissions et interface moderne.
 
-## 📋 Instructions
+## 📋 Instructions générales
 
 ### 1. Structure de la page
-Page `/finances` avec système d'onglets :
-- Onglet "Transactions" : historique complet
-- Onglet "Commissions" : gestion des taux
-- Tableaux avec tri et filtrage
-- Métriques financières en en-tête
+Page `/finances` avec système d'onglets Shadcn/UI :
+- **Onglet "Transactions"** : Historique complet avec tableau responsive
+- **Onglet "Commissions"** : Gestion des taux de commission
+- **Interface moderne** : Cards, tooltips, badges colorés
+- **Actions contextuelles** : Menu dropdown par transaction
 
-### 2. Types de données
+### 2. Types de données TypeScript
 ```typescript
-interface Transaction {
-  id: string;
-  date: Date;
-  type: 'Activité rémunérée' | 'Don cagnotte' | 'Commande' | 'Commission versée' | 'Service post-mortem';
+interface FinanceTransaction {
+  id: number;
+  originalId?: number;
+  idCommande?: number;
+  idActiviteRemuneree?: number;
+  idServicePostMortem?: number;
+  type: 'Commande' | 'Activite' | 'PostMortem' | 'Don';
   utilisateur: string;
   montant: number;
   commission: number;
-  montantNet: number;
+  date: string;
   statut: 'Payé' | 'En attente' | 'Annulé' | 'Remboursé';
-  moyenPaiement?: string;
 }
 
-interface ParametreCommission {
-  id: string;
-  typeTransaction: string;
-  pourcentage: number;
+interface CommissionRate {
+  TypeTransaction: string;
+  Pourcentage: number;
 }
 ```
 
 ### 3. Composants principaux
 
-#### Finances.tsx (Page principale)
-- Tabs Shadcn/UI
-- Métriques financières globales
-- Tableau des transactions
-- Section gestion des commissions
+#### `Finances.tsx` (Page principale)
+- **Tabs Shadcn/UI** : Navigation entre sections
+- **TooltipProvider** : Explications des calculs
+- **Bouton ajout** : Modal d'ajout de transaction
+- **Tableau responsive** : Avec scroll horizontal si nécessaire
 
-#### FinancesStats.tsx
-- Chiffre d'affaires total
-- Commissions générées
-- Revenus nets
-- Nombre de transactions
-- Graphique d'évolution mensuelle
+#### `TransactionActionsMenu.tsx`
+- **DropdownMenu** : Actions Voir/Modifier/Supprimer
+- **États multiples** : Gestion indépendante des modals
+- **Icônes Lucide** : Eye, Edit, Trash2
 
-#### TransactionTable.tsx
-Colonnes :
-- Date (formatée)
-- Type (badge coloré)
-- Utilisateur (nom complet)
-- Montant (€, formaté)
-- Commission (€, avec tooltip calcul)
-- Net (€, formaté)
-- Statut (badge)
-- Actions (menu dropdown)
+### 4. Modals de gestion
 
-### 4. Calculs automatiques
+#### `TransactionDetailsModal.tsx`
+- **Cards informatives** : Informations générales + calculs financiers
+- **Icônes contextuelles** : Calculator, DollarSign, Percent, Receipt
+- **Calculs détaillés** : Formule step-by-step affichée
+- **Layout responsive** : Grid adaptatif
+
+#### `EditTransactionModal.tsx`
+- **Formulaire** : Montant et statut éditables
+- **Select Shadcn/UI** : Pour les statuts
+- **Validation** : Contrôles montant positif
+- **Support multi-types** : Commande, Activité, PostMortem
+
+#### `DeleteTransactionModal.tsx`
+- **Confirmation sécurisée** : Affichage détails complets
+- **AlertTriangle** : Icône d'avertissement
+- **Informations critiques** : Type, montant, utilisateur, ID
+- **Gestion d'erreurs** : Try/catch avec logs détaillés
+
+#### `AddTransactionModal.tsx`
+- **Sélection type** : Dropdown pour choisir le type
+- **Formulaires conditionnels** : Un composant par type
+- **État local** : Gestion du type sélectionné
+- **Réinitialisation** : Reset à la fermeture
+
+### 5. Gestion des commissions
+
+#### `CommissionManagement.tsx`
+- **Table Shadcn/UI** : Affichage des taux
+- **Dialog d'édition** : Modal pour ajouter/modifier
+- **Validation** : Pourcentage 0-100%
+- **CRUD complet** : Ajout, modification, suppression
+- **Types supportés** : Commande, Activité, PostMortem
+
+### 6. Hook principal
+
+#### `useFinancesTransactions.ts`
 ```typescript
-// Formules de calcul
-const calculerCommission = (montant: number, pourcentage: number) => {
-  return montant * (pourcentage / 100);
-};
+export const useFinancesTransactions = () => {
+  return useQuery<FinanceTransaction[]>({
+    queryKey: ["finances-transactions"],
+    queryFn: async () => {
+      // Récupération des commandes
+      const { data: commandes } = await supabase
+        .from("Commande")
+        .select(`IDCommande, MontantTotal, StatutCommande, DateCommande, IDUtilisateurPayeur`);
 
-const calculerNet = (montant: number, commission: number) => {
-  return montant - commission;
-};
-```
+      // Récupération des activités
+      const { data: activites } = await supabase
+        .from("ActiviteRemuneree_Utilisateurs") 
+        .select(`IDActiviteRemuneree, MontantRevenu, StatutPaiement, DateTransaction, IDUtilisateurs`);
 
-### 5. Modals de gestion
+      // Récupération des utilisateurs en une requête
+      const allUserIds = [...commandes.map(c => c.IDUtilisateurPayeur), ...activites.map(a => a.IDUtilisateurs)];
+      const { data: users } = await supabase
+        .from("Utilisateurs")
+        .select("IDUtilisateurs, Nom, Prenom")
+        .in("IDUtilisateurs", uniqueUserIds);
 
-#### AddTransactionModal.tsx
-Formulaire dynamique selon le type :
-- Sélection du type de transaction
-- Champs conditionnels selon le type
-- Calcul automatique de la commission
-- Aperçu du montant net
-
-#### TransactionDetailsModal.tsx
-- Détails complets de la transaction
-- Formule de calcul de commission
-- Historique des modifications
-- Justificatifs/documents
-
-#### EditTransactionModal.tsx
-- Modification des montants
-- Changement de statut
-- Mise à jour des moyens de paiement
-- Recalcul automatique
-
-#### DeleteTransactionModal.tsx
-- Confirmation avec impact
-- Suppression transaction + commission
-- Avertissement irréversibilité
-
-#### TransactionActionsMenu.tsx
-- Dropdown avec actions contextuelles
-- Voir détails
-- Modifier
-- Supprimer
-- Télécharger reçu
-
-### 6. Gestion des commissions
-
-#### CommissionManagement.tsx
-- Tableau des taux par type
-- CRUD complet sur les taux
-- Validation 0-100%
-- Historique des modifications
-
-#### Taux par défaut
-```typescript
-const TAUX_DEFAUT = {
-  'Commande': 10.0,
-  'Activite': 15.0,
-  'PostMortem': 5.0,
-  'Don': 0.0 // Pas de commission sur les dons
+      // Transformation et calculs
+      const transactions: FinanceTransaction[] = [];
+      
+      // Processing commandes + activités avec commission 5% par défaut
+      // Tri par date décroissante
+    },
+  });
 };
 ```
 
-### 7. Hooks personnalisés
-
-#### useFinancesTransactions.ts
-```typescript
-interface FinancesHookReturn {
-  transactions: Transaction[];
-  parametresCommission: ParametreCommission[];
-  loading: boolean;
-  error: string | null;
-  addTransaction: (data: CreateTransactionData) => Promise<void>;
-  updateTransaction: (id: string, data: Partial<Transaction>) => Promise<void>;
-  deleteTransaction: (id: string) => Promise<void>;
-  updateCommissionRate: (type: string, pourcentage: number) => Promise<void>;
-}
-```
-
-### 8. Intégration Supabase
+### 7. Intégration Supabase
 
 #### Tables utilisées
-- `VersementCommissions` : commissions calculées
-- `ParametresCommission` : taux par type
-- `Commande` : commandes marketplace
-- `ActiviteRemuneree_Utilisateurs` : revenus activités
-- `DonCagnotte` : dons (sans commission)
-- `ServicePostMortem` : services post-mortem
+- **`Commande`** : Commandes marketplace (MontantTotal, StatutCommande, DateCommande)
+- **`ActiviteRemuneree_Utilisateurs`** : Revenus activités (MontantRevenu, StatutPaiement)
+- **`Utilisateurs`** : Noms complets (Nom, Prenom)
+- **`ParametresCommission`** : Taux configurables (TypeTransaction, Pourcentage)
 
-#### Triggers automatiques
-- Calcul commission à l'insertion
-- Mise à jour des montants nets
-- Vérification des contraintes
+#### Calculs côté client
+```typescript
+const commission = montant * 0.05; // 5% par défaut
+const montantNet = montant - commission;
+const pourcentage = ((commission / montant) * 100).toFixed(2);
+```
 
-### 9. Fonctionnalités avancées
+### 8. Interface utilisateur moderne
 
-#### Filtrage et recherche
-- Filtrage par période
-- Filtrage par type de transaction
-- Recherche par utilisateur
-- Filtrage par statut
+#### Design Shadcn/UI
+- **Tabs** : Navigation fluide entre sections
+- **Tables** : Headers fixes, lignes hover
+- **Badges** : Colorés par statut (vert=payé, jaune=attente, gris=autres)
+- **Tooltips** : Explications des calculs avec icône Info
+- **Cards** : Présentation élégante pour détails
 
-#### Exportation
-- Export CSV avec filtres
-- Rapports périodiques
-- Graphiques exportables
-- Données comptables
+#### Responsive design
+- **Tables** : `overflow-x-auto` pour scroll horizontal
+- **Grids** : Adaptation mobile avec `grid-cols-1 md:grid-cols-3`
+- **Modals** : `max-w-2xl` pour les détails, standard pour édition
+- **Spacing** : Utilisation cohérente des classes Tailwind
 
-#### Analytics
-- Graphiques de tendances
-- Répartition par type
-- Top utilisateurs
-- Évolution mensuelle
+### 9. Validation et feedback
 
-### 10. Interface utilisateur
+#### Contrôles
+- **Montants** : Positifs, format décimal
+- **Pourcentages** : Entre 0 et 100
+- **Statuts** : Valeurs autorisées uniquement
+- **Types** : Selon enum défini
 
-#### Design
-- Tableau responsive avec scroll horizontal
-- Tooltips explicatifs sur calculs
-- Badges colorés par statut/type
-- Formatage monétaire cohérent
+#### Notifications
+- **Toast Sonner** : Feedback sur toutes les actions
+- **Messages contextuels** : Succès, erreurs, avertissements
+- **Loading states** : Boutons désactivés pendant traitement
 
-#### Interactions
-- Tri par colonnes
-- Pagination intelligente
-- Actions en lot
-- Recherche temps réel
+### 10. Optimisations
 
-### 11. Validation et sécurité
-- Validation des montants positifs
-- Vérification des taux 0-100%
-- Audit trail des modifications
-- Contrôle d'accès strict
+#### Performance
+- **React Query** : Cache intelligent des données
+- **Jointures optimisées** : Une requête utilisateurs pour tous les IDs
+- **Memoization** : Calculs répétitifs évités
+- **Lazy loading** : Modals chargées à la demande
 
-### 12. Optimisations
-- Memoization des calculs
-- Pagination côté serveur
-- Cache intelligent
-- Calculs en temps réel
+#### UX/UI
+- **États de chargement** : Skeleton ou spinners
+- **Actions désactivées** : Pendant les opérations
+- **Confirmations** : Pour actions destructives
+- **Tooltips informatifs** : Aide contextuelle
 
-### 13. Tooltips et aide
-- Explication des formules
-- Aide contextuelle
-- Glossaire financier
-- FAQ intégrée
+### 11. Gestion d'erreurs
 
-### 14. Notifications
-- Alertes sur anomalies
-- Notifications de paiement
-- Rappels d'échéance
-- Alertes de seuil
+#### Logs détaillés
+```typescript
+console.log("Récupération des transactions...");
+console.log("Transactions récupérées:", transactions);
+console.error("Erreur lors de la suppression:", error);
+```
 
-Créez une interface financière complète avec calculs automatiques, gestion des commissions et reporting avancé, optimisée pour les besoins comptables et administratifs.
+#### Try/catch robuste
+- **Opérations Supabase** : Gestion des erreurs réseau
+- **Validation** : Contrôles avant soumission
+- **Fallbacks** : Valeurs par défaut si données manquantes
+
+### 12. Accessibilité et UX
+
+#### Accessibilité
+- **Labels** : Tous les inputs ont des labels
+- **ARIA** : Descriptions pour éléments complexes
+- **Keyboard navigation** : Support complet
+- **Contrast** : Respect des ratios WCAG
+
+#### Expérience utilisateur
+- **Feedback immédiat** : Actions confirmées visuellement
+- **Undo possible** : Pour actions non-destructives
+- **États persistants** : Préservation des filtres
+- **Navigation intuitive** : Breadcrumbs si nécessaire
+
+Créez une interface financière moderne et complète avec calculs automatiques, gestion des commissions, et expérience utilisateur optimisée pour les besoins administratifs.
