@@ -1,18 +1,17 @@
+
 import { useState } from "react";
-import { Shield, Eye, Download, Lock, Calendar, FileText, TestTube } from "lucide-react";
+import { Shield, Eye, Download, Lock, Calendar, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useAuthStore } from "@/stores/authStore";
 import { usePatrimonialDocuments } from "./usePatrimonialDocuments";
 import AddPatrimonialDocumentModal from "./AddPatrimonialDocumentModal";
-import AddPatrimonialDocumentTestModal from "./AddPatrimonialDocumentTestModal";
 import ViewPatrimonialDocumentModal from "./ViewPatrimonialDocumentModal";
 
 const PatrimonialDocuments = () => {
   const { user } = useAuthStore();
   const { isAdmin } = usePermissions();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isTestAddModalOpen, setIsTestAddModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState(null);
 
@@ -34,7 +33,8 @@ const PatrimonialDocuments = () => {
 
   const canDownload = (doc: any) => {
     // Seuls les seniors propriétaires peuvent télécharger leurs propres documents
-    return user?.role === 'support' && doc.IDSeniors === user?.id;
+    const userIdAsNumber = parseInt(user?.id || '0');
+    return user?.role === 'support' && doc.IDSeniors === userIdAsNumber;
   };
 
   const canViewContent = (doc: any) => {
@@ -93,29 +93,15 @@ const PatrimonialDocuments = () => {
             </div>
           </div>
           
-          <div className="flex gap-2">
-            {/* Bouton test pour ajouter un document */}
-            {isAdmin() && (
-              <Button
-                onClick={() => setIsTestAddModalOpen(true)}
-                variant="outline"
-                className="border-yellow-300 text-yellow-700 hover:bg-yellow-50"
-              >
-                <TestTube className="h-4 w-4 mr-2" />
-                Test Ajout
-              </Button>
-            )}
-            
-            {user?.role === 'support' && (
-              <Button
-                onClick={() => setIsAddModalOpen(true)}
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                Ajouter un document
-              </Button>
-            )}
-          </div>
+          {user?.role === 'support' && (
+            <Button
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Ajouter un document
+            </Button>
+          )}
         </div>
 
         {/* Message d'information sur la confidentialité */}
@@ -216,12 +202,6 @@ const PatrimonialDocuments = () => {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onUploadSuccess={refetchDocuments}
-      />
-
-      <AddPatrimonialDocumentTestModal
-        isOpen={isTestAddModalOpen}
-        onClose={() => setIsTestAddModalOpen(false)}
-        onSuccess={refetchDocuments}
       />
 
       <ViewPatrimonialDocumentModal
