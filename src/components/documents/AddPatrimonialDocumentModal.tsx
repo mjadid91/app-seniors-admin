@@ -84,6 +84,7 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
       return;
     }
 
+    console.log('Début de l\'upload pour l\'utilisateur:', user.id, 'avec le rôle:', user.role);
     setUploading(true);
 
     try {
@@ -91,31 +92,47 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
+      console.log('Upload du fichier:', fileName);
       const { error: uploadError, data: uploadData } = await supabase.storage
         .from('documents')
         .upload(`patrimonial/${fileName}`, file);
 
       if (uploadError) {
+        console.error('Erreur upload:', uploadError);
         throw uploadError;
       }
+
+      console.log('Fichier uploadé avec succès:', uploadData);
 
       // 2. Obtenir l'URL publique du fichier
       const { data: { publicUrl } } = supabase.storage
         .from('documents')
         .getPublicUrl(`patrimonial/${fileName}`);
 
-      // 3. Insérer l'enregistrement dans la base de données
-      const { error: insertError } = await supabase
+      console.log('URL publique générée:', publicUrl);
+
+      // 3. Insertion simple dans DocumentPatrimonial
+      console.log('Insertion dans DocumentPatrimonial avec:', {
+        TypeDocument: documentType,
+        URLDocument: publicUrl,
+        IDSeniors: parseInt(user.id)
+      });
+
+      const { error: insertError, data: insertData } = await supabase
         .from('DocumentPatrimonial')
         .insert({
           TypeDocument: documentType,
           URLDocument: publicUrl,
           IDSeniors: parseInt(user.id)
-        });
+        })
+        .select();
 
       if (insertError) {
+        console.error('Erreur insertion BD:', insertError);
         throw insertError;
       }
+
+      console.log('Document inséré avec succès:', insertData);
 
       toast({
         title: "Document ajouté avec succès",
@@ -129,7 +146,7 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
       console.error('Erreur lors de l\'ajout du document:', error);
       toast({
         title: "Erreur",
-        description: "Impossible d'ajouter le document. Veuillez réessayer.",
+        description: `Impossible d'ajouter le document: ${error}`,
         variant: "destructive",
       });
     } finally {
