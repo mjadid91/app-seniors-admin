@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/stores/authStore";
-import { Upload, X, Shield } from "lucide-react";
+import { Upload, X } from "lucide-react";
 
 interface AddPatrimonialDocumentModalProps {
   isOpen: boolean;
@@ -37,7 +37,7 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
-      // Vérification de la taille du fichier (max 10MB pour documents sensibles)
+      // Vérification de la taille du fichier (max 10MB)
       if (selectedFile.size > 10 * 1024 * 1024) {
         toast({
           title: "Fichier trop volumineux",
@@ -65,7 +65,7 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!documentType || !file) {
+    if (!documentType || !file || !user) {
       toast({
         title: "Champs requis",
         description: "Veuillez sélectionner un type de document et un fichier.",
@@ -74,7 +74,8 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
       return;
     }
 
-    if (user?.role !== 'support') {
+    // Vérifier que l'utilisateur est bien un senior (support)
+    if (user.role !== 'support') {
       toast({
         title: "Accès refusé",
         description: "Seuls les seniors peuvent ajouter des documents patrimoniaux.",
@@ -86,25 +87,30 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
     setUploading(true);
 
     try {
-      // Upload du fichier vers Supabase Storage (bucket sécurisé)
+      // 1. Upload du fichier vers Supabase Storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('documents-patrimoniaux')
-        .upload(fileName, file);
+      
+      const { error: uploadError, data: uploadData } = await supabase.storage
+        .from('documents')
+        .upload(`patrimonial/${fileName}`, file);
 
       if (uploadError) {
         throw uploadError;
       }
 
-      // Insertion des métadonnées dans la base de données
+      // 2. Obtenir l'URL publique du fichier
+      const { data: { publicUrl } } = supabase.storage
+        .from('documents')
+        .getPublicUrl(`patrimonial/${fileName}`);
+
+      // 3. Insérer l'enregistrement dans la base de données
       const { error: insertError } = await supabase
         .from('DocumentPatrimonial')
         .insert({
           TypeDocument: documentType,
-          URLDocument: fileName,
-          IDSeniors: parseInt(user.id),
+          URLDocument: publicUrl,
+          IDSeniors: parseInt(user.id)
         });
 
       if (insertError) {
@@ -112,8 +118,8 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
       }
 
       toast({
-        title: "Document ajouté",
-        description: "Votre document patrimonial a été ajouté avec succès.",
+        title: "Document ajouté avec succès",
+        description: `Le document ${documentType} a été ajouté à vos documents patrimoniaux.`,
       });
 
       onUploadSuccess();
@@ -145,24 +151,11 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-red-600" />
+          <DialogTitle className="flex items-center gap-2 text-red-700">
+            <Upload className="h-5 w-5" />
             Ajouter un document patrimonial
           </DialogTitle>
         </DialogHeader>
-
-        {/* Avertissement de confidentialité */}
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-          <div className="flex items-start gap-2">
-            <Shield className="h-4 w-4 text-red-600 mt-0.5" />
-            <div>
-              <p className="text-sm text-red-800 font-medium">Document hautement confidentiel</p>
-              <p className="text-xs text-red-700 mt-1">
-                Ce document sera stocké de manière sécurisée et ne sera accessible qu'à vous-même.
-              </p>
-            </div>
-          </div>
-        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

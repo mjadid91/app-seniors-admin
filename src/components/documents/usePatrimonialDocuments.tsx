@@ -48,6 +48,7 @@ export const usePatrimonialDocuments = () => {
         return;
       }
 
+      console.log('Documents patrimoniaux récupérés:', data);
       setDocuments(data || []);
     } catch (err) {
       console.error('Erreur lors de la récupération des documents patrimoniaux:', err);
@@ -80,11 +81,12 @@ export const usePatrimonialDocuments = () => {
     }
 
     try {
-      // Ici, on pourrait implémenter le téléchargement sécurisé
-      // Pour l'instant, on affiche un message
+      // Ouvrir le document dans un nouvel onglet
+      window.open(doc.URLDocument, '_blank');
+      
       toast({
         title: "Téléchargement",
-        description: `Téléchargement de ${doc.TypeDocument} (fonctionnalité à implémenter)`,
+        description: `Ouverture de ${doc.TypeDocument}`,
       });
     } catch (error) {
       console.error('Erreur lors du téléchargement:', error);
