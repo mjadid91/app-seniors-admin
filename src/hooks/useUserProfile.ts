@@ -37,11 +37,28 @@ export const useUserProfile = () => {
 
   // Charger le profil utilisateur depuis la base de données
   const loadProfile = async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.log('useUserProfile: No valid user ID available');
+      return;
+    }
+
+    // Convert user ID to integer, but validate it first
+    const userId = parseInt(user.id);
+    if (isNaN(userId)) {
+      console.warn('useUserProfile: Cannot convert user ID to integer:', user.id);
+      // If we can't convert to integer, use the basic user data from auth
+      setProfile(prev => ({
+        ...prev,
+        nom: user.nom || '',
+        prenom: user.prenom || '',
+        email: user.email || '',
+      }));
+      return;
+    }
 
     setIsLoading(true);
     try {
-      console.log('Chargement du profil pour l\'utilisateur ID:', user.id);
+      console.log('Chargement du profil pour l\'utilisateur ID:', userId);
       
       // Charger les données utilisateur de base
       const { data: userData, error: userError } = await supabase
@@ -53,16 +70,18 @@ export const useUserProfile = () => {
           Telephone,
           Photo
         `)
-        .eq('IDUtilisateurs', parseInt(user.id))
+        .eq('IDUtilisateurs', userId)
         .single();
 
       if (userError) {
         console.error('Erreur lors du chargement des données utilisateur:', userError);
-        toast({
-          title: "Erreur",
-          description: "Impossible de charger vos informations de base.",
-          variant: "destructive",
-        });
+        // Use the data from auth store as fallback
+        setProfile(prev => ({
+          ...prev,
+          nom: user.nom || '',
+          prenom: user.prenom || '',
+          email: user.email || '',
+        }));
         return;
       }
 
@@ -76,7 +95,7 @@ export const useUserProfile = () => {
             Titre
           )
         `)
-        .eq('IDUtilisateurs', parseInt(user.id))
+        .eq('IDUtilisateurs', userId)
         .single();
 
       if (langueError && langueError.code !== 'PGRST116') {
@@ -92,7 +111,7 @@ export const useUserProfile = () => {
             Titre
           )
         `)
-        .eq('IDUtilisateurs', parseInt(user.id))
+        .eq('IDUtilisateurs', userId)
         .single();
 
       if (deviseError && deviseError.code !== 'PGRST116') {
@@ -143,7 +162,22 @@ export const useUserProfile = () => {
 
   // Sauvegarder le profil utilisateur dans la base de données
   const saveProfile = async (updatedProfile: Partial<UserProfile>) => {
-    if (!user?.id) return false;
+    if (!user?.id) {
+      console.log('useUserProfile: No valid user ID available for save');
+      return false;
+    }
+
+    // Convert user ID to integer, but validate it first
+    const userId = parseInt(user.id);
+    if (isNaN(userId)) {
+      console.warn('useUserProfile: Cannot convert user ID to integer for save:', user.id);
+      toast({
+        title: "Erreur",
+        description: "ID utilisateur invalide pour la sauvegarde.",
+        variant: "destructive",
+      });
+      return false;
+    }
 
     setIsSaving(true);
     try {
@@ -159,7 +193,7 @@ export const useUserProfile = () => {
           Telephone: updatedProfile.telephone,
           DateModification: new Date().toISOString()
         })
-        .eq('IDUtilisateurs', parseInt(user.id));
+        .eq('IDUtilisateurs', userId);
 
       if (userError) {
         console.error('Erreur lors de la mise à jour utilisateur:', userError);
@@ -177,7 +211,7 @@ export const useUserProfile = () => {
         const { data: existingLangue } = await supabase
           .from('Langue_Utilisateurs')
           .select('IDUtilisateurs')
-          .eq('IDUtilisateurs', parseInt(user.id))
+          .eq('IDUtilisateurs', userId)
           .single();
 
         if (existingLangue) {
@@ -188,7 +222,7 @@ export const useUserProfile = () => {
               IDLangue: updatedProfile.langueId,
               NiveauLangue: updatedProfile.niveauLangue || 5
             })
-            .eq('IDUtilisateurs', parseInt(user.id));
+            .eq('IDUtilisateurs', userId);
 
           if (langueUpdateError) {
             console.error('Erreur mise à jour langue:', langueUpdateError);
@@ -198,7 +232,7 @@ export const useUserProfile = () => {
           const { error: langueInsertError } = await supabase
             .from('Langue_Utilisateurs')
             .insert({
-              IDUtilisateurs: parseInt(user.id),
+              IDUtilisateurs: userId,
               IDLangue: updatedProfile.langueId,
               NiveauLangue: updatedProfile.niveauLangue || 5
             });
@@ -215,7 +249,7 @@ export const useUserProfile = () => {
         const { data: existingDevise } = await supabase
           .from('Devise_Utilisateurs')
           .select('IDUtilisateurs')
-          .eq('IDUtilisateurs', parseInt(user.id))
+          .eq('IDUtilisateurs', userId)
           .single();
 
         if (existingDevise) {
@@ -225,7 +259,7 @@ export const useUserProfile = () => {
             .update({
               IDDevise: updatedProfile.deviseId
             })
-            .eq('IDUtilisateurs', parseInt(user.id));
+            .eq('IDUtilisateurs', userId);
 
           if (deviseUpdateError) {
             console.error('Erreur mise à jour devise:', deviseUpdateError);
@@ -235,7 +269,7 @@ export const useUserProfile = () => {
           const { error: deviseInsertError } = await supabase
             .from('Devise_Utilisateurs')
             .insert({
-              IDUtilisateurs: parseInt(user.id),
+              IDUtilisateurs: userId,
               IDDevise: updatedProfile.deviseId
             });
 

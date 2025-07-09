@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -13,6 +14,18 @@ export const useProfileImage = () => {
       toast({
         title: "Erreur",
         description: "Vous devez être connecté pour uploader une photo",
+        variant: "destructive"
+      });
+      return null;
+    }
+
+    // Convert user ID to integer, but validate it first
+    const userId = parseInt(user.id);
+    if (isNaN(userId)) {
+      console.warn('useProfileImage: Cannot convert user ID to integer:', user.id);
+      toast({
+        title: "Erreur",
+        description: "ID utilisateur invalide pour l'upload",
         variant: "destructive"
       });
       return null;
@@ -80,7 +93,7 @@ export const useProfileImage = () => {
           Photo: urlData.publicUrl,
           DateModification: new Date().toISOString()
         })
-        .eq('IDUtilisateurs', parseInt(user.id));
+        .eq('IDUtilisateurs', userId);
 
       if (updateError) {
         console.error('Database update error:', updateError);
@@ -121,6 +134,18 @@ export const useProfileImage = () => {
       return false;
     }
 
+    // Convert user ID to integer, but validate it first
+    const userId = parseInt(user.id);
+    if (isNaN(userId)) {
+      console.warn('useProfileImage: Cannot convert user ID to integer for removal:', user.id);
+      toast({
+        title: "Erreur",
+        description: "ID utilisateur invalide pour la suppression",
+        variant: "destructive"
+      });
+      return false;
+    }
+
     setUploading(true);
     try {
       // Supprimer le champ Photo de la table Utilisateurs
@@ -130,7 +155,7 @@ export const useProfileImage = () => {
           Photo: null,
           DateModification: new Date().toISOString()
         })
-        .eq('IDUtilisateurs', parseInt(user.id));
+        .eq('IDUtilisateurs', userId);
 
       if (updateError) {
         console.error('Database update error:', updateError);

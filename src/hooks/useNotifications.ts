@@ -24,14 +24,24 @@ export const useNotifications = () => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const fetchNotifications = async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.log('useNotifications: No valid user ID available');
+      return;
+    }
+
+    // Convert user ID to integer, but validate it first
+    const userId = parseInt(user.id);
+    if (isNaN(userId)) {
+      console.warn('useNotifications: Cannot convert user ID to integer:', user.id);
+      return;
+    }
 
     setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('Notifications')
         .select('*')
-        .eq('IDUtilisateurDestinataire', parseInt(user.id))
+        .eq('IDUtilisateurDestinataire', userId)
         .order('DateCreation', { ascending: false });
 
       if (error) {
@@ -58,14 +68,24 @@ export const useNotifications = () => {
   };
 
   const markAllAsRead = async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.log('useNotifications: No valid user ID available for markAllAsRead');
+      return;
+    }
+
+    // Convert user ID to integer, but validate it first
+    const userId = parseInt(user.id);
+    if (isNaN(userId)) {
+      console.warn('useNotifications: Cannot convert user ID to integer for markAllAsRead:', user.id);
+      return;
+    }
 
     setIsUpdating(true);
     try {
       const { error } = await supabase
         .from('Notifications')
         .update({ EstLu: true })
-        .eq('IDUtilisateurDestinataire', parseInt(user.id))
+        .eq('IDUtilisateurDestinataire', userId)
         .eq('EstLu', false);
 
       if (error) {
