@@ -31,7 +31,7 @@ const PatrimonialDocuments = () => {
     return null; // Masquer complètement la section pour les rôles non autorisés
   }
 
-  // Vérifier si l'utilisateur peut ajouter des documents
+  // Vérifier si l'utilisateur peut ajouter des documents (tous les rôles autorisés sauf visualisateur)
   const canAddDocuments = user?.role === 'support' || isAdmin();
 
   const canDownload = (doc: any) => {
@@ -116,7 +116,7 @@ const PatrimonialDocuments = () => {
               <p className="text-sm text-red-700 mt-1">
                 {user?.role === 'support' 
                   ? "Vous pouvez consulter et télécharger vos documents patrimoniaux."
-                  : "En tant qu'administrateur, vous pouvez uniquement voir l'existence des documents, sans accès au contenu."
+                  : "En tant qu'administrateur, vous pouvez ajouter des documents et voir la liste, mais seuls les seniors propriétaires peuvent accéder au contenu."
                 }
               </p>
             </div>
@@ -129,6 +129,7 @@ const PatrimonialDocuments = () => {
             <thead>
               <tr className="border-b border-slate-200">
                 <th className="text-left py-3 px-4 font-medium text-slate-600">Type de document</th>
+                <th className="text-left py-3 px-4 font-medium text-slate-600">Senior concerné</th>
                 <th className="text-left py-3 px-4 font-medium text-slate-600">Date d'ajout</th>
                 <th className="text-left py-3 px-4 font-medium text-slate-600">Confidentialité</th>
                 <th className="text-left py-3 px-4 font-medium text-slate-600">Actions</th>
@@ -137,7 +138,7 @@ const PatrimonialDocuments = () => {
             <tbody>
               {documents.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="py-8 text-center text-slate-500">
+                  <td colSpan={5} className="py-8 text-center text-slate-500">
                     Aucun document patrimonial trouvé
                   </td>
                 </tr>
@@ -149,6 +150,9 @@ const PatrimonialDocuments = () => {
                         <FileText className="h-5 w-5 text-red-600" />
                         <span className="font-medium text-slate-800">{doc.TypeDocument}</span>
                       </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className="text-slate-600">Senior ID: {doc.IDSeniors}</span>
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-2 text-slate-600">
