@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MessageSquare } from "lucide-react";
@@ -10,8 +11,10 @@ import TicketStatusInfo from "./TicketStatusInfo";
 import TicketResolutionInfo from "./TicketResolutionInfo";
 import TicketDescription from "./TicketDescription";
 import TicketActions from "./TicketActions";
+import TicketReplies from "./TicketReplies";
 import { useTicketPermissions } from "@/hooks/useTicketPermissions";
 import { useSupportTicketMutations } from "@/hooks/useSupportTicketMutations";
+import { useSupportReplies } from "@/hooks/useSupportReplies";
 
 interface Ticket {
   id: number;
@@ -36,6 +39,9 @@ const SupportTicketModal = ({ isOpen, onClose, ticket, onTicketUpdated }: Suppor
   const [isResolveModalOpen, setIsResolveModalOpen] = useState(false);
   const { canResolve } = useTicketPermissions(ticket || { statut: 'en_attente' });
   const { resolveTicket, isResolving } = useSupportTicketMutations();
+  
+  // Hook pour gérer les réponses (seulement si ticket existe)
+  const { replies, isLoading: isLoadingReplies } = useSupportReplies(ticket ? String(ticket.id) : "0");
 
   if (!ticket) return null;
 
@@ -78,7 +84,7 @@ const SupportTicketModal = ({ isOpen, onClose, ticket, onTicketUpdated }: Suppor
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-blue-600" />
@@ -95,6 +101,14 @@ const SupportTicketModal = ({ isOpen, onClose, ticket, onTicketUpdated }: Suppor
 
             <TicketDescription description={ticket.descriptionDemande || "Pas de description fournie"} />
 
+            {/* Section fil de discussion */}
+            <div className="space-y-4">
+              <TicketReplies 
+                replies={replies} 
+                isLoading={isLoadingReplies}
+              />
+            </div>
+
             <Tabs defaultValue="reply" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="reply">Répondre au ticket</TabsTrigger>
@@ -105,6 +119,7 @@ const SupportTicketModal = ({ isOpen, onClose, ticket, onTicketUpdated }: Suppor
                 <TicketReplyForm 
                   ticketId={String(ticket.id)}
                   onReplySubmitted={handleReplySubmitted}
+                  currentUserId={1} // TODO: Récupérer l'ID de l'utilisateur connecté
                 />
               </TabsContent>
               

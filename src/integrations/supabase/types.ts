@@ -2594,6 +2594,55 @@ export type Database = {
           },
         ]
       }
+      ReponsesSupport: {
+        Row: {
+          Contenu: string
+          DateReponse: string
+          FichierJoint: string | null
+          IDAuteur: number
+          IDReponse: number
+          IDTicketClient: number
+        }
+        Insert: {
+          Contenu: string
+          DateReponse?: string
+          FichierJoint?: string | null
+          IDAuteur: number
+          IDReponse?: number
+          IDTicketClient: number
+        }
+        Update: {
+          Contenu?: string
+          DateReponse?: string
+          FichierJoint?: string | null
+          IDAuteur?: number
+          IDReponse?: number
+          IDTicketClient?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_auteur"
+            columns: ["IDAuteur"]
+            isOneToOne: false
+            referencedRelation: "Utilisateurs"
+            referencedColumns: ["IDUtilisateurs"]
+          },
+          {
+            foreignKeyName: "fk_ticket"
+            columns: ["IDTicketClient"]
+            isOneToOne: false
+            referencedRelation: "support_dashboard_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_ticket"
+            columns: ["IDTicketClient"]
+            isOneToOne: false
+            referencedRelation: "SupportClient"
+            referencedColumns: ["IDTicketClient"]
+          },
+        ]
+      }
       Ressource: {
         Row: {
           Description: string
