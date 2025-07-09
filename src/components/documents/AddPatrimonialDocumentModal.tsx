@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,15 +16,6 @@ interface AddPatrimonialDocumentModalProps {
   onUploadSuccess: () => void;
 }
 
-interface Senior {
-  IDSeniors: number;
-  IDUtilisateurSenior: number;
-  Utilisateurs: {
-    Nom: string;
-    Prenom: string;
-  };
-}
-
 const documentTypes = [
   "Testament",
   "Acte de propriété",
@@ -37,58 +29,10 @@ const documentTypes = [
 
 const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPatrimonialDocumentModalProps) => {
   const [documentType, setDocumentType] = useState("");
-  const [selectedSeniorId, setSelectedSeniorId] = useState("");
-  const [seniors, setSeniors] = useState<Senior[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [loadingSeniors, setLoadingSeniors] = useState(false);
   const { toast } = useToast();
   const { user } = useAuthStore();
-
-  // Charger la liste des seniors
-  useEffect(() => {
-    if (isOpen && user?.role !== 'support') {
-      fetchSeniors();
-    }
-  }, [isOpen, user]);
-
-  const fetchSeniors = async () => {
-    try {
-      setLoadingSeniors(true);
-      const { data, error } = await supabase
-        .from('Seniors')
-        .select(`
-          IDSeniors,
-          IDUtilisateurSenior,
-          Utilisateurs!Seniors_IDUtilisateurSenior_fkey (
-            Nom,
-            Prenom
-          )
-        `)
-        .order('IDSeniors', { ascending: true });
-
-      if (error) {
-        console.error('Erreur lors de la récupération des seniors:', error);
-        toast({
-          title: "Erreur",
-          description: "Impossible de charger la liste des seniors.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      setSeniors(data || []);
-    } catch (error) {
-      console.error('Erreur lors de la récupération des seniors:', error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur s'est produite lors du chargement des seniors.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingSeniors(false);
-    }
-  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -130,31 +74,23 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
       return;
     }
 
-    // Déterminer l'ID du senior
-    let targetSeniorId: number;
-    if (user.role === 'support') {
-      // Pour les seniors, utiliser leur propre ID
-      targetSeniorId = parseInt(user.id);
-    } else {
-      // Pour les autres rôles, vérifier qu'un senior a été sélectionné
-      if (!selectedSeniorId) {
-        toast({
-          title: "Senior requis",
-          description: "Veuillez sélectionner le senior concerné.",
-          variant: "destructive",
-        });
-        return;
-      }
-      targetSeniorId = parseInt(selectedSeniorId);
+    // Vérifier que l'utilisateur est bien un senior (support)
+    if (user.role !== 'support') {
+      toast({
+        title: "Accès refusé",
+        description: "Seuls les seniors peuvent ajouter des documents patrimoniaux.",
+        variant: "destructive",
+      });
+      return;
     }
 
-    console.log('Début de l\'upload pour le senior:', targetSeniorId, 'par l\'utilisateur:', user.id, 'avec le rôle:', user.role);
+    console.log('Début de l\'upload pour l\'utilisateur:', user.id, 'avec le rôle:', user.role);
     setUploading(true);
 
     try {
       // 1. Upload du fichier vers Supabase Storage
       const fileExt = file.name.split('.').pop();
-      const fileName = `${targetSeniorId}/${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
       console.log('Upload du fichier:', fileName);
       const { error: uploadError, data: uploadData } = await supabase.storage
@@ -175,11 +111,12 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
 
       console.log('URL publique générée:', publicUrl);
 
-      // 3. Insertion dans DocumentPatrimonial
+      // 3. Insertion dans DocumentPatrimonial avec l'ID converti en nombre
+      const userIdAsNumber = parseInt(user.id);
       console.log('Insertion dans DocumentPatrimonial avec:', {
         TypeDocument: documentType,
         URLDocument: publicUrl,
-        IDSeniors: targetSeniorId
+        IDSeniors: userIdAsNumber
       });
 
       const { error: insertError, data: insertData } = await supabase
@@ -187,7 +124,7 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
         .insert({
           TypeDocument: documentType,
           URLDocument: publicUrl,
-          IDSeniors: targetSeniorId
+          IDSeniors: userIdAsNumber
         })
         .select();
 
@@ -200,7 +137,7 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
 
       toast({
         title: "Document ajouté avec succès",
-        description: `Le document ${documentType} a été ajouté aux documents patrimoniaux.`,
+        description: `Le document ${documentType} a été ajouté à vos documents patrimoniaux.`,
       });
 
       // Appeler la fonction de rechargement ET fermer le modal
@@ -221,7 +158,6 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
 
   const resetForm = () => {
     setDocumentType("");
-    setSelectedSeniorId("");
     setFile(null);
   };
 
@@ -241,25 +177,6 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Sélection du senior (seulement pour les non-seniors) */}
-          {user?.role !== 'support' && (
-            <div>
-              <Label htmlFor="senior">Senior concerné *</Label>
-              <Select value={selectedSeniorId} onValueChange={setSelectedSeniorId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={loadingSeniors ? "Chargement..." : "Sélectionner le senior"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {seniors.map((senior) => (
-                    <SelectItem key={senior.IDSeniors} value={senior.IDSeniors.toString()}>
-                      {senior.Utilisateurs?.Nom} {senior.Utilisateurs?.Prenom} (ID: {senior.IDSeniors})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
           <div>
             <Label htmlFor="documentType">Type de document *</Label>
             <Select value={documentType} onValueChange={setDocumentType}>
@@ -312,7 +229,7 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
             </Button>
             <Button
               type="submit"
-              disabled={uploading || !documentType || !file || (user?.role !== 'support' && !selectedSeniorId)}
+              disabled={uploading || !documentType || !file}
               className="bg-red-600 hover:bg-red-700"
             >
               {uploading ? "Ajout en cours..." : "Ajouter le document"}
