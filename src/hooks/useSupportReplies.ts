@@ -100,7 +100,7 @@ export const useSupportReplies = (ticketId: string) => {
         description: "Votre réponse a été envoyée avec succès.",
       });
 
-      // Déclencher l'envoi de l'email avec les nouvelles informations requises
+      // Déclencher l'envoi de l'email avec les informations du fichier
       try {
         await sendEmailNotification(parseInt(ticketId), data.Contenu, fileUrl);
       } catch (emailError) {
@@ -121,55 +121,13 @@ export const useSupportReplies = (ticketId: string) => {
   // Fonction pour envoyer l'email de notification
   const sendEmailNotification = async (ticketId: number, replyContent: string, fileUrl?: string | null) => {
     try {
-      console.log("Envoi de l'email de notification pour le ticket:", ticketId);
+      console.log("Envoi de l'email de notification pour le ticket:", ticketId, "avec fichier:", fileUrl);
       
-      // Récupérer les informations du ticket et de l'utilisateur
-      const { data: ticketData, error: ticketError } = await supabase
-        .from('support_dashboard_view')
-        .select('*')
-        .eq('id', ticketId)
-        .single();
-
-      if (ticketError) {
-        console.error('Erreur lors de la récupération du ticket:', ticketError);
-        throw new Error('Ticket non trouvé');
-      }
-
-      if (!ticketData.utilisateur_email) {
-        console.log('Pas d\'email utilisateur disponible pour le ticket:', ticketId);
-        return;
-      }
-
-      // Récupérer les informations de l'agent de support qui a répondu
-      const { data: lastResponse, error: responseError } = await supabase
-        .from('ReponsesSupport')
-        .select(`
-          *,
-          Utilisateurs!fk_auteur(
-            Nom,
-            Prenom,
-            Email
-          )
-        `)
-        .eq('IDTicketClient', ticketId)
-        .order('DateReponse', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (responseError) {
-        console.error('Erreur lors de la récupération de la réponse:', responseError);
-      }
-
-      const supportAgent = lastResponse?.Utilisateurs || { Nom: 'Support', Prenom: 'Équipe' };
-      const supportName = `${supportAgent.Prenom} ${supportAgent.Nom}`;
-
       const { data, error } = await supabase.functions.invoke('send-ticket-response', {
         body: {
-          emailClient: ticketData.utilisateur_email,
-          nomSupport: supportName,
-          contenu: replyContent,
-          sujetTicket: ticketData.sujet,
-          idTicket: ticketId
+          ticketId: ticketId,
+          response: replyContent,
+          fileUrl: fileUrl
         }
       });
 
