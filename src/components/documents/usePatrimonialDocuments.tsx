@@ -30,8 +30,8 @@ export const usePatrimonialDocuments = () => {
 
       // Filtrer selon le rôle de l'utilisateur
       if (user?.role === 'support') {
-        // Les seniors ne voient que leurs propres documents
-        query = query.eq("IDSeniors", parseInt(user.id));
+        // Les seniors ne voient que leurs propres documents - utiliser l'ID comme string
+        query = query.eq("IDSeniors", user.id);
       }
       // Les administrateurs et visualisateurs voient tous les documents (mais sans accès au contenu)
 
@@ -71,7 +71,7 @@ export const usePatrimonialDocuments = () => {
 
   const handleDownloadDocument = async (doc: PatrimonialDocument) => {
     // Vérification des droits côté client (sécurité supplémentaire)
-    if (user?.role !== 'support' || doc.IDSeniors !== parseInt(user.id)) {
+    if (user?.role !== 'support' || doc.IDSeniors !== user.id) {
       toast({
         title: "Accès refusé",
         description: "Vous n'avez pas l'autorisation de télécharger ce document.",
@@ -114,7 +114,7 @@ export const usePatrimonialDocuments = () => {
         .from("DocumentPatrimonial")
         .delete()
         .eq("IDDocumentPatrimonial", docId)
-        .eq("IDSeniors", parseInt(user.id)); // Sécurité supplémentaire
+        .eq("IDSeniors", user.id); // Utiliser l'ID comme string
 
       if (error) {
         throw error;

@@ -111,11 +111,11 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
 
       console.log('URL publique générée:', publicUrl);
 
-      // 3. Insertion simple dans DocumentPatrimonial
+      // 3. Insertion dans DocumentPatrimonial avec l'ID comme string
       console.log('Insertion dans DocumentPatrimonial avec:', {
         TypeDocument: documentType,
         URLDocument: publicUrl,
-        IDSeniors: parseInt(user.id)
+        IDSeniors: user.id
       });
 
       const { error: insertError, data: insertData } = await supabase
@@ -123,7 +123,7 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
         .insert({
           TypeDocument: documentType,
           URLDocument: publicUrl,
-          IDSeniors: parseInt(user.id)
+          IDSeniors: user.id // Utiliser l'ID comme string directement
         })
         .select();
 
@@ -139,6 +139,7 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
         description: `Le document ${documentType} a été ajouté à vos documents patrimoniaux.`,
       });
 
+      // Appeler la fonction de rechargement ET fermer le modal
       onUploadSuccess();
       onClose();
       resetForm();
