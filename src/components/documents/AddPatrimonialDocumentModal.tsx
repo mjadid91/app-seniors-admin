@@ -111,11 +111,12 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
 
       console.log('URL publique générée:', publicUrl);
 
-      // 3. Insertion dans DocumentPatrimonial avec l'ID comme string
+      // 3. Insertion dans DocumentPatrimonial avec l'ID converti en nombre
+      const userIdAsNumber = parseInt(user.id);
       console.log('Insertion dans DocumentPatrimonial avec:', {
         TypeDocument: documentType,
         URLDocument: publicUrl,
-        IDSeniors: user.id
+        IDSeniors: userIdAsNumber
       });
 
       const { error: insertError, data: insertData } = await supabase
@@ -123,7 +124,7 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
         .insert({
           TypeDocument: documentType,
           URLDocument: publicUrl,
-          IDSeniors: user.id // Utiliser l'ID comme string directement
+          IDSeniors: userIdAsNumber
         })
         .select();
 

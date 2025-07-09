@@ -30,8 +30,9 @@ export const usePatrimonialDocuments = () => {
 
       // Filtrer selon le rôle de l'utilisateur
       if (user?.role === 'support') {
-        // Les seniors ne voient que leurs propres documents - utiliser l'ID comme string
-        query = query.eq("IDSeniors", user.id);
+        // Les seniors ne voient que leurs propres documents - convertir l'ID en nombre
+        const userIdAsNumber = parseInt(user.id);
+        query = query.eq("IDSeniors", userIdAsNumber);
       }
       // Les administrateurs et visualisateurs voient tous les documents (mais sans accès au contenu)
 
@@ -71,7 +72,8 @@ export const usePatrimonialDocuments = () => {
 
   const handleDownloadDocument = async (doc: PatrimonialDocument) => {
     // Vérification des droits côté client (sécurité supplémentaire)
-    if (user?.role !== 'support' || doc.IDSeniors !== user.id) {
+    const userIdAsNumber = parseInt(user?.id || '0');
+    if (user?.role !== 'support' || doc.IDSeniors !== userIdAsNumber) {
       toast({
         title: "Accès refusé",
         description: "Vous n'avez pas l'autorisation de télécharger ce document.",
@@ -110,11 +112,12 @@ export const usePatrimonialDocuments = () => {
     }
 
     try {
+      const userIdAsNumber = parseInt(user.id);
       const { error } = await supabase
         .from("DocumentPatrimonial")
         .delete()
         .eq("IDDocumentPatrimonial", docId)
-        .eq("IDSeniors", user.id); // Utiliser l'ID comme string
+        .eq("IDSeniors", userIdAsNumber);
 
       if (error) {
         throw error;
