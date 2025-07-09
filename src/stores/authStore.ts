@@ -53,11 +53,19 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setUser: (user: User | null) => {
-        set({ user });
+        const currentState = get();
+        // Éviter les mises à jour inutiles qui pourraient causer des boucles
+        if (currentState.user !== user) {
+          set({ user });
+        }
       },
 
       setAuthenticated: (authenticated: boolean) => {
-        set({ isAuthenticated: authenticated });
+        const currentState = get();
+        // Éviter les mises à jour inutiles qui pourraient causer des boucles
+        if (currentState.isAuthenticated !== authenticated) {
+          set({ isAuthenticated: authenticated });
+        }
       }
     }),
     {
