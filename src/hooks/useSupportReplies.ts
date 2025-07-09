@@ -89,9 +89,9 @@ export const useSupportReplies = (ticketId: string) => {
       }
 
       console.log("Réponse ajoutée avec succès:", data);
-      return data;
+      return { data, fileUrl };
     },
-    onSuccess: (data) => {
+    onSuccess: async ({ data, fileUrl }) => {
       queryClient.invalidateQueries({ queryKey: ["support-replies", ticketId] });
       queryClient.invalidateQueries({ queryKey: ["support-tickets"] });
       
@@ -100,8 +100,13 @@ export const useSupportReplies = (ticketId: string) => {
         description: "Votre réponse a été envoyée avec succès.",
       });
 
-      // Déclencher l'envoi de l'email
-      sendEmailNotification(parseInt(ticketId), data.Contenu);
+      // Déclencher l'envoi de l'email avec les informations du fichier
+      try {
+        await sendEmailNotification(parseInt(ticketId), data.Contenu, fileUrl);
+      } catch (emailError) {
+        console.error("Erreur lors de l'envoi de l'email, mais la réponse a été sauvegardée:", emailError);
+        // On ne fait pas échouer l'opération si l'email ne peut pas être envoyé
+      }
     },
     onError: (error) => {
       console.error("Erreur mutation:", error);
@@ -114,24 +119,41 @@ export const useSupportReplies = (ticketId: string) => {
   });
 
   // Fonction pour envoyer l'email de notification
-  const sendEmailNotification = async (ticketId: number, replyContent: string) => {
+  const sendEmailNotification = async (ticketId: number, replyContent: string, fileUrl?: string | null) => {
     try {
-      console.log("Envoi de l'email de notification pour le ticket:", ticketId);
+      console.log("Envoi de l'email de notification pour le ticket:", ticketId, "avec fichier:", fileUrl);
       
-      const { error } = await supabase.functions.invoke('send-ticket-response', {
+      const { data, error } = await supabase.functions.invoke('send-ticket-response', {
         body: {
           ticketId: ticketId,
-          response: replyContent
+          response: replyContent,
+          fileUrl: fileUrl
         }
       });
 
       if (error) {
         console.error("Erreur lors de l'envoi de l'email:", error);
+        throw error;
       } else {
-        console.log("Email envoyé avec succès");
+        console.log("Email envoyé avec succès:", data);
+        
+        // Afficher une notification de succès pour l'email
+        toast({
+          title: "Email envoyé",
+          description: "Le client a été notifié par email de votre réponse.",
+        });
       }
     } catch (error) {
       console.error("Erreur lors de l'envoi de l'email:", error);
+      
+      // Afficher une notification d'erreur pour l'email
+      toast({
+        title: "Attention",
+        description: "La réponse a été enregistrée mais l'email n'a pas pu être envoyé.",
+        variant: "destructive",
+      });
+      
+      throw error;
     }
   };
 
