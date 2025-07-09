@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '../stores/authStore';
@@ -42,11 +41,11 @@ export const useUserProfile = () => {
       return;
     }
 
-    // Convert user ID to integer, but validate it first
+    // L'ID utilisateur est maintenant un entier de la DB
     const userId = parseInt(user.id);
     if (isNaN(userId)) {
-      console.warn('useUserProfile: Cannot convert user ID to integer:', user.id);
-      // If we can't convert to integer, use the basic user data from auth
+      console.warn('useUserProfile: User ID is not a valid integer:', user.id);
+      // Si on ne peut pas convertir en entier, utiliser les données basiques de l'auth
       setProfile(prev => ({
         ...prev,
         nom: user.nom || '',
@@ -167,10 +166,9 @@ export const useUserProfile = () => {
       return false;
     }
 
-    // Convert user ID to integer, but validate it first
     const userId = parseInt(user.id);
     if (isNaN(userId)) {
-      console.warn('useUserProfile: Cannot convert user ID to integer for save:', user.id);
+      console.warn('useUserProfile: User ID is not a valid integer for save:', user.id);
       toast({
         title: "Erreur",
         description: "ID utilisateur invalide pour la sauvegarde.",

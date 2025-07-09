@@ -3,16 +3,22 @@ import { useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '../stores/authStore';
+import { useSupabaseUserMapping } from './useSupabaseUserMapping';
 
 export const useSupabaseAuth = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const { userMapping, isLoading: mappingLoading, findOrCreateUserMapping, clearUserMapping } = useSupabaseUserMapping();
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('useSupabaseAuth: Initial session', session);
       setSession(session);
+      
+      if (session?.user) {
+        findOrCreateUserMapping(session.user);
+      }
       setLoading(false);
     });
 
@@ -22,6 +28,12 @@ export const useSupabaseAuth = () => {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log('useSupabaseAuth: Auth state changed', { _event, session });
       setSession(session);
+      
+      if (session?.user) {
+        findOrCreateUserMapping(session.user);
+      } else {
+        clearUserMapping();
+      }
       setLoading(false);
     });
 
@@ -53,39 +65,33 @@ export const useSupabaseAuth = () => {
       if (error) {
         console.error('Erreur de déconnexion:', error);
       }
+      clearUserMapping();
     } catch (error) {
       console.error('Erreur lors de la déconnexion:', error);
     }
   };
 
-  // Convert Supabase user to app User type
-  const convertToAppUser = (supabaseUser: any): User | null => {
-    if (!supabaseUser) return null;
+  // Convert user mapping to app User type
+  const convertToAppUser = (): User | null => {
+    if (!userMapping || !session?.user) return null;
     
-    // Ensure we have a valid user ID
-    if (!supabaseUser.id || supabaseUser.id === 'NaN') {
-      console.warn('useSupabaseAuth: Invalid user ID detected', supabaseUser);
-      return null;
-    }
-    
-    // For now, we'll create a basic conversion
-    // In a real app, you'd fetch this from your users table
     return {
-      id: supabaseUser.id,
-      nom: supabaseUser.user_metadata?.nom || 'Nom',
-      prenom: supabaseUser.user_metadata?.prenom || 'Prénom',
-      email: supabaseUser.email || '',
-      role: 'support', // Default role, should be fetched from database
-      dateInscription: supabaseUser.created_at || new Date().toISOString(),
+      id: userMapping.dbUserId.toString(), // Utiliser l'ID de la base de données
+      nom: userMapping.nom,
+      prenom: userMapping.prenom,
+      email: userMapping.email,
+      role: userMapping.role as User['role'],
+      dateInscription: session.user.created_at || new Date().toISOString(),
     };
   };
 
-  const appUser = session?.user ? convertToAppUser(session.user) : null;
-  const isAuthenticated = !!session?.user && !!appUser;
+  const appUser = convertToAppUser();
+  const isAuthenticated = !!session?.user && !!userMapping;
+  const totalLoading = loading || mappingLoading;
 
   return {
     session,
-    loading,
+    loading: totalLoading,
     user: appUser,
     isAuthenticated,
     signIn,

@@ -29,10 +29,10 @@ export const useNotifications = () => {
       return;
     }
 
-    // Convert user ID to integer, but validate it first
+    // Utiliser l'ID directement (maintenant c'est un entier de la DB)
     const userId = parseInt(user.id);
     if (isNaN(userId)) {
-      console.warn('useNotifications: Cannot convert user ID to integer:', user.id);
+      console.warn('useNotifications: User ID is not a valid integer:', user.id);
       return;
     }
 
@@ -73,10 +73,9 @@ export const useNotifications = () => {
       return;
     }
 
-    // Convert user ID to integer, but validate it first
     const userId = parseInt(user.id);
     if (isNaN(userId)) {
-      console.warn('useNotifications: Cannot convert user ID to integer for markAllAsRead:', user.id);
+      console.warn('useNotifications: User ID is not a valid integer for markAllAsRead:', user.id);
       return;
     }
 
