@@ -1,15 +1,16 @@
 
 export interface Partner {
   id: number;
-  nom: string; // Renommé pour cohérence
+  nom: string;
+  raisonSociale: string; // Ajout de cette propriété utilisée dans le code
   type: string;
   email: string;
-  telephone: string; // Renommé pour cohérence
-  adresse: string; // Renommé pour cohérence
+  telephone: string;
+  adresse: string;
   statut: string;
-  evaluation: number; // Renommé pour cohérence
+  evaluation: number;
   services: string[];
-  dateInscription: string; // Renommé pour cohérence
+  dateInscription: string;
   // Champs système cohérents
   dateCreation?: string;
   dateMiseAJour?: string;
@@ -20,9 +21,10 @@ export interface BonPlan {
   id: number;
   titre: string;
   partenaire: string;
+  idPartenaire?: number; // Ajout de cette propriété pour les relations
   description: string;
   typeReduction: string;
-  valeurReduction: number; // Renommé pour cohérence
+  valeurReduction: number;
   dateDebutReduction: string;
   dateFinReduction: string;
   codePromo: string;

@@ -10,9 +10,10 @@ interface PartnerDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
   partner: Partner | null;
+  onContact: (partner: Partner) => void; // Ajout de cette propriété
 }
 
-const PartnerDetailsModal = ({ isOpen, onClose, partner }: PartnerDetailsModalProps) => {
+const PartnerDetailsModal = ({ isOpen, onClose, partner, onContact }: PartnerDetailsModalProps) => {
   const { prestationsCount, loading } = usePartnerPrestations(partner?.id || null);
 
   if (!partner) return null;
@@ -34,7 +35,7 @@ const PartnerDetailsModal = ({ isOpen, onClose, partner }: PartnerDetailsModalPr
             <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
               <Building2 className="h-5 w-5 text-white" />
             </div>
-            {partner.nom}
+            {partner.raisonSociale || partner.nom}
           </DialogTitle>
           <DialogDescription>
             Détails complets du partenaire
@@ -138,9 +139,7 @@ const PartnerDetailsModal = ({ isOpen, onClose, partner }: PartnerDetailsModalPr
             <Button variant="outline" onClick={onClose}>
               Fermer
             </Button>
-            <Button 
-              onClick={() => window.location.href = `mailto:${partner.email}?subject=Contact depuis AppSeniors Admin`}
-            >
+            <Button onClick={() => onContact(partner)}>
               Contacter
             </Button>
           </div>

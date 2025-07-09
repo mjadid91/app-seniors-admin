@@ -25,7 +25,7 @@ const EditPartnerModal = ({ isOpen, onClose, partner, onEditPartner }: EditPartn
   useEffect(() => {
     if (partner) {
       setFormData({
-        raisonSociale: partner.raisonSociale || '',
+        raisonSociale: partner.raisonSociale || partner.nom || '',
         email: partner.email || '',
         telephone: partner.telephone || '',
         adresse: partner.adresse || '',
@@ -40,6 +40,7 @@ const EditPartnerModal = ({ isOpen, onClose, partner, onEditPartner }: EditPartn
     const updatedPartner: Partner = {
       ...partner,
       raisonSociale: formData.raisonSociale,
+      nom: formData.raisonSociale, // Mettre à jour aussi le nom
       email: formData.email,
       telephone: formData.telephone,
       adresse: formData.adresse,

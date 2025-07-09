@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Download, FileSpreadsheet } from "lucide-react";
 import { Partner, BonPlan } from "./types";
@@ -14,12 +13,12 @@ const PartnerStatsExport = ({ partners, bonsPlans }: PartnerStatsExportProps) =>
 
   const generateStatsData = () => {
     return partners.map(partner => {
-      const partnerBonsPlans = bonsPlans.filter(bp => bp.idPartenaire === partner.id);
+      const partnerBonsPlans = bonsPlans.filter(bp => bp.idPartenaire === partner.id || bp.partenaire === (partner.raisonSociale || partner.nom));
       const activeBonsPlans = partnerBonsPlans.filter(bp => bp.statut === 'actif');
       const usedBonsPlans = partnerBonsPlans.filter(bp => bp.statut === 'utilisé');
       
       return {
-        'Nom du partenaire': partner.raisonSociale,
+        'Nom du partenaire': partner.raisonSociale || partner.nom,
         'Email': partner.email,
         'Téléphone': partner.telephone,
         'Date d\'inscription': new Date(partner.dateInscription).toLocaleDateString('fr-FR'),
