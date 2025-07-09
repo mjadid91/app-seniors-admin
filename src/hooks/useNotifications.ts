@@ -24,14 +24,29 @@ export const useNotifications = () => {
   const [isUpdating, setIsUpdating] = useState(false);
 
   const fetchNotifications = async () => {
-    if (!user?.id) return;
+    if (!user?.id || user.id === 'NaN') {
+      console.error('Invalid user ID:', user?.id);
+      return;
+    }
 
     setIsLoading(true);
     try {
+      // Vérifier que l'ID utilisateur est un nombre valide
+      const userIdNumber = parseInt(user.id);
+      if (isNaN(userIdNumber)) {
+        console.error('Cannot convert user ID to number:', user.id);
+        toast({
+          title: "Erreur",
+          description: "ID utilisateur invalide.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data, error } = await supabase
         .from('Notifications')
         .select('*')
-        .eq('IDUtilisateurDestinataire', parseInt(user.id))
+        .eq('IDUtilisateurDestinataire', userIdNumber)
         .order('DateCreation', { ascending: false });
 
       if (error) {
@@ -58,14 +73,29 @@ export const useNotifications = () => {
   };
 
   const markAllAsRead = async () => {
-    if (!user?.id) return;
+    if (!user?.id || user.id === 'NaN') {
+      console.error('Invalid user ID:', user?.id);
+      return;
+    }
 
     setIsUpdating(true);
     try {
+      // Vérifier que l'ID utilisateur est un nombre valide
+      const userIdNumber = parseInt(user.id);
+      if (isNaN(userIdNumber)) {
+        console.error('Cannot convert user ID to number:', user.id);
+        toast({
+          title: "Erreur",
+          description: "ID utilisateur invalide.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await supabase
         .from('Notifications')
         .update({ EstLu: true })
-        .eq('IDUtilisateurDestinataire', parseInt(user.id))
+        .eq('IDUtilisateurDestinataire', userIdNumber)
         .eq('EstLu', false);
 
       if (error) {
@@ -123,7 +153,7 @@ export const useNotifications = () => {
   const unreadCount = notifications.filter(n => !n.EstLu).length;
 
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id && user.id !== 'NaN') {
       fetchNotifications();
     }
   }, [user?.id]);

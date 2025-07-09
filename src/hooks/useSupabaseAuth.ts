@@ -60,10 +60,17 @@ export const useSupabaseAuth = () => {
   const convertToAppUser = (supabaseUser: any): User | null => {
     if (!supabaseUser) return null;
     
+    // S'assurer que l'ID est une chaîne valide et non "NaN"
+    const userId = supabaseUser.id;
+    if (!userId || userId === 'NaN' || typeof userId !== 'string') {
+      console.error('Invalid user ID:', userId);
+      return null;
+    }
+    
     // For now, we'll create a basic conversion
     // In a real app, you'd fetch this from your users table
     return {
-      id: supabaseUser.id,
+      id: userId,
       nom: supabaseUser.user_metadata?.nom || 'Nom',
       prenom: supabaseUser.user_metadata?.prenom || 'Prénom',
       email: supabaseUser.email || '',
@@ -73,7 +80,7 @@ export const useSupabaseAuth = () => {
   };
 
   const appUser = session?.user ? convertToAppUser(session.user) : null;
-  const isAuthenticated = !!session?.user;
+  const isAuthenticated = !!session?.user && !!appUser;
 
   return {
     session,

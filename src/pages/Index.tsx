@@ -18,7 +18,7 @@ const Index = () => {
       setAuthenticated(isAuthenticated);
       setHasInitialized(true);
     }
-  }, [loading, hasInitialized, user, isAuthenticated, setUser, setAuthenticated]);
+  }, [loading, hasInitialized]); // Retirer setUser et setAuthenticated des dépendances
 
   // Gérer la redirection une fois que l'initialisation est terminée
   useEffect(() => {
