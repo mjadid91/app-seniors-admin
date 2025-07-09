@@ -139,6 +139,7 @@ export const usePartners = () => {
       return {
         id: p.IDPartenaire,
         nom: p.RaisonSociale,
+        raisonSociale: p.RaisonSociale, // Ajout de la propriété manquante
         type,
         email: p.Email,
         telephone: p.Telephone,

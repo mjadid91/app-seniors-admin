@@ -175,6 +175,7 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
 
       const newPartner: Omit<Partner, 'id'> = {
         nom: formData.raisonSociale,
+        raisonSociale: formData.raisonSociale, // Ajout de la propriété manquante
         type: "Organisme",
         email: formData.email,
         telephone: formData.telephone,
