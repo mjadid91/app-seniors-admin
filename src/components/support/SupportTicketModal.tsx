@@ -119,7 +119,6 @@ const SupportTicketModal = ({ isOpen, onClose, ticket, onTicketUpdated }: Suppor
                 <TicketReplyForm 
                   ticketId={String(ticket.id)}
                   onReplySubmitted={handleReplySubmitted}
-                  currentUserId={1} // TODO: Récupérer l'ID de l'utilisateur connecté
                 />
               </TabsContent>
               
