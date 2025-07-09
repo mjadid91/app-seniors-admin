@@ -958,18 +958,21 @@ export type Database = {
       }
       DocumentPatrimonial: {
         Row: {
+          dateCreation: string | null
           IDDocumentPatrimonial: number
           IDSeniors: number | null
           TypeDocument: string
           URLDocument: string
         }
         Insert: {
+          dateCreation?: string | null
           IDDocumentPatrimonial?: number
           IDSeniors?: number | null
           TypeDocument: string
           URLDocument: string
         }
         Update: {
+          dateCreation?: string | null
           IDDocumentPatrimonial?: number
           IDSeniors?: number | null
           TypeDocument?: string

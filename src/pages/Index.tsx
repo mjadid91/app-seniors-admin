@@ -14,8 +14,19 @@ const Index = () => {
   useEffect(() => {
     if (!loading) {
       console.log('Index: Synchronizing auth state', { user, isAuthenticated });
-      setUser(user);
-      setAuthenticated(isAuthenticated);
+      
+      // Only update store if the values have actually changed
+      const currentUser = useAuthStore.getState().user;
+      const currentAuth = useAuthStore.getState().isAuthenticated;
+      
+      if (currentUser?.id !== user?.id) {
+        setUser(user);
+      }
+      
+      if (currentAuth !== isAuthenticated) {
+        setAuthenticated(isAuthenticated);
+      }
+      
       setIsInitializing(false);
       
       // Rediriger vers dashboard si authentifié
@@ -28,7 +39,7 @@ const Index = () => {
         navigate("/connexion");
       }
     }
-  }, [user, isAuthenticated, loading, setUser, setAuthenticated, navigate]);
+  }, [user?.id, isAuthenticated, loading, navigate]); // Use user?.id instead of user object
 
   // Traite explicitement l'écran de chargement tant que l'auth n'est pas prête
   if (loading || isInitializing) {

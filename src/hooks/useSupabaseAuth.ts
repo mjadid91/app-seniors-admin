@@ -11,6 +11,7 @@ export const useSupabaseAuth = () => {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('useSupabaseAuth: Initial session', session);
       setSession(session);
       setLoading(false);
     });
@@ -19,6 +20,7 @@ export const useSupabaseAuth = () => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('useSupabaseAuth: Auth state changed', { _event, session });
       setSession(session);
       setLoading(false);
     });
@@ -60,6 +62,12 @@ export const useSupabaseAuth = () => {
   const convertToAppUser = (supabaseUser: any): User | null => {
     if (!supabaseUser) return null;
     
+    // Ensure we have a valid user ID
+    if (!supabaseUser.id || supabaseUser.id === 'NaN') {
+      console.warn('useSupabaseAuth: Invalid user ID detected', supabaseUser);
+      return null;
+    }
+    
     // For now, we'll create a basic conversion
     // In a real app, you'd fetch this from your users table
     return {
@@ -73,7 +81,7 @@ export const useSupabaseAuth = () => {
   };
 
   const appUser = session?.user ? convertToAppUser(session.user) : null;
-  const isAuthenticated = !!session?.user;
+  const isAuthenticated = !!session?.user && !!appUser;
 
   return {
     session,
