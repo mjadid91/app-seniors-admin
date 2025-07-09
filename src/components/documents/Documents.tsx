@@ -5,6 +5,7 @@ import DocumentsFilters from "./DocumentsFilters";
 import DocumentsTable from "./DocumentsTable";
 import DocumentsStats from "./DocumentsStats";
 import DocumentsQuickActions from "./DocumentsQuickActions";
+import PatrimonialDocuments from "./PatrimonialDocuments";
 import AddDocumentModal from "./AddDocumentModal";
 import EditDocumentModal from "./EditDocumentModal";
 import ViewDocumentModal from "./ViewDocumentModal";
@@ -65,6 +66,9 @@ const Documents = () => {
       <div className="grid grid-cols-1 gap-6">
         <DocumentsStats documents={documents} />
       </div>
+
+      {/* Section Documents Patrimoniaux - Hautement sécurisée */}
+      <PatrimonialDocuments />
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
         <DocumentsFilters
