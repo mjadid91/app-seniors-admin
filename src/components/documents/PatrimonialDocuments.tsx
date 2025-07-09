@@ -31,6 +31,9 @@ const PatrimonialDocuments = () => {
     return null; // Masquer complètement la section pour les rôles non autorisés
   }
 
+  // Vérifier si l'utilisateur peut ajouter des documents
+  const canAddDocuments = user?.role === 'support' || isAdmin();
+
   const canDownload = (doc: any) => {
     // Seuls les seniors propriétaires peuvent télécharger leurs propres documents
     const userIdAsNumber = parseInt(user?.id || '0');
@@ -93,13 +96,13 @@ const PatrimonialDocuments = () => {
             </div>
           </div>
           
-          {user?.role === 'support' && (
+          {canAddDocuments && (
             <Button
               onClick={() => setIsAddModalOpen(true)}
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               <FileText className="h-4 w-4 mr-2" />
-              Ajouter un document
+              Ajouter un document patrimonial
             </Button>
           )}
         </div>
