@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -61,7 +60,7 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
         .select(`
           IDSeniors,
           IDUtilisateurSenior,
-          Utilisateurs (
+          Utilisateurs!Seniors_IDUtilisateurSenior_fkey (
             Nom,
             Prenom
           )
