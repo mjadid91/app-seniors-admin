@@ -1,91 +1,103 @@
 
-import { Building2, Mail, Phone, MapPin, Star, Edit, Trash2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Building2, Mail, Phone, MapPin, Calendar, Edit, Trash2, Eye } from "lucide-react";
 import { Partner } from "./types";
 
 interface PartnerCardProps {
   partner: Partner;
-  onContact: (partner: Partner) => void;
-  onViewDetails: (partner: Partner) => void;
+  onView: (partner: Partner) => void;
+  onEdit: (partner: Partner) => void;
+  onDelete: (partner: Partner) => void;
 }
 
-const PartnerCard = ({ partner, onContact, onViewDetails }: PartnerCardProps) => {
+const PartnerCard = ({ partner, onView, onEdit, onDelete }: PartnerCardProps) => {
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'actif':
+        return <Badge className="bg-green-100 text-green-700 border-green-200">Actif</Badge>;
+      case 'inactif':
+        return <Badge className="bg-gray-100 text-gray-700 border-gray-200">Inactif</Badge>;
+      case 'suspendu':
+        return <Badge className="bg-red-100 text-red-700 border-red-200">Suspendu</Badge>;
+      default:
+        return <Badge className="bg-blue-100 text-blue-700 border-blue-200">En attente</Badge>;
+    }
+  };
+
   return (
-    <div className="border border-slate-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-            <Building2 className="h-6 w-6 text-white" />
+    <Card className="hover:shadow-md transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-blue-600" />
+            <CardTitle className="text-lg">{partner.raisonSociale}</CardTitle>
           </div>
-          <div>
-            <h3 className="font-semibold text-slate-800">{partner.nom}</h3>
-            <p className="text-sm text-slate-500">{partner.type}</p>
+          {getStatusBadge(partner.statut || 'actif')}
+        </div>
+      </CardHeader>
+      
+      <CardContent className="space-y-3">
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center gap-2 text-slate-600">
+            <Mail className="h-4 w-4" />
+            <span>{partner.email}</span>
+          </div>
+          
+          <div className="flex items-center gap-2 text-slate-600">
+            <Phone className="h-4 w-4" />
+            <span>{partner.telephone}</span>
+          </div>
+          
+          {partner.adresse && (
+            <div className="flex items-center gap-2 text-slate-600">
+              <MapPin className="h-4 w-4" />
+              <span className="truncate">{partner.adresse}</span>
+            </div>
+          )}
+          
+          <div className="flex items-center gap-2 text-slate-600">
+            <Calendar className="h-4 w-4" />
+            <span>Inscrit le {new Date(partner.dateInscription).toLocaleDateString('fr-FR')}</span>
           </div>
         </div>
-        <div className="flex items-center gap-1">
-          <Edit className="h-4 w-4 text-slate-400 hover:text-blue-600 cursor-pointer" />
-          <Trash2 className="h-4 w-4 text-slate-400 hover:text-red-600 cursor-pointer" />
-        </div>
-      </div>
 
-      <div className="space-y-2 mb-4">
-        <div className="flex items-center gap-2 text-sm text-slate-600">
-          <Mail className="h-4 w-4" />
-          <span>{partner.email}</span>
+        <div className="flex justify-between items-center pt-3 border-t border-slate-200">
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onView(partner)}
+              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              Voir
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(partner)}
+              className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+            >
+              <Edit className="h-4 w-4 mr-1" />
+              Modifier
+            </Button>
+          </div>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onDelete(partner)}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Supprimer
+          </Button>
         </div>
-        <div className="flex items-center gap-2 text-sm text-slate-600">
-          <Phone className="h-4 w-4" />
-          <span>{partner.telephone}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm text-slate-600">
-          <MapPin className="h-4 w-4" />
-          <span>{partner.adresse}</span>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2 mb-3">
-        <Star className="h-4 w-4 text-yellow-500 fill-current" />
-        <span className="text-sm font-medium">{partner.evaluation}</span>
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          partner.statut === 'Actif' 
-            ? 'bg-green-100 text-green-700' 
-            : partner.statut === 'En attente'
-            ? 'bg-yellow-100 text-yellow-700'
-            : 'bg-red-100 text-red-700'
-        }`}>
-          {partner.statut}
-        </span>
-      </div>
-
-      <div className="mb-4">
-        <p className="text-sm text-slate-600 mb-2">Services proposés:</p>
-        <div className="flex flex-wrap gap-1">
-          {partner.services.map((service, index) => (
-            <span key={index} className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">
-              {service}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex gap-2">
-        <Button 
-          size="sm" 
-          variant="outline" 
-          className="flex-1"
-          onClick={() => onContact(partner)}
-        >
-          Contacter
-        </Button>
-        <Button 
-          size="sm" 
-          className="flex-1"
-          onClick={() => onViewDetails(partner)}
-        >
-          Voir détails
-        </Button>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
