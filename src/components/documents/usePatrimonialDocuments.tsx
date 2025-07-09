@@ -31,7 +31,7 @@ export const usePatrimonialDocuments = () => {
       // Filtrer selon le rôle de l'utilisateur
       if (user?.role === 'support') {
         // Les seniors ne voient que leurs propres documents
-        query = query.eq("IDSeniors", user.id);
+        query = query.eq("IDSeniors", parseInt(user.id));
       }
       // Les administrateurs et visualisateurs voient tous les documents (mais sans accès au contenu)
 
@@ -112,7 +112,7 @@ export const usePatrimonialDocuments = () => {
         .from("DocumentPatrimonial")
         .delete()
         .eq("IDDocumentPatrimonial", docId)
-        .eq("IDSeniors", user.id); // Sécurité supplémentaire
+        .eq("IDSeniors", parseInt(user.id)); // Sécurité supplémentaire
 
       if (error) {
         throw error;
