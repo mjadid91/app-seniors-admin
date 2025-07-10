@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -250,6 +249,85 @@ export const usePartners = () => {
     ]);
   };
 
+  const handleUpdatePartner = async (updatedPartner: Partner) => {
+    const { error } = await supabase
+      .from("Partenaire")
+      .update({
+        RaisonSociale: updatedPartner.raisonSociale,
+        Email: updatedPartner.email,
+        Telephone: updatedPartner.telephone,
+        Adresse: updatedPartner.adresse,
+      })
+      .eq("IDPartenaire", updatedPartner.id);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier le partenaire.",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Partenaire modifié",
+        description: `${updatedPartner.raisonSociale} a été mis à jour avec succès.`,
+      });
+      fetchPartners();
+    }
+  };
+
+  const handleDeletePartner = async (partnerId: number) => {
+    // D'abord supprimer les bons plans associés
+    const { error: bonPlanError } = await supabase
+      .from("BonPlan")
+      .delete()
+      .eq("IDPartenaire", partnerId);
+
+    if (bonPlanError) {
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la suppression des bons plans associés.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Ensuite supprimer les relations services
+    const { error: servicesError } = await supabase
+      .from("Partenaire_Services")
+      .delete()
+      .eq("IDPartenaire", partnerId);
+
+    if (servicesError) {
+      toast({
+        title: "Erreur",
+        description: "Erreur lors de la suppression des services associés.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Enfin supprimer le partenaire
+    const { error } = await supabase
+      .from("Partenaire")
+      .delete()
+      .eq("IDPartenaire", partnerId);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le partenaire.",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Partenaire supprimé",
+        description: "Le partenaire et ses dépendances ont été supprimés avec succès.",
+      });
+      fetchPartners();
+      fetchBonsPlans();
+    }
+  };
+
   const handleContactPartner = (partner: Partner) => {
     toast({
       title: "Contact partenaire",
@@ -370,6 +448,8 @@ export const usePartners = () => {
     handleAddBonPlan,
     handleEditBonPlan,
     handleDeleteBonPlan,
-    getPartenairesForSelect
+    getPartenairesForSelect,
+    handleUpdatePartner,
+    handleDeletePartner
   };
 };

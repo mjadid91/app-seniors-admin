@@ -18,33 +18,37 @@ const Partners = () => {
     handleAddBonPlan,
     handleEditBonPlan,
     handleDeleteBonPlan,
-    getPartenairesForSelect
+    getPartenairesForSelect,
+    handleUpdatePartner,
+    handleDeletePartner
   } = usePartners();
 
   const [isEditPartnerModalOpen, setIsEditPartnerModalOpen] = useState(false);
   const [isDeletePartnerModalOpen, setIsDeletePartnerModalOpen] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
 
-  const handleEditPartner = (partner: Partner) => {
+  const handleEditPartnerClick = (partner: Partner) => {
     console.log("Modifier partenaire:", partner);
     setSelectedPartner(partner);
     setIsEditPartnerModalOpen(true);
   };
 
-  const handleDeletePartner = (partner: Partner) => {
+  const handleDeletePartnerClick = (partner: Partner) => {
     console.log("Supprimer partenaire:", partner);
     setSelectedPartner(partner);
     setIsDeletePartnerModalOpen(true);
   };
 
-  const handleUpdatePartner = (updatedPartner: Partner) => {
-    // Ici vous devriez appeler votre API pour mettre à jour le partenaire
-    console.log("Mise à jour du partenaire:", updatedPartner);
+  const handlePartnerUpdate = (updatedPartner: Partner) => {
+    handleUpdatePartner(updatedPartner);
+    setIsEditPartnerModalOpen(false);
+    setSelectedPartner(null);
   };
 
-  const handleConfirmDeletePartner = (partnerId: number) => {
-    // Ici vous devriez appeler votre API pour supprimer le partenaire et ses dépendances
-    console.log("Suppression du partenaire:", partnerId);
+  const handlePartnerDelete = (partnerId: number) => {
+    handleDeletePartner(partnerId);
+    setIsDeletePartnerModalOpen(false);
+    setSelectedPartner(null);
   };
 
   return (
@@ -60,8 +64,8 @@ const Partners = () => {
         partners={partners}
         onAddPartner={handleAddPartner}
         onContactPartner={handleContactPartner}
-        onEditPartner={handleEditPartner}
-        onDeletePartner={handleDeletePartner}
+        onEditPartner={handleEditPartnerClick}
+        onDeletePartner={handleDeletePartnerClick}
       />
 
       <BonPlansSection 
@@ -74,16 +78,22 @@ const Partners = () => {
 
       <EditPartnerModal
         isOpen={isEditPartnerModalOpen}
-        onClose={() => setIsEditPartnerModalOpen(false)}
+        onClose={() => {
+          setIsEditPartnerModalOpen(false);
+          setSelectedPartner(null);
+        }}
         partner={selectedPartner}
-        onEditPartner={handleUpdatePartner}
+        onEditPartner={handlePartnerUpdate}
       />
 
       <DeletePartnerModal
         isOpen={isDeletePartnerModalOpen}
-        onClose={() => setIsDeletePartnerModalOpen(false)}
+        onClose={() => {
+          setIsDeletePartnerModalOpen(false);
+          setSelectedPartner(null);
+        }}
         partner={selectedPartner}
-        onDeletePartner={handleConfirmDeletePartner}
+        onDeletePartner={handlePartnerDelete}
       />
     </div>
   );
