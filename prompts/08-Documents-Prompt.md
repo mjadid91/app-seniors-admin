@@ -1,4 +1,3 @@
-
 # 📄 Prompt Lovable - Gestion des Documents
 
 ## 🎯 Objectif
@@ -35,6 +34,13 @@ interface CategorieDocument {
   couleur: string;
   icone: string;
 }
+
+interface DocumentPatrimonial {
+    id: number;
+    typeDocument: string;
+    urlDocument: string;
+    idSenior: number;
+}
 ```
 
 ### 3. Composants principaux
@@ -65,6 +71,26 @@ interface CategorieDocument {
 - Filtre par date
 - Taille de fichier
 - Recherche avancée
+
+#### 📂 PatrimonialDocuments.tsx
+
+Section dédiée aux documents patrimoniaux sensibles (ex : testaments, actes notariés, documents bancaires).
+
+---
+
+### 🔐 Affichage filtré selon le rôle de l'utilisateur :
+
+- 👵 **Senior** : accès à **ses propres documents** (affichage + téléchargement)
+- 👨‍⚖️ **Admin** : peut uniquement **voir qu’un document existe** (type + date), **sans pouvoir le télécharger**
+- 🔒 **Autres rôles** : **aucun accès** (documents invisibles)
+
+---
+
+### ⚙️ Fonctionnalités
+
+- Bouton **"Ajouter un document patrimonial"** visible uniquement pour les utilisateurs avec le rôle **Support**
+- Intégration dans la page principale `/documents`, **juste après les statistiques**
+
 
 ### 4. Affichage des documents
 
@@ -132,6 +158,19 @@ Vue en grille avec :
 - Actions disponibles
 - Téléchargement
 
+#### AddPatrimonialDocumentModal.tsx
+Formulaire spécifique pour documents patrimoniaux
+Champs requis :
+- Type de document (sélecteur)
+- URL du document (upload)
+
+Fonctionnement :
+- Upload vers documents/patrimonial
+- Insertion dans la table `DocumentPatrimonial`
+- Visible uniquement pour les seniors et l'admin
+- Téléchargeable uniquement par le senior concerné
+- Visible uniquement pour les utilisateurs seniors
+
 ### 7. Système de catégories
 
 #### Catégories prédéfinies
@@ -192,12 +231,16 @@ interface DocumentsHookReturn {
 - `Document` : métadonnées des fichiers
 - `CategorieDocument` : catégories disponibles
 - `Utilisateurs` : propriétaires
+- `DocumentPatrimonial` : fichiers sensibles liés aux seniors
+
+⚠️ Confidentialité renforcée via filtrage côté client et règles RLS (à implémenter si besoin)
 
 #### RLS Policies
 - Lecture publique temporaire
 - Écriture par utilisateur
 - Suppression contrôlée
 - Audit des accès
+
 
 ### 10. Prévisualisation
 
@@ -255,6 +298,15 @@ interface DocumentsHookReturn {
 - Scan antivirus (optionnel)
 - Validation des extensions
 - Limite de taille
+
+#### Confidentialité spécifique
+Documents Patrimoniaux :
+- Accès restreint aux seniors et admin
+- Admin voit uniquement les métadonnées (type + date)
+- Aucun accès public ou externe (sauf autorisation du Senior)
+- RLS recommandées pour renforcer l'isolation des données sensibles
+
+Ces ajouts garantissent que la fonctionnalité des documents patrimoniaux est correctement intégrée dans l'architecture de gestion documentaire, tout en respectant les contraintes de confidentialité et RGPD.
 
 ### 14. Performance
 

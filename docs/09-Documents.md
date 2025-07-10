@@ -63,6 +63,49 @@ La page **Documents** (`Documents.tsx`) centralise la gestion de tous les fichie
 - **Détails** : Toutes les métadonnées
 - **Actions** : Téléchargement, partage
 
+## 🏛️ Documents Patrimoniaux
+
+## 🧭 Objectif
+Gérer les documents à forte sensibilité déposés par les seniors : testaments, actes de propriété, documents bancaires ou notariés.
+
+### 📥 Ajout d'un document patrimonial
+
+- **Composant** : `AddPatrimonialDocumentModal.tsx`
+- **Champs requis** :
+    - **Type de document** : liste prédéfinie (ex. testament, acte de propriété, etc.)
+    - **Fichier** : formats acceptés (PDF, Word, JPEG, PNG), taille maximale 10MB
+- **Upload** :
+    - Stockage dans **Supabase Storage** : bucket `documents`, dossier `patrimonial/`
+    - URL générée automatiquement
+    - Insertion des métadonnées dans la table `DocumentPatrimonial`
+
+```sql
+CREATE TABLE public."DocumentPatrimonial" (
+  "IDDocumentPatrimonial" bigserial PRIMARY KEY,
+  "TypeDocument" varchar(50) NOT NULL,
+  "URLDocument" varchar(50) NOT NULL,
+  "IDSeniors" bigint,
+  FOREIGN KEY ("IDSeniors") REFERENCES "Seniors" ("IDSeniors")
+);
+CREATE INDEX idx_document_patrimonial_seniors ON public."DocumentPatrimonial" ("IDSeniors");
+```
+### 👁️ Règles de confidentialité
+
+| Rôle             | Droits d'accès                                                                 |
+|------------------|---------------------------------------------------------------------------------|
+| 👵 **Senior**     | Peut **voir** et **télécharger** ses propres documents                         |
+| 👨‍⚖️ **Admin**      | Peut **voir** qu’un document a été déposé (**type**, **date**) mais **pas le télécharger** |
+| 🔒 **Autres rôles** | **Aucun accès** (documents invisibles)                                       |
+
+---
+
+### ✅ Affichage
+
+- Liste des documents **filtrée automatiquement** selon le rôle de l'utilisateur
+- Icône spéciale 👁️ pour les **admins** indiquant **la présence d’un fichier**
+- Section intégrée dans `Documents.tsx`, **juste après les statistiques**
+
+
 ---
 
 ## 🔧 Hooks et utilitaires
@@ -71,11 +114,12 @@ La page **Documents** (`Documents.tsx`) centralise la gestion de tous les fichie
 - **`useDocuments.tsx`** : Hook principal de gestion
 - **`useDocumentForm.tsx`** : Logique des formulaires
 - **`useFileOperations.ts`** : Opérations sur fichiers
+- **`usePatrimonialDocuments.tsx`** : Gestion spécifique des documents patrimoniaux
 
 ### 🗄️ Intégration Supabase
 - **Storage** : Bucket `documents` configuré
-- **Table** : `Document` avec métadonnées
-- **RLS** : Politiques de sécurité configurées
+- **Table** : `Document` avec métadonnées, `CategorieDocument` pour les catégories et `DocumentPatrimonial` pour les documents sensibles
+- **RLS** : Politiques de sécurité configurées au niveau du rôle utilisateur
 
 ---
 
