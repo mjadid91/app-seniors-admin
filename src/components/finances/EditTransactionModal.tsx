@@ -68,24 +68,10 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
         updateResult = await supabase
           .from("ServicePostMortem")
           .update({
-            MontantPrestation: formData.montant,
+            MontantUtilise: formData.montant.toString(),
             StatutService: formData.statut
           })
           .eq("IDServicePostMortem", transaction.idServicePostMortem || transaction.originalId || transaction.id);
-      } else if (transaction.type === "Don") {
-        updateResult = await supabase
-          .from("DonCagnotte")
-          .update({
-            Montant: formData.montant
-          })
-          .eq("IDDonCagnotte", transaction.idDonCagnotte || transaction.originalId || transaction.id);
-      } else if (transaction.type === "Commission") {
-        updateResult = await supabase
-          .from("VersementCommissions")
-          .update({
-            MontantCommission: formData.montant
-          })
-          .eq("IDVersementCommissions", transaction.originalId || transaction.id);
       }
 
       console.log("Résultat de la mise à jour:", updateResult);
@@ -128,27 +114,23 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
             />
           </div>
           
-          {transaction.type !== "Don" && transaction.type !== "Commission" && (
-            <div>
-              <Label htmlFor="statut">Statut</Label>
-              <Select
-                value={formData.statut}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, statut: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un statut" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="En attente">En attente</SelectItem>
-                  <SelectItem value="Payé">Payé</SelectItem>
-                  <SelectItem value="En cours">En cours</SelectItem>
-                  <SelectItem value="Terminé">Terminé</SelectItem>
-                  <SelectItem value="Annulé">Annulé</SelectItem>
-                  <SelectItem value="Remboursé">Remboursé</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          <div>
+            <Label htmlFor="statut">Statut</Label>
+            <Select
+              value={formData.statut}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, statut: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="En attente">En attente</SelectItem>
+                <SelectItem value="Payé">Payé</SelectItem>
+                <SelectItem value="Annulé">Annulé</SelectItem>
+                <SelectItem value="Remboursé">Remboursé</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="flex justify-end gap-2 mt-6">
             <Button type="button" variant="outline" onClick={onClose}>
