@@ -48,11 +48,19 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
       }
 
       // Vérification du type de fichier
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      const allowedTypes = [
+        'application/pdf', 
+        'image/jpeg', 
+        'image/jpg',
+        'image/png', 
+        'application/msword', 
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      
       if (!allowedTypes.includes(selectedFile.type)) {
         toast({
           title: "Type de fichier non autorisé",
-          description: "Seuls les fichiers PDF, Word et images sont autorisés.",
+          description: "Seuls les fichiers PDF, Word et images (JPEG, PNG) sont autorisés.",
           variant: "destructive",
         });
         return;
@@ -95,11 +103,14 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
       console.log('Upload du fichier:', fileName);
       const { error: uploadError, data: uploadData } = await supabase.storage
         .from('documents')
-        .upload(`patrimonial/${fileName}`, file);
+        .upload(`patrimonial/${fileName}`, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
         console.error('Erreur upload:', uploadError);
-        throw uploadError;
+        throw new Error(`Erreur d'upload: ${uploadError.message}`);
       }
 
       console.log('Fichier uploadé avec succès:', uploadData);
@@ -111,8 +122,24 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
 
       console.log('URL publique générée:', publicUrl);
 
-      // 3. Insertion dans DocumentPatrimonial avec l'ID converti en nombre
-      const userIdAsNumber = parseInt(user.id);
+      // 3. Conversion sécurisée de l'ID utilisateur
+      let userIdAsNumber: number;
+      try {
+        userIdAsNumber = parseInt(user.id);
+        if (isNaN(userIdAsNumber)) {
+          throw new Error('ID utilisateur invalide');
+        }
+      } catch (error) {
+        console.error('Erreur conversion ID utilisateur:', error);
+        toast({
+          title: "Erreur",
+          description: "Problème avec l'identifiant utilisateur. Veuillez vous reconnecter.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // 4. Insertion dans DocumentPatrimonial
       console.log('Insertion dans DocumentPatrimonial avec:', {
         TypeDocument: documentType,
         URLDocument: publicUrl,
@@ -130,7 +157,12 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
 
       if (insertError) {
         console.error('Erreur insertion BD:', insertError);
-        throw insertError;
+        // En cas d'erreur d'insertion, supprimer le fichier uploadé
+        await supabase.storage
+          .from('documents')
+          .remove([`patrimonial/${fileName}`]);
+        
+        throw new Error(`Erreur d'insertion: ${insertError.message}`);
       }
 
       console.log('Document inséré avec succès:', insertData);
@@ -144,11 +176,12 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
       onUploadSuccess();
       onClose();
       resetForm();
-    } catch (error) {
+      
+    } catch (error: any) {
       console.error('Erreur lors de l\'ajout du document:', error);
       toast({
         title: "Erreur",
-        description: `Impossible d'ajouter le document: ${error}`,
+        description: error.message || "Impossible d'ajouter le document. Veuillez réessayer.",
         variant: "destructive",
       });
     } finally {
@@ -162,8 +195,10 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
   };
 
   const handleClose = () => {
-    resetForm();
-    onClose();
+    if (!uploading) {
+      resetForm();
+      onClose();
+    }
   };
 
   return (
@@ -179,7 +214,7 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="documentType">Type de document *</Label>
-            <Select value={documentType} onValueChange={setDocumentType}>
+            <Select value={documentType} onValueChange={setDocumentType} disabled={uploading}>
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner le type de document" />
               </SelectTrigger>
@@ -202,19 +237,22 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
                 onChange={handleFileChange}
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                 className="cursor-pointer"
+                disabled={uploading}
               />
               {file && (
                 <div className="mt-2 flex items-center gap-2 text-sm text-slate-600">
                   <Upload className="h-4 w-4" />
                   <span>{file.name}</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setFile(null)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
+                  {!uploading && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setFile(null)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -224,7 +262,12 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={handleClose}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={handleClose}
+              disabled={uploading}
+            >
               Annuler
             </Button>
             <Button
