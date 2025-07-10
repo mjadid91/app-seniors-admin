@@ -96,9 +96,24 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
     setUploading(true);
 
     try {
-      // 1. Upload du fichier vers Supabase Storage
+      // 1. Récupérer l'IDSeniors associé à l'utilisateur
+      const { data: seniorData, error: seniorError } = await supabase
+        .from("Seniors")
+        .select("IDSeniors")
+        .eq("IDUtilisateurSenior", user.id)
+        .single();
+
+      if (seniorError || !seniorData) {
+        console.error('Erreur récupération senior:', seniorError);
+        throw new Error("Impossible d'associer le senior à ce compte.");
+      }
+
+      const seniorId = seniorData.IDSeniors;
+      console.log('Senior ID récupéré:', seniorId);
+
+      // 2. Upload du fichier vers Supabase Storage
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${seniorId}/${Date.now()}.${fileExt}`;
       
       console.log('Upload du fichier:', fileName);
       const { error: uploadError, data: uploadData } = await supabase.storage
@@ -115,35 +130,18 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
 
       console.log('Fichier uploadé avec succès:', uploadData);
 
-      // 2. Obtenir l'URL publique du fichier
+      // 3. Obtenir l'URL publique du fichier
       const { data: { publicUrl } } = supabase.storage
         .from('documents')
         .getPublicUrl(`patrimonial/${fileName}`);
 
       console.log('URL publique générée:', publicUrl);
 
-      // 3. Conversion sécurisée de l'ID utilisateur
-      let userIdAsNumber: number;
-      try {
-        userIdAsNumber = parseInt(user.id);
-        if (isNaN(userIdAsNumber)) {
-          throw new Error('ID utilisateur invalide');
-        }
-      } catch (error) {
-        console.error('Erreur conversion ID utilisateur:', error);
-        toast({
-          title: "Erreur",
-          description: "Problème avec l'identifiant utilisateur. Veuillez vous reconnecter.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // 4. Insertion dans DocumentPatrimonial
+      // 4. Insertion dans DocumentPatrimonial avec le bon IDSeniors
       console.log('Insertion dans DocumentPatrimonial avec:', {
         TypeDocument: documentType,
         URLDocument: publicUrl,
-        IDSeniors: userIdAsNumber
+        IDSeniors: seniorId
       });
 
       const { error: insertError, data: insertData } = await supabase
@@ -151,7 +149,7 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
         .insert({
           TypeDocument: documentType,
           URLDocument: publicUrl,
-          IDSeniors: userIdAsNumber
+          IDSeniors: seniorId
         })
         .select();
 
