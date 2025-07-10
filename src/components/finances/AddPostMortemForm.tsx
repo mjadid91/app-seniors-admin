@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,13 +57,15 @@ export const AddPostMortemForm = ({ onClose, onSuccess }: Props) => {
         const { error } = await supabase.from("ServicePostMortem").insert({
             NomService: "Service post-mortem",
             Description: "Ajout manuel",
-            MontantUtilise: montant,
+            MontantPrestation: parseFloat(montant),
             DateService: new Date().toISOString().split("T")[0],
             Prestataire: selectedPrestataire?.nom || "",
+            StatutService: "En attente"
         });
 
         setLoading(false);
         if (error) {
+            console.error("Erreur lors de l'ajout:", error);
             toast.error("Erreur : " + error.message);
         } else {
             toast.success("Service post-mortem ajouté.");
@@ -90,8 +93,14 @@ export const AddPostMortemForm = ({ onClose, onSuccess }: Props) => {
                 </select>
             </div>
             <div>
-                <Label>Montant</Label>
-                <Input type="number" value={montant} onChange={(e) => setMontant(e.target.value)} required />
+                <Label>Montant (€)</Label>
+                <Input 
+                    type="number" 
+                    step="0.01"
+                    value={montant} 
+                    onChange={(e) => setMontant(e.target.value)} 
+                    required 
+                />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? "Ajout..." : "Ajouter service"}

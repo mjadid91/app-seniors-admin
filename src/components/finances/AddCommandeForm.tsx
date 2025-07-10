@@ -47,24 +47,37 @@ export const AddCommandeForm = ({ onClose, onSuccess }: Props) => {
         try {
             let moyenPaiementId = null;
 
-            // Si un moyen de paiement est sélectionné, créer l'enregistrement
+            // Si un moyen de paiement est sélectionné, vérifier s'il existe déjà
             if (moyenPaiement) {
-                const { data: moyenPaiementData, error: moyenPaiementError } = await supabase
+                // D'abord vérifier si ce moyen de paiement existe déjà
+                const { data: existingMoyenPaiement } = await supabase
                     .from("MoyenPaiement")
-                    .insert({
-                        MoyenPaiement: moyenPaiement,
-                        DatePaiement: new Date().toISOString()
-                    })
-                    .select()
+                    .select("IDMoyenPaiement")
+                    .eq("MoyenPaiement", moyenPaiement)
                     .single();
 
-                if (moyenPaiementError) {
-                    toast.error("Erreur lors de la création du moyen de paiement : " + moyenPaiementError.message);
-                    setLoading(false);
-                    return;
-                }
+                if (existingMoyenPaiement) {
+                    moyenPaiementId = existingMoyenPaiement.IDMoyenPaiement;
+                } else {
+                    // Créer un nouveau moyen de paiement
+                    const { data: moyenPaiementData, error: moyenPaiementError } = await supabase
+                        .from("MoyenPaiement")
+                        .insert({
+                            MoyenPaiement: moyenPaiement,
+                            DatePaiement: new Date().toISOString()
+                        })
+                        .select()
+                        .single();
 
-                moyenPaiementId = moyenPaiementData.IDMoyenPaiement;
+                    if (moyenPaiementError) {
+                        console.error("Erreur lors de la création du moyen de paiement:", moyenPaiementError);
+                        toast.error("Erreur lors de la création du moyen de paiement : " + moyenPaiementError.message);
+                        setLoading(false);
+                        return;
+                    }
+
+                    moyenPaiementId = moyenPaiementData.IDMoyenPaiement;
+                }
             }
 
             // Créer la commande
@@ -78,6 +91,7 @@ export const AddCommandeForm = ({ onClose, onSuccess }: Props) => {
             });
 
             if (commandeError) {
+                console.error("Erreur lors de la création de la commande:", commandeError);
                 toast.error("Erreur : " + commandeError.message);
             } else {
                 toast.success("Commande ajoutée avec succès.");
@@ -85,6 +99,7 @@ export const AddCommandeForm = ({ onClose, onSuccess }: Props) => {
                 onClose();
             }
         } catch (error) {
+            console.error("Erreur inattendue:", error);
             toast.error("Erreur inattendue : " + error);
         }
 
