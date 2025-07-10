@@ -85,16 +85,6 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
       return;
     }
 
-    // Vérifier que l'utilisateur est bien un senior (support)
-    if (user.role !== 'support') {
-      toast({
-        title: "Accès refusé",
-        description: "Seuls les seniors peuvent ajouter des documents patrimoniaux.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     console.log('Début de l\'upload pour le senior:', selectedSeniorId, 'par l\'utilisateur:', user.id);
     setUploading(true);
 
