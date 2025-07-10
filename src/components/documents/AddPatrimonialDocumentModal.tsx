@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/stores/authStore";
+import { useSupabaseSeniors } from "@/hooks/useSupabaseSeniors";
 import { Upload, X } from "lucide-react";
 
 interface AddPatrimonialDocumentModalProps {
@@ -29,10 +30,12 @@ const documentTypes = [
 
 const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPatrimonialDocumentModalProps) => {
   const [documentType, setDocumentType] = useState("");
+  const [selectedSeniorId, setSelectedSeniorId] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
   const { user } = useAuthStore();
+  const { seniors } = useSupabaseSeniors();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -73,10 +76,10 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!documentType || !file || !user) {
+    if (!documentType || !file || !user || !selectedSeniorId) {
       toast({
         title: "Champs requis",
-        description: "Veuillez sélectionner un type de document et un fichier.",
+        description: "Veuillez sélectionner un type de document, un senior et un fichier.",
         variant: "destructive",
       });
       return;
@@ -92,43 +95,20 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
       return;
     }
 
-    console.log('Début de l\'upload pour l\'utilisateur:', user.id, 'avec le rôle:', user.role);
+    console.log('Début de l\'upload pour le senior:', selectedSeniorId, 'par l\'utilisateur:', user.id);
     setUploading(true);
 
     try {
-      // 1. Conversion sécurisée de l'ID utilisateur
-      let userIdAsNumber: number;
-      try {
-        userIdAsNumber = parseInt(user.id);
-        if (isNaN(userIdAsNumber)) {
-          throw new Error('ID utilisateur invalide');
-        }
-      } catch (error) {
-        console.error('Erreur conversion ID utilisateur:', error);
-        toast({
-          title: "Erreur",
-          description: "Problème avec l'identifiant utilisateur. Veuillez vous reconnecter.",
-          variant: "destructive",
-        });
-        return;
+      // Utiliser directement l'ID du senior sélectionné
+      const seniorId = parseInt(selectedSeniorId);
+      
+      if (isNaN(seniorId)) {
+        throw new Error('ID Senior invalide');
       }
 
-      // 2. Récupérer l'IDSeniors associé à l'utilisateur
-      const { data: seniorData, error: seniorError } = await supabase
-        .from("Seniors")
-        .select("IDSeniors")
-        .eq("IDUtilisateurSenior", userIdAsNumber)
-        .single();
+      console.log('Senior ID sélectionné:', seniorId);
 
-      if (seniorError || !seniorData) {
-        console.error('Erreur récupération senior:', seniorError);
-        throw new Error("Impossible d'associer le senior à ce compte.");
-      }
-
-      const seniorId = seniorData.IDSeniors;
-      console.log('Senior ID récupéré:', seniorId);
-
-      // 3. Upload du fichier vers Supabase Storage
+      // Upload du fichier vers Supabase Storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${seniorId}/${Date.now()}.${fileExt}`;
       
@@ -147,14 +127,14 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
 
       console.log('Fichier uploadé avec succès:', uploadData);
 
-      // 4. Obtenir l'URL publique du fichier
+      // Obtenir l'URL publique du fichier
       const { data: { publicUrl } } = supabase.storage
         .from('documents')
         .getPublicUrl(`patrimonial/${fileName}`);
 
       console.log('URL publique générée:', publicUrl);
 
-      // 5. Insertion dans DocumentPatrimonial avec le bon IDSeniors
+      // Insertion dans DocumentPatrimonial avec l'IDSeniors sélectionné
       console.log('Insertion dans DocumentPatrimonial avec:', {
         TypeDocument: documentType,
         URLDocument: publicUrl,
@@ -184,7 +164,7 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
 
       toast({
         title: "Document ajouté avec succès",
-        description: `Le document ${documentType} a été ajouté à vos documents patrimoniaux.`,
+        description: `Le document ${documentType} a été ajouté aux documents patrimoniaux.`,
       });
 
       // Appeler la fonction de rechargement ET fermer le modal
@@ -206,6 +186,7 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
 
   const resetForm = () => {
     setDocumentType("");
+    setSelectedSeniorId("");
     setFile(null);
   };
 
@@ -227,6 +208,22 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="senior">Senior associé *</Label>
+            <Select value={selectedSeniorId} onValueChange={setSelectedSeniorId} disabled={uploading}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner le senior" />
+              </SelectTrigger>
+              <SelectContent>
+                {seniors.map((senior) => (
+                  <SelectItem key={senior.id} value={senior.id}>
+                    {senior.prenom} {senior.nom}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div>
             <Label htmlFor="documentType">Type de document *</Label>
             <Select value={documentType} onValueChange={setDocumentType} disabled={uploading}>
@@ -287,7 +284,7 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
             </Button>
             <Button
               type="submit"
-              disabled={uploading || !documentType || !file}
+              disabled={uploading || !documentType || !file || !selectedSeniorId}
               className="bg-red-600 hover:bg-red-700"
             >
               {uploading ? "Ajout en cours..." : "Ajouter le document"}
