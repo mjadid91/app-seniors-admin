@@ -3247,6 +3247,7 @@ export type Database = {
           IDCommande: number | null
           IDDonCagnotte: number | null
           IDPrestation: number | null
+          IDServicePostMortem: number | null
           IDVersementCommissions: number
           MontantCommission: number
           MoyenVersement: string
@@ -3259,6 +3260,7 @@ export type Database = {
           IDCommande?: number | null
           IDDonCagnotte?: number | null
           IDPrestation?: number | null
+          IDServicePostMortem?: number | null
           IDVersementCommissions?: number
           MontantCommission?: number
           MoyenVersement: string
@@ -3271,6 +3273,7 @@ export type Database = {
           IDCommande?: number | null
           IDDonCagnotte?: number | null
           IDPrestation?: number | null
+          IDServicePostMortem?: number | null
           IDVersementCommissions?: number
           MontantCommission?: number
           MoyenVersement?: string
@@ -3298,6 +3301,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "prestations_dashboard_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "VersementCommissions_IDServicePostMortem_fkey"
+            columns: ["IDServicePostMortem"]
+            isOneToOne: false
+            referencedRelation: "ServicePostMortem"
+            referencedColumns: ["IDServicePostMortem"]
           },
         ]
       }
