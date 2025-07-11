@@ -49,22 +49,16 @@ export const useFinancesTransactions = () => {
             IDUtilisateurs
           `);
 
-        // Récupérer les services post-mortem avec gestion d'erreur
-        let services = null;
-        const { data: servicesData, error: errorServices } = await supabase
+        // Récupérer les services post-mortem
+        const { data: services, error: errorServices } = await supabase
           .from("ServicePostMortem")
           .select(`
             IDServicePostMortem,
             MontantPrestation,
             DateService,
-            Prestataire
+            Prestataire,
+            StatutService
           `);
-        
-        if (!errorServices) {
-          services = servicesData;
-        } else {
-          console.warn("ServicePostMortem table issues:", errorServices);
-        }
 
         // Récupérer les dons
         const { data: dons, error: errorDons } = await supabase
@@ -77,9 +71,8 @@ export const useFinancesTransactions = () => {
             MessageDon
           `);
 
-        // Récupérer les commissions avec gestion d'erreur
-        let commissions = null;
-        const { data: commissionsData, error: errorCommissions } = await supabase
+        // Récupérer les commissions
+        const { data: commissions, error: errorCommissions } = await supabase
           .from("VersementCommissions")
           .select(`
             IDVersementCommissions,
@@ -90,16 +83,11 @@ export const useFinancesTransactions = () => {
             PourcentageCommission,
             IDCommande,
             IDActiviteRemuneree,
-            IDDonCagnotte
+            IDDonCagnotte,
+            IDServicePostMortem
           `);
 
-        if (!errorCommissions) {
-          commissions = commissionsData;
-        } else {
-          console.warn("VersementCommissions table issues:", errorCommissions);
-        }
-
-        if (errorCommandes || errorActivites || errorDons) {
+        if (errorCommandes || errorActivites || errorServices || errorDons || errorCommissions) {
           console.error("Erreurs lors du chargement:", { 
             errorCommandes, 
             errorActivites, 
@@ -147,7 +135,7 @@ export const useFinancesTransactions = () => {
             type: "Commande",
             utilisateur: user ? `${user.Prenom} ${user.Nom}` : "Inconnu",
             montant: commande.MontantTotal || 0,
-            commission: commission?.MontantCommission || 0,
+            commission: commission?.MontantCommission || (commande.MontantTotal || 0) * 0.05,
             date: commande.DateCommande,
             statut: commande.StatutCommande || "En attente"
           });
@@ -165,14 +153,16 @@ export const useFinancesTransactions = () => {
             type: "Activite",
             utilisateur: user ? `${user.Prenom} ${user.Nom}` : "Inconnu",
             montant: activite.MontantRevenu || 0,
-            commission: commission?.MontantCommission || 0,
+            commission: commission?.MontantCommission || (activite.MontantRevenu || 0) * 0.05,
             date: activite.DateTransaction,
             statut: activite.StatutPaiement || "En attente"
           });
         });
 
-        // Traiter les services post-mortem si disponibles
+        // Traiter les services post-mortem
         services?.forEach(service => {
+          const commission = commissions?.find(c => c.IDServicePostMortem === service.IDServicePostMortem);
+          
           transactions.push({
             id: service.IDServicePostMortem,
             originalId: service.IDServicePostMortem,
@@ -180,9 +170,9 @@ export const useFinancesTransactions = () => {
             type: "PostMortem",
             utilisateur: service.Prestataire || "Inconnu",
             montant: service.MontantPrestation || 0,
-            commission: 0, // Calculé par défaut à 5%
+            commission: commission?.MontantCommission || (service.MontantPrestation || 0) * 0.05,
             date: service.DateService,
-            statut: "En attente"
+            statut: service.StatutService || "En attente"
           });
         });
 
@@ -198,17 +188,10 @@ export const useFinancesTransactions = () => {
             type: "Don",
             utilisateur: user ? `${user.Prenom} ${user.Nom}` : "Inconnu",
             montant: don.Montant || 0,
-            commission: commission?.MontantCommission || 0,
+            commission: commission?.MontantCommission || (don.Montant || 0) * 0.05,
             date: don.DateDon,
             statut: "Validé"
           });
-        });
-
-        // Calculer les commissions manquantes (5% par défaut)
-        transactions.forEach(transaction => {
-          if (transaction.commission === 0) {
-            transaction.commission = transaction.montant * 0.05;
-          }
         });
 
         console.log("Transactions récupérées:", transactions);

@@ -2788,27 +2788,30 @@ export type Database = {
           Description: string
           IDCagnotteDeces: number | null
           IDServicePostMortem: number
-          MontantPrestation: string
+          MontantPrestation: number
           NomService: string
           Prestataire: string
+          StatutService: string
         }
         Insert: {
           DateService: string
           Description: string
           IDCagnotteDeces?: number | null
           IDServicePostMortem?: number
-          MontantPrestation: string
+          MontantPrestation: number
           NomService: string
           Prestataire: string
+          StatutService?: string
         }
         Update: {
           DateService?: string
           Description?: string
           IDCagnotteDeces?: number | null
           IDServicePostMortem?: number
-          MontantPrestation?: string
+          MontantPrestation?: number
           NomService?: string
           Prestataire?: string
+          StatutService?: string
         }
         Relationships: [
           {
