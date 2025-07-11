@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,21 +54,28 @@ export const AddPostMortemForm = ({ onClose, onSuccess }: Props) => {
         const selectedPrestataire = prestataires.find(p => p.id.toString() === prestataireId);
         
         setLoading(true);
-        const { error } = await supabase.from("ServicePostMortem").insert({
-            NomService: "Service post-mortem",
-            Description: "Ajout manuel",
-            MontantUtilise: montant,
-            DateService: new Date().toISOString().split("T")[0],
-            Prestataire: selectedPrestataire?.nom || "",
-        });
+        try {
+            const { error } = await supabase.from("ServicePostMortem").insert({
+                NomService: "Service post-mortem",
+                Description: "Ajout manuel",
+                MontantPrestation: parseFloat(montant),
+                DateService: new Date().toISOString().split("T")[0],
+                Prestataire: selectedPrestataire?.nom || "",
+            });
 
-        setLoading(false);
-        if (error) {
-            toast.error("Erreur : " + error.message);
-        } else {
-            toast.success("Service post-mortem ajouté.");
-            onSuccess();
-            onClose();
+            if (error) {
+                console.error("Erreur insertion ServicePostMortem:", error);
+                toast.error("Erreur : " + error.message);
+            } else {
+                toast.success("Service post-mortem ajouté.");
+                onSuccess();
+                onClose();
+            }
+        } catch (error) {
+            console.error("Erreur lors de l'ajout:", error);
+            toast.error("Erreur lors de l'ajout du service");
+        } finally {
+            setLoading(false);
         }
     };
 

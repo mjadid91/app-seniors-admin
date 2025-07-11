@@ -17,7 +17,7 @@ interface EditTransactionModalProps {
 
 const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdated }: EditTransactionModalProps) => {
   const [formData, setFormData] = useState({
-    montant: 0,
+    montant: "",
     statut: "",
     moyenPaiement: ""
   });
@@ -26,7 +26,7 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
   useEffect(() => {
     if (transaction) {
       setFormData({
-        montant: transaction.montant || 0,
+        montant: transaction.montant?.toString() || "",
         statut: transaction.statut || "",
         moyenPaiement: transaction.moyenPaiement || ""
       });
@@ -52,7 +52,7 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
         updateResult = await supabase
           .from("Commande")
           .update({
-            MontantTotal: formData.montant,
+            MontantTotal: parseFloat(formData.montant),
             StatutCommande: formData.statut
           })
           .eq("IDCommande", transaction.idCommande || transaction.originalId || transaction.id);
@@ -60,7 +60,7 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
         updateResult = await supabase
           .from("ActiviteRemuneree_Utilisateurs")
           .update({
-            MontantRevenu: formData.montant,
+            MontantRevenu: parseFloat(formData.montant),
             StatutPaiement: formData.statut
           })
           .eq("IDActiviteRemuneree", transaction.idActiviteRemuneree || transaction.originalId || transaction.id);
@@ -68,15 +68,14 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
         updateResult = await supabase
           .from("ServicePostMortem")
           .update({
-            MontantPrestation: formData.montant,
-            StatutService: formData.statut
+            MontantPrestation: parseFloat(formData.montant)
           })
           .eq("IDServicePostMortem", transaction.idServicePostMortem || transaction.originalId || transaction.id);
       } else if (transaction.type === "Don") {
         updateResult = await supabase
           .from("DonCagnotte")
           .update({
-            Montant: formData.montant
+            Montant: parseFloat(formData.montant)
           })
           .eq("IDDonCagnotte", transaction.idDonCagnotte || transaction.originalId || transaction.id);
       }
@@ -116,7 +115,7 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
               type="number"
               step="0.01"
               value={formData.montant}
-              onChange={(e) => setFormData(prev => ({ ...prev, montant: parseFloat(e.target.value) }))}
+              onChange={(e) => setFormData(prev => ({ ...prev, montant: e.target.value }))}
               required
             />
           </div>
