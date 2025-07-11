@@ -56,8 +56,8 @@ export const AddPostMortemForm = ({ onClose, onSuccess }: Props) => {
         setLoading(true);
         try {
             const { error } = await supabase.from("ServicePostMortem").insert({
-                Description: "Ajout manuel",
-                MontantPrestation: parseFloat(montant),
+                NomService: "Service post-mortem",
+                MontantPrestation: montant, // Keep as string
                 DateService: new Date().toISOString().split("T")[0],
                 Prestataire: selectedPrestataire?.nom || "",
             });
