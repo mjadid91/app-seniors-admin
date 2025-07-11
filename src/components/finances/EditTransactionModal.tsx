@@ -41,6 +41,7 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
     
     try {
       let updateResult;
+      const montantValue = parseFloat(formData.montant);
       
       console.log("Mise à jour de la transaction:", {
         type: transaction.type,
@@ -52,7 +53,7 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
         updateResult = await supabase
           .from("Commande")
           .update({
-            MontantTotal: parseFloat(formData.montant),
+            MontantTotal: montantValue,
             StatutCommande: formData.statut
           })
           .eq("IDCommande", transaction.idCommande || transaction.originalId || transaction.id);
@@ -60,7 +61,7 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
         updateResult = await supabase
           .from("ActiviteRemuneree_Utilisateurs")
           .update({
-            MontantRevenu: parseFloat(formData.montant),
+            MontantRevenu: montantValue,
             StatutPaiement: formData.statut
           })
           .eq("IDActiviteRemuneree", transaction.idActiviteRemuneree || transaction.originalId || transaction.id);
@@ -68,14 +69,14 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
         updateResult = await supabase
           .from("ServicePostMortem")
           .update({
-            MontantPrestation: parseFloat(formData.montant)
+            MontantPrestation: montantValue
           })
           .eq("IDServicePostMortem", transaction.idServicePostMortem || transaction.originalId || transaction.id);
       } else if (transaction.type === "Don") {
         updateResult = await supabase
           .from("DonCagnotte")
           .update({
-            Montant: parseFloat(formData.montant)
+            Montant: montantValue
           })
           .eq("IDDonCagnotte", transaction.idDonCagnotte || transaction.originalId || transaction.id);
       }
