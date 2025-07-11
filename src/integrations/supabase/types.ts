@@ -3377,10 +3377,17 @@ export type Database = {
       }
       v_financestransactions: {
         Row: {
+          categorie_type: string | null
           commission: number | null
           date: string | null
           id: number | null
+          id_activite_remuneree: number | null
+          id_commande: number | null
+          id_don_cagnotte: number | null
+          id_service_post_mortem: number | null
+          id_utilisateurs: number | null
           montant: number | null
+          original_id: number | null
           statut: string | null
           type: string | null
           utilisateur: string | null
