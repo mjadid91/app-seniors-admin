@@ -15,6 +15,7 @@ export interface FinanceTransaction {
   idCommande?: number;
   idActiviteRemuneree?: number;
   idServicePostMortem?: number;
+  idDonCagnotte?: number;
 }
 
 export const useFinancesTransactions = () => {
@@ -45,13 +46,52 @@ export const useFinancesTransactions = () => {
           IDUtilisateurs
         `);
 
-      // Pour l'instant, on ne récupère pas les services post-mortem car la table n'existe pas
-      // const { data: services, error: errorServices } = await supabase
-      //   .from("ServicePostMortem")
-      //   .select(`...`);
+      // Récupérer les services post-mortem
+      const { data: services, error: errorServices } = await supabase
+        .from("ServicePostMortem")
+        .select(`
+          IDServicePostMortem,
+          MontantPrestation,
+          StatutService,
+          DateService,
+          Prestataire
+        `);
 
-      if (errorCommandes || errorActivites) {
-        console.error("Erreurs lors du chargement:", { errorCommandes, errorActivites });
+      // Récupérer les dons
+      const { data: dons, error: errorDons } = await supabase
+        .from("DonCagnotte")
+        .select(`
+          IDDonCagnotte,
+          Montant,
+          DateDon,
+          IDDonateur,
+          MessageDon
+        `);
+
+      // Récupérer les commissions
+      const { data: commissions, error: errorCommissions } = await supabase
+        .from("VersementCommissions")
+        .select(`
+          IDVersementCommissions,
+          MontantCommission,
+          DateVersement,
+          MoyenVersement,
+          TypeTransaction,
+          PourcentageCommission,
+          IDCommande,
+          IDActiviteRemuneree,
+          IDServicePostMortem,
+          IDDonCagnotte
+        `);
+
+      if (errorCommandes || errorActivites || errorServices || errorDons || errorCommissions) {
+        console.error("Erreurs lors du chargement:", { 
+          errorCommandes, 
+          errorActivites, 
+          errorServices, 
+          errorDons, 
+          errorCommissions 
+        });
         throw new Error("Erreur lors du chargement des transactions");
       }
 
@@ -60,7 +100,8 @@ export const useFinancesTransactions = () => {
       // Récupérer les informations des utilisateurs en une seule requête
       const allUserIds = [
         ...(commandes?.map(c => c.IDUtilisateurPayeur).filter(Boolean) || []),
-        ...(activites?.map(a => a.IDUtilisateurs).filter(Boolean) || [])
+        ...(activites?.map(a => a.IDUtilisateurs).filter(Boolean) || []),
+        ...(dons?.map(d => d.IDDonateur).filter(Boolean) || [])
       ];
 
       const uniqueUserIds = [...new Set(allUserIds)];
@@ -83,8 +124,8 @@ export const useFinancesTransactions = () => {
 
       // Traiter les commandes
       commandes?.forEach(commande => {
-        const commission = commande.MontantTotal * 0.05; // 5% de commission par défaut
         const user = commande.IDUtilisateurPayeur ? usersData[commande.IDUtilisateurPayeur] : null;
+        const commission = commissions?.find(c => c.IDCommande === commande.IDCommande);
         
         transactions.push({
           id: commande.IDCommande,
@@ -93,7 +134,7 @@ export const useFinancesTransactions = () => {
           type: "Commande",
           utilisateur: user ? `${user.Prenom} ${user.Nom}` : "Inconnu",
           montant: commande.MontantTotal || 0,
-          commission: commission,
+          commission: commission?.MontantCommission || 0,
           date: commande.DateCommande,
           statut: commande.StatutCommande || "En attente"
         });
@@ -101,8 +142,8 @@ export const useFinancesTransactions = () => {
 
       // Traiter les activités
       activites?.forEach(activite => {
-        const commission = activite.MontantRevenu * 0.05;
         const user = activite.IDUtilisateurs ? usersData[activite.IDUtilisateurs] : null;
+        const commission = commissions?.find(c => c.IDActiviteRemuneree === activite.IDActiviteRemuneree);
         
         transactions.push({
           id: activite.IDActiviteRemuneree || 0,
@@ -111,10 +152,63 @@ export const useFinancesTransactions = () => {
           type: "Activite",
           utilisateur: user ? `${user.Prenom} ${user.Nom}` : "Inconnu",
           montant: activite.MontantRevenu || 0,
-          commission: commission,
+          commission: commission?.MontantCommission || 0,
           date: activite.DateTransaction,
           statut: activite.StatutPaiement || "En attente"
         });
+      });
+
+      // Traiter les services post-mortem
+      services?.forEach(service => {
+        const commission = commissions?.find(c => c.IDServicePostMortem === service.IDServicePostMortem);
+        
+        transactions.push({
+          id: service.IDServicePostMortem,
+          originalId: service.IDServicePostMortem,
+          idServicePostMortem: service.IDServicePostMortem,
+          type: "PostMortem",
+          utilisateur: service.Prestataire || "Inconnu",
+          montant: service.MontantPrestation || 0,
+          commission: commission?.MontantCommission || 0,
+          date: service.DateService,
+          statut: service.StatutService || "En attente"
+        });
+      });
+
+      // Traiter les dons
+      dons?.forEach(don => {
+        const user = don.IDDonateur ? usersData[don.IDDonateur] : null;
+        const commission = commissions?.find(c => c.IDDonCagnotte === don.IDDonCagnotte);
+        
+        transactions.push({
+          id: don.IDDonCagnotte,
+          originalId: don.IDDonCagnotte,
+          idDonCagnotte: don.IDDonCagnotte,
+          type: "Don",
+          utilisateur: user ? `${user.Prenom} ${user.Nom}` : "Inconnu",
+          montant: don.Montant || 0,
+          commission: commission?.MontantCommission || 0,
+          date: don.DateDon,
+          statut: "Validé"
+        });
+      });
+
+      // Traiter les commissions versées
+      commissions?.forEach(commission => {
+        // Éviter les doublons - on ne veut que les commissions sans transaction associée
+        if (!commission.IDCommande && !commission.IDActiviteRemuneree && 
+            !commission.IDServicePostMortem && !commission.IDDonCagnotte) {
+          transactions.push({
+            id: commission.IDVersementCommissions,
+            originalId: commission.IDVersementCommissions,
+            type: "Commission",
+            utilisateur: "Plateforme",
+            montant: commission.MontantCommission || 0,
+            commission: 0,
+            date: commission.DateVersement,
+            statut: "Versé"
+          });
+        }
       });
 
       console.log("Transactions récupérées:", transactions);

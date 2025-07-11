@@ -2788,7 +2788,7 @@ export type Database = {
           Description: string
           IDCagnotteDeces: number | null
           IDServicePostMortem: number
-          MontantUtilise: string
+          MontantPrestation: string
           NomService: string
           Prestataire: string
         }
@@ -2797,7 +2797,7 @@ export type Database = {
           Description: string
           IDCagnotteDeces?: number | null
           IDServicePostMortem?: number
-          MontantUtilise: string
+          MontantPrestation: string
           NomService: string
           Prestataire: string
         }
@@ -2806,7 +2806,7 @@ export type Database = {
           Description?: string
           IDCagnotteDeces?: number | null
           IDServicePostMortem?: number
-          MontantUtilise?: string
+          MontantPrestation?: string
           NomService?: string
           Prestataire?: string
         }
@@ -3240,7 +3240,9 @@ export type Database = {
       VersementCommissions: {
         Row: {
           DateVersement: string
+          IDActiviteRemuneree: number | null
           IDCommande: number | null
+          IDDonCagnotte: number | null
           IDPrestation: number | null
           IDVersementCommissions: number
           MontantCommission: number
@@ -3250,7 +3252,9 @@ export type Database = {
         }
         Insert: {
           DateVersement: string
+          IDActiviteRemuneree?: number | null
           IDCommande?: number | null
+          IDDonCagnotte?: number | null
           IDPrestation?: number | null
           IDVersementCommissions?: number
           MontantCommission?: number
@@ -3260,7 +3264,9 @@ export type Database = {
         }
         Update: {
           DateVersement?: string
+          IDActiviteRemuneree?: number | null
           IDCommande?: number | null
+          IDDonCagnotte?: number | null
           IDPrestation?: number | null
           IDVersementCommissions?: number
           MontantCommission?: number

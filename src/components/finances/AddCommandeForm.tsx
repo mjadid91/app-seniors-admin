@@ -15,24 +15,14 @@ export const AddCommandeForm = ({ onClose, onSuccess }: Props) => {
     const [utilisateurId, setUtilisateurId] = useState("");
     const [montant, setMontant] = useState("");
     const [typeCommande, setTypeCommande] = useState("");
-    const [moyenPaiement, setMoyenPaiement] = useState("");
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-
-    // Options statiques pour les moyens de paiement
-    const moyensPaiementOptions = [
-        "Carte bancaire",
-        "Virement bancaire", 
-        "Chèque",
-        "PayPal",
-        "Espèces"
-    ];
 
     useEffect(() => {
         const fetchUsers = async () => {
             const { data: usersData } = await supabase
                 .from("Utilisateurs")
-                .select("IDUtilisateurs, Nom, Prenom");
+                .select("IDUtilisateurs, Prenom, Nom, Email");
             if (usersData) setUsers(usersData);
         };
         fetchUsers();
@@ -43,68 +33,68 @@ export const AddCommandeForm = ({ onClose, onSuccess }: Props) => {
         if (!utilisateurId || !montant || !typeCommande) return;
 
         setLoading(true);
-        
+
         try {
-            let moyenPaiementId = null;
+            // D'abord créer un moyen de paiement unique
+            const moyenPaiementId = Date.now(); // Utiliser timestamp pour éviter les doublons
+            const { data: moyenPaiement, error: moyenError } = await supabase
+                .from("MoyenPaiement")
+                .insert({
+                    MoyenPaiement: `Commande-${moyenPaiementId}`,
+                    DatePaiement: new Date().toISOString()
+                })
+                .select()
+                .single();
 
-            // Si un moyen de paiement est sélectionné, créer l'enregistrement
-            if (moyenPaiement) {
-                const { data: moyenPaiementData, error: moyenPaiementError } = await supabase
-                    .from("MoyenPaiement")
-                    .insert({
-                        MoyenPaiement: moyenPaiement,
-                        DatePaiement: new Date().toISOString()
-                    })
-                    .select()
-                    .single();
-
-                if (moyenPaiementError) {
-                    toast.error("Erreur lors de la création du moyen de paiement : " + moyenPaiementError.message);
-                    setLoading(false);
-                    return;
-                }
-
-                moyenPaiementId = moyenPaiementData.IDMoyenPaiement;
+            if (moyenError) {
+                console.error("Erreur moyen de paiement:", moyenError);
+                throw moyenError;
             }
 
-            // Créer la commande
-            const { error: commandeError } = await supabase.from("Commande").insert({
-                IDUtilisateurPayeur: parseInt(utilisateurId),
-                MontantTotal: parseFloat(montant),
-                DateCommande: new Date().toISOString().split("T")[0],
-                StatutCommande: "En cours",
-                TypeCommande: typeCommande,
-                IDMoyenPaiement: moyenPaiementId,
-            });
+            // Ensuite créer la commande
+            const { data: commande, error: commandeError } = await supabase
+                .from("Commande")
+                .insert({
+                    IDUtilisateurPayeur: parseInt(utilisateurId),
+                    MontantTotal: parseFloat(montant),
+                    DateCommande: new Date().toISOString().split("T")[0],
+                    StatutCommande: "En attente",
+                    TypeCommande: typeCommande,
+                    IDMoyenPaiement: moyenPaiement.IDMoyenPaiement
+                })
+                .select()
+                .single();
 
             if (commandeError) {
-                toast.error("Erreur : " + commandeError.message);
-            } else {
-                toast.success("Commande ajoutée avec succès.");
-                onSuccess();
-                onClose();
+                console.error("Erreur commande:", commandeError);
+                throw commandeError;
             }
-        } catch (error) {
-            toast.error("Erreur inattendue : " + error);
-        }
 
-        setLoading(false);
+            toast.success("Commande créée avec succès !");
+            onSuccess();
+            onClose();
+        } catch (error: any) {
+            console.error("Erreur lors de la création:", error);
+            toast.error("Erreur : " + error.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-                <Label>Utilisateur</Label>
+                <Label>Utilisateur payeur</Label>
                 <select
                     value={utilisateurId}
                     onChange={(e) => setUtilisateurId(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white z-50"
+                    className="w-full border px-3 py-2 rounded"
                     required
                 >
-                    <option value="">-- Choisir --</option>
-                    {users.map((u) => (
-                        <option key={u.IDUtilisateurs} value={u.IDUtilisateurs}>
-                            {u.Prenom} {u.Nom}
+                    <option value="">-- Choisir un utilisateur --</option>
+                    {users.map((user) => (
+                        <option key={user.IDUtilisateurs} value={user.IDUtilisateurs}>
+                            {user.Prenom} {user.Nom} ({user.Email})
                         </option>
                     ))}
                 </select>
@@ -114,42 +104,28 @@ export const AddCommandeForm = ({ onClose, onSuccess }: Props) => {
                 <select
                     value={typeCommande}
                     onChange={(e) => setTypeCommande(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white z-50"
+                    className="w-full border px-3 py-2 rounded"
                     required
                 >
-                    <option value="">-- Choisir --</option>
-                    <option value="Prestation">Prestation</option>
+                    <option value="">-- Choisir un type --</option>
                     <option value="Produit">Produit</option>
+                    <option value="Service">Service</option>
+                    <option value="Prestation">Prestation</option>
                     <option value="Autre">Autre</option>
                 </select>
             </div>
             <div>
-                <Label>Moyen de paiement (optionnel)</Label>
-                <select
-                    value={moyenPaiement}
-                    onChange={(e) => setMoyenPaiement(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white z-50"
-                >
-                    <option value="">-- Optionnel --</option>
-                    {moyensPaiementOptions.map((moyen) => (
-                        <option key={moyen} value={moyen}>
-                            {moyen}
-                        </option>
-                    ))}
-                </select>
-            </div>
-            <div>
                 <Label>Montant (€)</Label>
-                <Input 
-                    type="number" 
+                <Input
+                    type="number"
                     step="0.01"
-                    value={montant} 
-                    onChange={(e) => setMontant(e.target.value)} 
-                    required 
+                    value={montant}
+                    onChange={(e) => setMontant(e.target.value)}
+                    required
                 />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Ajout..." : "Ajouter commande"}
+                {loading ? "Création..." : "Créer la commande"}
             </Button>
         </form>
     );

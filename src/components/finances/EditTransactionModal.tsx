@@ -68,10 +68,17 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
         updateResult = await supabase
           .from("ServicePostMortem")
           .update({
-            MontantUtilise: formData.montant.toString(),
+            MontantPrestation: formData.montant,
             StatutService: formData.statut
           })
           .eq("IDServicePostMortem", transaction.idServicePostMortem || transaction.originalId || transaction.id);
+      } else if (transaction.type === "Don") {
+        updateResult = await supabase
+          .from("DonCagnotte")
+          .update({
+            Montant: formData.montant
+          })
+          .eq("IDDonCagnotte", transaction.idDonCagnotte || transaction.originalId || transaction.id);
       }
 
       console.log("Résultat de la mise à jour:", updateResult);
@@ -126,6 +133,7 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
               <SelectContent>
                 <SelectItem value="En attente">En attente</SelectItem>
                 <SelectItem value="Payé">Payé</SelectItem>
+                <SelectItem value="Validé">Validé</SelectItem>
                 <SelectItem value="Annulé">Annulé</SelectItem>
                 <SelectItem value="Remboursé">Remboursé</SelectItem>
               </SelectContent>

@@ -44,6 +44,11 @@ const DeleteTransactionModal = ({ isOpen, onClose, transaction, onTransactionDel
           .from("ServicePostMortem")
           .delete()
           .eq("IDServicePostMortem", transaction.idServicePostMortem || transaction.originalId || transaction.id);
+      } else if (transaction.type === "Don") {
+        deleteResult = await supabase
+          .from("DonCagnotte")
+          .delete()
+          .eq("IDDonCagnotte", transaction.idDonCagnotte || transaction.originalId || transaction.id);
       }
 
       console.log("Résultat de la suppression:", deleteResult);
