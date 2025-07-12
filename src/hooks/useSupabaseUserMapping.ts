@@ -1,10 +1,9 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useCallback } from 'react';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from './use-toast';
 
 interface UserMapping {
-  supabaseUserId: string;
   dbUserId: number;
   nom: string;
   prenom: string;
@@ -13,94 +12,132 @@ interface UserMapping {
 }
 
 export const useSupabaseUserMapping = () => {
-  const { toast } = useToast();
   const [userMapping, setUserMapping] = useState<UserMapping | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const findOrCreateUserMapping = async (supabaseUser: any): Promise<UserMapping | null> => {
-    if (!supabaseUser?.id || !supabaseUser?.email) {
-      console.warn('useSupabaseUserMapping: Invalid supabase user data', supabaseUser);
-      return null;
-    }
-
+  const findOrCreateUserMapping = useCallback(async (supabaseUser: SupabaseUser) => {
+    console.log('useSupabaseUserMapping: Starting mapping process for:', supabaseUser.email);
     setIsLoading(true);
+    
     try {
+      // D'abord, chercher l'utilisateur par email dans la table Utilisateurs
       console.log('Searching for user with email:', supabaseUser.email);
       
-      // Chercher l'utilisateur par email dans notre base de données
-      const { data: existingUser, error: searchError } = await supabase
+      const { data: userData, error: userError } = await supabase
         .from('Utilisateurs')
         .select(`
           IDUtilisateurs,
           Nom,
           Prenom,
           Email,
-          CatUtilisateurs:IDCatUtilisateurs (
+          IDCatUtilisateurs,
+          CatUtilisateurs!inner(
             EstAdministrateur,
             EstModerateur,
-            EstSupport,
-            EstSenior,
-            EstAidant
+            EstSupport
           )
         `)
         .eq('Email', supabaseUser.email)
         .single();
 
-      if (searchError && searchError.code !== 'PGRST116') {
-        console.error('Error searching for user:', searchError);
-        return null;
-      }
-
-      if (existingUser) {
-        console.log('Found existing user:', existingUser);
+      if (userError) {
+        console.error('useSupabaseUserMapping: Error finding user:', userError);
         
-        // Déterminer le rôle basé sur la catégorie
-        let role = 'support'; // rôle par défaut
-        if (existingUser.CatUtilisateurs) {
-          const cat = existingUser.CatUtilisateurs;
-          if (cat.EstAdministrateur) role = 'administrateur';
-          else if (cat.EstModerateur) role = 'moderateur';
-          else if (cat.EstSupport) role = 'support';
-          else role = 'visualisateur';
+        // Si l'utilisateur n'existe pas, essayer de le créer automatiquement
+        if (userError.code === 'PGRST116') {
+          console.log('useSupabaseUserMapping: User not found, attempting to create...');
+          
+          // Pour les administrateurs, on va créer l'utilisateur avec le rôle admin (IDCatUtilisateurs = 5)
+          const { data: newUser, error: createError } = await supabase
+            .from('Utilisateurs')
+            .insert({
+              Email: supabaseUser.email,
+              Nom: supabaseUser.user_metadata?.last_name || 'Admin',
+              Prenom: supabaseUser.user_metadata?.first_name || 'User',
+              IDCatUtilisateurs: 5, // Administrateur
+              MotDePasse: 'auto-generated', // Mot de passe temporaire
+              DateInscription: new Date().toISOString(),
+              EstActif: true
+            })
+            .select(`
+              IDUtilisateurs,
+              Nom,
+              Prenom,
+              Email,
+              IDCatUtilisateurs,
+              CatUtilisateurs!inner(
+                EstAdministrateur,
+                EstModerateur,
+                EstSupport
+              )
+            `)
+            .single();
+
+          if (createError) {
+            console.error('useSupabaseUserMapping: Error creating user:', createError);
+            setUserMapping(null);
+            setIsLoading(false);
+            return;
+          }
+
+          userData = newUser;
+          console.log('useSupabaseUserMapping: User created successfully:', newUser);
+        } else {
+          setUserMapping(null);
+          setIsLoading(false);
+          return;
         }
-
-        const mapping: UserMapping = {
-          supabaseUserId: supabaseUser.id,
-          dbUserId: existingUser.IDUtilisateurs,
-          nom: existingUser.Nom || '',
-          prenom: existingUser.Prenom || '',
-          email: existingUser.Email || '',
-          role
-        };
-
-        setUserMapping(mapping);
-        return mapping;
-      } else {
-        console.log('User not found in database, user needs to be created in admin panel first');
-        toast({
-          title: "Utilisateur non trouvé",
-          description: "Cet utilisateur doit être créé dans le panel admin.",
-          variant: "destructive",
-        });
-        return null;
       }
+
+      if (!userData) {
+        console.error('useSupabaseUserMapping: No user data found');
+        setUserMapping(null);
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('useSupabaseUserMapping: User found:', userData);
+
+      // Déterminer le rôle basé sur CatUtilisateurs
+      let role = 'visualisateur'; // rôle par défaut
+      
+      if (userData.CatUtilisateurs?.EstAdministrateur) {
+        role = 'administrateur';
+      } else if (userData.CatUtilisateurs?.EstModerateur) {
+        role = 'moderateur';
+      } else if (userData.CatUtilisateurs?.EstSupport) {
+        role = 'support';
+      }
+
+      const mapping: UserMapping = {
+        dbUserId: userData.IDUtilisateurs,
+        nom: userData.Nom,
+        prenom: userData.Prenom,
+        email: userData.Email,
+        role: role
+      };
+
+      console.log('useSupabaseUserMapping: Mapping created:', mapping);
+      setUserMapping(mapping);
+      
     } catch (error) {
-      console.error('Error in findOrCreateUserMapping:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les données utilisateur.",
-        variant: "destructive",
-      });
-      return null;
+      console.error('useSupabaseUserMapping: Unexpected error:', error);
+      setUserMapping(null);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const clearUserMapping = useCallback(() => {
+    console.log('useSupabaseUserMapping: Clearing user mapping');
+    setUserMapping(null);
+    setIsLoading(false);
+  }, []);
 
   return {
     userMapping,
     isLoading,
     findOrCreateUserMapping,
-    clearUserMapping: () => setUserMapping(null)
+    clearUserMapping
   };
 };

@@ -8,6 +8,7 @@ import { useSupabaseUserMapping } from './useSupabaseUserMapping';
 export const useSupabaseAuth = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
   const { userMapping, isLoading: mappingLoading, findOrCreateUserMapping, clearUserMapping } = useSupabaseUserMapping();
 
   useEffect(() => {
@@ -23,12 +24,13 @@ export const useSupabaseAuth = () => {
         if (error) {
           console.error('useSupabaseAuth: Error getting session:', error);
           if (mounted) {
+            setAuthError('Erreur de récupération de session');
             setLoading(false);
           }
           return;
         }
 
-        console.log('useSupabaseAuth: Initial session:', initialSession);
+        console.log('useSupabaseAuth: Initial session:', !!initialSession);
         
         if (mounted) {
           setSession(initialSession);
@@ -41,11 +43,13 @@ export const useSupabaseAuth = () => {
             clearUserMapping();
           }
           
+          // Une fois l'initialisation terminée, on arrête le loading
           setLoading(false);
         }
       } catch (error) {
         console.error('useSupabaseAuth: Error during initialization:', error);
         if (mounted) {
+          setAuthError('Erreur d\'initialisation');
           setLoading(false);
         }
       }
@@ -59,13 +63,17 @@ export const useSupabaseAuth = () => {
         if (!mounted) return;
         
         setSession(session);
+        setAuthError(null);
         
         if (session?.user) {
           console.log('useSupabaseAuth: User logged in, fetching mapping...');
+          setLoading(true); // On remet en loading pendant la récupération du mapping
           await findOrCreateUserMapping(session.user);
+          setLoading(false);
         } else {
           console.log('useSupabaseAuth: User logged out, clearing mapping');
           clearUserMapping();
+          setLoading(false);
         }
       }
     );
@@ -77,11 +85,12 @@ export const useSupabaseAuth = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [findOrCreateUserMapping, clearUserMapping]);
 
   const signIn = async (email: string, password: string) => {
     try {
       console.log('useSupabaseAuth: Attempting sign in for:', email);
+      setAuthError(null);
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -90,6 +99,7 @@ export const useSupabaseAuth = () => {
 
       if (error) {
         console.error('useSupabaseAuth: Sign in error:', error);
+        setAuthError(error.message);
         return { success: false, error: error.message };
       }
 
@@ -97,7 +107,9 @@ export const useSupabaseAuth = () => {
       return { success: true, user: data.user };
     } catch (error) {
       console.error('useSupabaseAuth: Sign in exception:', error);
-      return { success: false, error: 'Erreur de connexion' };
+      const errorMessage = 'Erreur de connexion';
+      setAuthError(errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
 
@@ -107,10 +119,12 @@ export const useSupabaseAuth = () => {
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('useSupabaseAuth: Sign out error:', error);
+        setAuthError(error.message);
       }
       clearUserMapping();
     } catch (error) {
       console.error('useSupabaseAuth: Sign out exception:', error);
+      setAuthError('Erreur de déconnexion');
     }
   };
 
@@ -144,6 +158,7 @@ export const useSupabaseAuth = () => {
     hasMapping: !!userMapping,
     isAuthenticated,
     loading: totalLoading,
+    authError,
     appUser: appUser ? `${appUser.prenom} ${appUser.nom} (${appUser.role})` : null
   });
 
@@ -152,6 +167,7 @@ export const useSupabaseAuth = () => {
     loading: totalLoading,
     user: appUser,
     isAuthenticated,
+    authError,
     signIn,
     signOut,
   };
