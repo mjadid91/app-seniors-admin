@@ -23,7 +23,7 @@ export const useSupabaseUserMapping = () => {
       // D'abord, chercher l'utilisateur par email dans la table Utilisateurs
       console.log('Searching for user with email:', supabaseUser.email);
       
-      const { data: userData, error: userError } = await supabase
+      let { data: userData, error: userError } = await supabase
         .from('Utilisateurs')
         .select(`
           IDUtilisateurs,
@@ -57,7 +57,15 @@ export const useSupabaseUserMapping = () => {
               IDCatUtilisateurs: 5, // Administrateur
               MotDePasse: 'auto-generated', // Mot de passe temporaire
               DateInscription: new Date().toISOString(),
-              EstActif: true
+              EstDesactive: false, // Utiliser EstDesactive au lieu de EstActif
+              Adresse: '',
+              Commentaire: '',
+              DateModification: new Date().toISOString(),
+              DateNaissance: '1970-01-01',
+              Genre: 'Non spécifié',
+              LangueSite: 'fr',
+              Photo: '',
+              Telephone: ''
             })
             .select(`
               IDUtilisateurs,
@@ -80,7 +88,7 @@ export const useSupabaseUserMapping = () => {
             return;
           }
 
-          userData = newUser;
+          userData = newUser; // Maintenant userData peut être réassignée
           console.log('useSupabaseUserMapping: User created successfully:', newUser);
         } else {
           setUserMapping(null);
