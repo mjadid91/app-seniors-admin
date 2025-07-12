@@ -31,12 +31,11 @@ export const useAuthStore = create<AuthState>()(
       token: null,
 
       login: async (email: string, password: string) => {
-        // Cette fonction est maintenant gérée par useSupabaseAuth
+        // Cette fonction sera maintenant gérée par useSupabaseAuth
         return false;
       },
 
       logout: () => {
-        console.log('AuthStore: Logging out, clearing state');
         set({ 
           user: null, 
           isAuthenticated: false, 
@@ -54,12 +53,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setUser: (user: User | null) => {
-        console.log('AuthStore: Setting user:', user ? `${user.prenom} ${user.nom} (${user.role})` : null);
         set({ user });
       },
 
       setAuthenticated: (authenticated: boolean) => {
-        console.log('AuthStore: Setting authenticated:', authenticated);
         set({ isAuthenticated: authenticated });
       }
     }),
