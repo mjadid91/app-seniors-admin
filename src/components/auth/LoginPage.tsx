@@ -15,16 +15,19 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { setUser, setAuthenticated } = useAuthStore();
-  const { signIn, user, isAuthenticated } = useSupabaseAuth();
+  const { signIn, user, isAuthenticated, loading } = useSupabaseAuth();
   const navigate = useNavigate();
 
   // Rediriger vers dashboard si déjà authentifié
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (!loading && isAuthenticated && user) {
       console.log('LoginPage: User already authenticated, redirecting to dashboard');
-      navigate("/dashboard");
+      // Synchroniser avec le store avant la redirection
+      setUser(user);
+      setAuthenticated(true);
+      navigate("/dashboard", { replace: true });
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, loading, navigate, setUser, setAuthenticated]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,15 +47,28 @@ const LoginPage = () => {
       if (!result.success) {
         setError(result.error || "Erreur de connexion");
       } else {
-        console.log('LoginPage: Login successful, auth state will be handled by useSupabaseAuth');
+        console.log('LoginPage: Login successful');
         // La redirection sera gérée par useEffect quand l'état d'auth changera
       }
     } catch (err) {
+      console.error('LoginPage: Login error:', err);
       setError("Une erreur est survenue lors de la connexion");
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Afficher le chargement pendant la vérification de l'auth
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Vérification de l'authentification...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
