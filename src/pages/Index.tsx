@@ -8,32 +8,35 @@ const Index = () => {
   const { user, isAuthenticated, loading } = useSupabaseAuth();
   const { setUser, setAuthenticated } = useAuthStore();
   const [hasRedirected, setHasRedirected] = useState(false);
-  const syncedRef = useRef(false);
+  const redirectedRef = useRef(false);
   const navigate = useNavigate();
 
-  // Synchroniser l'état d'authentification avec le store global
   useEffect(() => {
-    if (!loading && !hasRedirected && !syncedRef.current) {
-      console.log('Index: Auth state ready, syncing with store', { 
-        user: user ? `${user.prenom} ${user.nom} (${user.role})` : null, 
-        isAuthenticated 
-      });
-      
-      // Synchroniser avec le store une seule fois
-      setUser(user);
-      setAuthenticated(isAuthenticated);
-      syncedRef.current = true;
-      
-      // Rediriger selon l'état d'authentification
-      if (isAuthenticated && user) {
-        console.log('Index: User authenticated, redirecting to dashboard');
-        navigate("/dashboard", { replace: true });
-      } else {
-        console.log('Index: User not authenticated, redirecting to login');
-        navigate("/connexion", { replace: true });
-      }
-      
-      setHasRedirected(true);
+    // Éviter les redirections multiples
+    if (loading || hasRedirected || redirectedRef.current) {
+      return;
+    }
+
+    console.log('Index: Auth state ready, syncing with store', { 
+      user: user ? `${user.prenom} ${user.nom} (${user.role})` : null, 
+      isAuthenticated 
+    });
+    
+    // Synchroniser avec le store
+    setUser(user);
+    setAuthenticated(isAuthenticated);
+    
+    // Marquer comme redirigé
+    redirectedRef.current = true;
+    setHasRedirected(true);
+    
+    // Rediriger selon l'état d'authentification
+    if (isAuthenticated && user) {
+      console.log('Index: User authenticated, redirecting to dashboard');
+      navigate("/dashboard", { replace: true });
+    } else {
+      console.log('Index: User not authenticated, redirecting to login');
+      navigate("/connexion", { replace: true });
     }
   }, [user, isAuthenticated, loading, hasRedirected, navigate, setUser, setAuthenticated]);
 
@@ -50,7 +53,6 @@ const Index = () => {
     );
   }
 
-  // Cette page ne devrait jamais afficher ce contenu car elle redirige toujours
   return null;
 };
 

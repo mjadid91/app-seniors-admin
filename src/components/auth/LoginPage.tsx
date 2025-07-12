@@ -17,20 +17,22 @@ const LoginPage = () => {
   const { setUser, setAuthenticated } = useAuthStore();
   const { signIn, user, isAuthenticated, loading } = useSupabaseAuth();
   const navigate = useNavigate();
-  const syncedRef = useRef(false);
+  const redirectedRef = useRef(false);
 
   // Rediriger vers dashboard si déjà authentifié
   useEffect(() => {
-    if (!loading && isAuthenticated && user && !syncedRef.current) {
+    if (!loading && isAuthenticated && user && !redirectedRef.current) {
       console.log('LoginPage: User already authenticated, redirecting to dashboard');
-      // Synchroniser avec le store une seule fois
+      
+      // Synchroniser avec le store
       setUser(user);
       setAuthenticated(true);
-      syncedRef.current = true;
+      redirectedRef.current = true;
+      
       navigate("/dashboard", { replace: true });
     } else if (!loading && !isAuthenticated) {
-      // Reset sync flag when not authenticated
-      syncedRef.current = false;
+      // Reset redirect flag when not authenticated
+      redirectedRef.current = false;
     }
   }, [isAuthenticated, user, loading, navigate, setUser, setAuthenticated]);
 
@@ -53,7 +55,7 @@ const LoginPage = () => {
         setError(result.error || "Erreur de connexion");
       } else {
         console.log('LoginPage: Login successful');
-        // La redirection sera gérée par useEffect quand l'état d'auth changera
+        // La redirection sera gérée par useEffect
       }
     } catch (err) {
       console.error('LoginPage: Login error:', err);

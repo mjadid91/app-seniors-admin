@@ -3,13 +3,12 @@ import { useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '../stores/authStore';
-import { useSupabaseUserMapping } from './useSupabaseUserMapping';
 
 export const useSupabaseAuth = () => {
   const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
-  const { userMapping, isLoading: mappingLoading, findOrCreateUserMapping, clearUserMapping } = useSupabaseUserMapping();
 
   useEffect(() => {
     let mounted = true;
@@ -36,14 +35,12 @@ export const useSupabaseAuth = () => {
           setSession(initialSession);
           
           if (initialSession?.user) {
-            console.log('useSupabaseAuth: Found user in session, fetching mapping...');
-            await findOrCreateUserMapping(initialSession.user);
+            await handleUserMapping(initialSession.user);
           } else {
             console.log('useSupabaseAuth: No user in session');
-            clearUserMapping();
+            setUser(null);
           }
           
-          // Une fois l'initialisation terminée, on arrête le loading
           setLoading(false);
         }
       } catch (error) {
@@ -51,6 +48,109 @@ export const useSupabaseAuth = () => {
         if (mounted) {
           setAuthError('Erreur d\'initialisation');
           setLoading(false);
+        }
+      }
+    };
+
+    const handleUserMapping = async (supabaseUser: any) => {
+      try {
+        console.log('useSupabaseAuth: Mapping user:', supabaseUser.email);
+        
+        // Chercher l'utilisateur par email
+        let { data: userData, error: userError } = await supabase
+          .from('Utilisateurs')
+          .select(`
+            IDUtilisateurs,
+            Nom,
+            Prenom,
+            Email,
+            IDCatUtilisateurs,
+            CatUtilisateurs!inner(
+              EstAdministrateur,
+              EstModerateur,
+              EstSupport
+            )
+          `)
+          .eq('Email', supabaseUser.email)
+          .single();
+
+        if (userError && userError.code === 'PGRST116') {
+          console.log('useSupabaseAuth: User not found, creating admin user...');
+          
+          // Créer un utilisateur admin automatiquement
+          const { data: newUser, error: createError } = await supabase
+            .from('Utilisateurs')
+            .insert({
+              Email: supabaseUser.email,
+              Nom: supabaseUser.user_metadata?.last_name || 'Admin',
+              Prenom: supabaseUser.user_metadata?.first_name || 'User',
+              IDCatUtilisateurs: 5, // Administrateur
+              MotDePasse: 'auto-generated',
+              DateInscription: new Date().toISOString(),
+              EstDesactive: false,
+              Adresse: '',
+              Commentaire: '',
+              DateModification: new Date().toISOString(),
+              DateNaissance: '1970-01-01',
+              Genre: 'Non spécifié',
+              LangueSite: 'fr',
+              Photo: '',
+              Telephone: ''
+            })
+            .select(`
+              IDUtilisateurs,
+              Nom,
+              Prenom,
+              Email,
+              IDCatUtilisateurs,
+              CatUtilisateurs!inner(
+                EstAdministrateur,
+                EstModerateur,
+                EstSupport
+              )
+            `)
+            .single();
+
+          if (createError) {
+            console.error('useSupabaseAuth: Error creating user:', createError);
+            throw createError;
+          }
+
+          userData = newUser;
+          console.log('useSupabaseAuth: User created successfully');
+        } else if (userError) {
+          console.error('useSupabaseAuth: Error finding user:', userError);
+          throw userError;
+        }
+
+        if (userData && mounted) {
+          // Déterminer le rôle
+          let role = 'visualisateur';
+          if (userData.CatUtilisateurs?.EstAdministrateur) {
+            role = 'administrateur';
+          } else if (userData.CatUtilisateurs?.EstModerateur) {
+            role = 'moderateur';
+          } else if (userData.CatUtilisateurs?.EstSupport) {
+            role = 'support';
+          }
+
+          const appUser: User = {
+            id: userData.IDUtilisateurs.toString(),
+            nom: userData.Nom,
+            prenom: userData.Prenom,
+            email: userData.Email,
+            role: role as User['role'],
+            dateInscription: supabaseUser.created_at || new Date().toISOString(),
+          };
+
+          console.log('useSupabaseAuth: Setting app user:', appUser);
+          setUser(appUser);
+        }
+      } catch (error) {
+        console.error('useSupabaseAuth: Error in user mapping:', error);
+        if (mounted) {
+          setAuthError('Erreur de mapping utilisateur');
+          setUser(null);
         }
       }
     };
@@ -66,13 +166,13 @@ export const useSupabaseAuth = () => {
         setAuthError(null);
         
         if (session?.user) {
-          console.log('useSupabaseAuth: User logged in, fetching mapping...');
-          setLoading(true); // On remet en loading pendant la récupération du mapping
-          await findOrCreateUserMapping(session.user);
+          console.log('useSupabaseAuth: User logged in, mapping...');
+          setLoading(true);
+          await handleUserMapping(session.user);
           setLoading(false);
         } else {
-          console.log('useSupabaseAuth: User logged out, clearing mapping');
-          clearUserMapping();
+          console.log('useSupabaseAuth: User logged out');
+          setUser(null);
           setLoading(false);
         }
       }
@@ -85,7 +185,7 @@ export const useSupabaseAuth = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [findOrCreateUserMapping, clearUserMapping]);
+  }, []); // Dépendances vides pour éviter les re-rendus
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -103,7 +203,7 @@ export const useSupabaseAuth = () => {
         return { success: false, error: error.message };
       }
 
-      console.log('useSupabaseAuth: Sign in successful:', !!data.user);
+      console.log('useSupabaseAuth: Sign in successful');
       return { success: true, user: data.user };
     } catch (error) {
       console.error('useSupabaseAuth: Sign in exception:', error);
@@ -121,51 +221,28 @@ export const useSupabaseAuth = () => {
         console.error('useSupabaseAuth: Sign out error:', error);
         setAuthError(error.message);
       }
-      clearUserMapping();
+      setUser(null);
     } catch (error) {
       console.error('useSupabaseAuth: Sign out exception:', error);
       setAuthError('Erreur de déconnexion');
     }
   };
 
-  // Convert user mapping to app User type
-  const convertToAppUser = (): User | null => {
-    if (!userMapping || !session?.user) {
-      console.log('useSupabaseAuth: Cannot convert user - missing mapping or session');
-      return null;
-    }
-    
-    const appUser = {
-      id: userMapping.dbUserId.toString(),
-      nom: userMapping.nom,
-      prenom: userMapping.prenom,
-      email: userMapping.email,
-      role: userMapping.role as User['role'],
-      dateInscription: session.user.created_at || new Date().toISOString(),
-    };
-    
-    console.log('useSupabaseAuth: Converted app user:', appUser);
-    return appUser;
-  };
-
-  const appUser = convertToAppUser();
-  const isAuthenticated = !!session?.user && !!userMapping;
-  const totalLoading = loading || mappingLoading;
+  const isAuthenticated = !!session?.user && !!user;
 
   console.log('useSupabaseAuth: Current state:', {
     hasSession: !!session,
-    hasUser: !!session?.user,
-    hasMapping: !!userMapping,
+    hasUser: !!user,
     isAuthenticated,
-    loading: totalLoading,
+    loading,
     authError,
-    appUser: appUser ? `${appUser.prenom} ${appUser.nom} (${appUser.role})` : null
+    appUser: user ? `${user.prenom} ${user.nom} (${user.role})` : null
   });
 
   return {
     session,
-    loading: totalLoading,
-    user: appUser,
+    loading,
+    user,
     isAuthenticated,
     authError,
     signIn,
