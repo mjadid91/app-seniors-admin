@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,15 +17,20 @@ const LoginPage = () => {
   const { setUser, setAuthenticated } = useAuthStore();
   const { signIn, user, isAuthenticated, loading } = useSupabaseAuth();
   const navigate = useNavigate();
+  const syncedRef = useRef(false);
 
   // Rediriger vers dashboard si déjà authentifié
   useEffect(() => {
-    if (!loading && isAuthenticated && user) {
+    if (!loading && isAuthenticated && user && !syncedRef.current) {
       console.log('LoginPage: User already authenticated, redirecting to dashboard');
-      // Synchroniser avec le store avant la redirection
+      // Synchroniser avec le store une seule fois
       setUser(user);
       setAuthenticated(true);
+      syncedRef.current = true;
       navigate("/dashboard", { replace: true });
+    } else if (!loading && !isAuthenticated) {
+      // Reset sync flag when not authenticated
+      syncedRef.current = false;
     }
   }, [isAuthenticated, user, loading, navigate, setUser, setAuthenticated]);
 

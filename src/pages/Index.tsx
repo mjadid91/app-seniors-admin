@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import { useAuthStore } from "../stores/authStore";
@@ -8,19 +8,21 @@ const Index = () => {
   const { user, isAuthenticated, loading } = useSupabaseAuth();
   const { setUser, setAuthenticated } = useAuthStore();
   const [hasRedirected, setHasRedirected] = useState(false);
+  const syncedRef = useRef(false);
   const navigate = useNavigate();
 
   // Synchroniser l'état d'authentification avec le store global
   useEffect(() => {
-    if (!loading && !hasRedirected) {
+    if (!loading && !hasRedirected && !syncedRef.current) {
       console.log('Index: Auth state ready, syncing with store', { 
         user: user ? `${user.prenom} ${user.nom} (${user.role})` : null, 
         isAuthenticated 
       });
       
-      // Synchroniser avec le store
+      // Synchroniser avec le store une seule fois
       setUser(user);
       setAuthenticated(isAuthenticated);
+      syncedRef.current = true;
       
       // Rediriger selon l'état d'authentification
       if (isAuthenticated && user) {
