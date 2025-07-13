@@ -45,23 +45,24 @@ const Sidebar = () => {
     try {
       console.log('Sidebar: Starting logout process...');
       
-      // Effectuer la déconnexion Supabase
-      const result = await signOut();
+      // Nettoyer immédiatement le store Zustand
+      logout();
       
-      if (result?.success !== false) {
-        // Nettoyer le store Zustand
-        logout();
-        
-        console.log('Sidebar: Logout successful, redirecting to login...');
-        
-        // Rediriger vers la page de connexion
-        navigate("/connexion", { replace: true });
-      } else {
-        console.error('Sidebar: Logout failed:', result?.error);
+      // Rediriger immédiatement vers la page de connexion
+      navigate("/connexion", { replace: true });
+      
+      // Ensuite, essayer de nettoyer la session Supabase en arrière-plan
+      try {
+        await signOut();
+        console.log('Sidebar: Supabase logout completed');
+      } catch (supabaseError) {
+        console.log('Sidebar: Supabase logout failed but local logout succeeded:', supabaseError);
+        // Ne pas considérer ceci comme une erreur bloquante
       }
+      
     } catch (error) {
       console.error('Sidebar: Logout error:', error);
-      // En cas d'erreur, forcer quand même la déconnexion locale
+      // En cas d'erreur globale, forcer quand même la déconnexion locale
       logout();
       navigate("/connexion", { replace: true });
     }

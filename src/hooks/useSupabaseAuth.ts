@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -108,22 +107,26 @@ export const useSupabaseAuth = () => {
     try {
       console.log('useSupabaseAuth: Starting sign out process...');
       
-      // D'abord nettoyer les états locaux
+      // Nettoyer d'abord les états locaux
       setSession(null);
       clearUserMapping();
       
-      // Ensuite effectuer la déconnexion Supabase
+      // Essayer de déconnecter de Supabase
       const { error } = await supabase.auth.signOut();
+      
       if (error) {
-        console.error('useSupabaseAuth: Sign out error:', error);
-        throw error;
+        console.log('useSupabaseAuth: Supabase sign out error (ignoré):', error);
+        // Ne pas traiter les erreurs de session comme des erreurs bloquantes
+        // car l'utilisateur peut déjà être déconnecté côté serveur
       }
       
-      console.log('useSupabaseAuth: Sign out successful');
+      console.log('useSupabaseAuth: Sign out completed');
       return { success: true };
     } catch (error) {
-      console.error('useSupabaseAuth: Sign out exception:', error);
-      return { success: false, error: 'Erreur lors de la déconnexion' };
+      console.log('useSupabaseAuth: Sign out exception (ignoré):', error);
+      // Même en cas d'exception, considérer la déconnexion comme réussie
+      // car les états locaux ont été nettoyés
+      return { success: true };
     }
   };
 
