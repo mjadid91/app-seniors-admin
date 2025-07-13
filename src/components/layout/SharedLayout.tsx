@@ -2,13 +2,13 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
-import { useAuth } from "../../hooks/useAuth";
+import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
 
 const SharedLayout = () => {
-  const { isLoading, isInitialized, isAuthenticated } = useAuth();
+  const { loading, isInitialized, isAuthenticated } = useSupabaseAuth();
 
   // Afficher le chargement global si l'auth n'est pas prête
-  if (!isInitialized || isLoading) {
+  if (!isInitialized || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="text-center">

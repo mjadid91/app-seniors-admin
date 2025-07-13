@@ -15,82 +15,58 @@ export interface User {
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
-  isInitialized: boolean;
-  sessionId: string | null;
-  
-  // Actions
+  token: string | null;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => void;
+  checkAuth: () => Promise<void>;
   setUser: (user: User | null) => void;
   setAuthenticated: (authenticated: boolean) => void;
-  setLoading: (loading: boolean) => void;
-  setInitialized: (initialized: boolean) => void;
-  setSessionId: (sessionId: string | null) => void;
-  logout: () => void;
-  reset: () => void;
 }
-
-const initialState = {
-  user: null,
-  isAuthenticated: false,
-  isLoading: false,
-  isInitialized: false,
-  sessionId: null,
-};
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-      ...initialState,
+      user: null,
+      isAuthenticated: false,
+      token: null,
+
+      login: async (email: string, password: string) => {
+        // Cette fonction sera maintenant gérée par useSupabaseAuth
+        return false;
+      },
+
+      logout: () => {
+        set({ 
+          user: null, 
+          isAuthenticated: false, 
+          token: null 
+        });
+      },
+
+      checkAuth: async () => {
+        const { token } = get();
+        if (!token) {
+          set({ isAuthenticated: false, user: null });
+          return;
+        }
+        // En mode réel, on vérifierait le token avec le backend
+      },
 
       setUser: (user: User | null) => {
-        console.log('AuthStore: Setting user:', user ? { id: user.id, role: user.role } : null);
         set({ user });
       },
 
       setAuthenticated: (authenticated: boolean) => {
-        console.log('AuthStore: Setting authenticated:', authenticated);
         set({ isAuthenticated: authenticated });
-      },
-
-      setLoading: (loading: boolean) => {
-        console.log('AuthStore: Setting loading:', loading);
-        set({ isLoading: loading });
-      },
-
-      setInitialized: (initialized: boolean) => {
-        console.log('AuthStore: Setting initialized:', initialized);
-        set({ isInitialized: initialized });
-      },
-
-      setSessionId: (sessionId: string | null) => {
-        console.log('AuthStore: Setting sessionId:', sessionId ? 'present' : 'null');
-        set({ sessionId });
-      },
-
-      logout: () => {
-        console.log('AuthStore: Logging out');
-        set({
-          user: null,
-          isAuthenticated: false,
-          sessionId: null,
-          isLoading: false,
-          isInitialized: true,
-        });
-      },
-
-      reset: () => {
-        console.log('AuthStore: Resetting all state');
-        set(initialState);
-      },
+      }
     }),
     {
       name: 'appseniors-auth',
-      partialize: (state) => ({
+      partialize: (state) => ({ 
+        token: state.token,
         user: state.user,
-        isAuthenticated: state.isAuthenticated,
-        sessionId: state.sessionId,
-        // Ne pas persister isInitialized pour forcer la réinitialisation
-      }),
+        isAuthenticated: state.isAuthenticated 
+      })
     }
   )
 );

@@ -1,6 +1,6 @@
 
 import { ReactNode } from 'react';
-import { useAuth } from '../../hooks/useAuth';
+import { useSupabaseAuth } from '../../hooks/useSupabaseAuth';
 import { usePermissions } from '../../hooks/usePermissions';
 import { AlertTriangle, Lock } from 'lucide-react';
 
@@ -19,20 +19,20 @@ const ProtectedRoute = ({
   requiredPermission, 
   fallback 
 }: ProtectedRouteProps) => {
-  const { isAuthenticated, isLoading, isInitialized, user } = useAuth();
+  const { isAuthenticated, loading, isInitialized, user } = useSupabaseAuth();
   const { canAccessPage, hasPermission } = usePermissions();
 
   console.log('ProtectedRoute: Checking access', {
     isAuthenticated,
-    isLoading,
+    loading,
     isInitialized,
     user: user ? { id: user.id, role: user.role } : null,
     requiredPage,
     requiredPermission
   });
 
-  // Afficher le chargement si l'auth n'est pas encore initialisée
-  if (!isInitialized || isLoading) {
+  // Afficher le chargement si l'auth n'est pas encore initialisée ou en cours
+  if (!isInitialized || loading) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -65,7 +65,6 @@ const ProtectedRoute = ({
     );
   }
 
-  // Vérifier les permissions
   const hasAccess = () => {
     if (requiredPage && !canAccessPage(requiredPage)) {
       console.log('ProtectedRoute: Access denied for page:', requiredPage);

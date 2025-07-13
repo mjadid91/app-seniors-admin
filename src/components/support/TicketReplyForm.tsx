@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Send, Paperclip, Upload, X } from "lucide-react";
 import { useSupportReplies } from "@/hooks/useSupportReplies";
 import { useSupportFileUpload } from "@/hooks/useSupportFileUpload";
-import { useAuth } from "@/hooks/useAuth";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 
 interface TicketReplyFormProps {
   ticketId: string;
@@ -18,13 +19,13 @@ const TicketReplyForm = ({ ticketId, onReplySubmitted }: TicketReplyFormProps) =
   const [reply, setReply] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { session } = useSupabaseAuth();
   
   const { addReply, isAddingReply } = useSupportReplies(ticketId);
   const { uploadFile, isUploading } = useSupportFileUpload();
 
-  // Get current user ID from the user object - use ID 8 (Mohamed Jadid) as fallback since he's logged in
-  const currentUserId = user?.id ? parseInt(user.id) : 8;
+  // Get current user ID from session - use ID 8 (Mohamed Jadid) as fallback since he's logged in
+  const currentUserId = session?.user?.id ? parseInt(session.user.id) : 8;
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

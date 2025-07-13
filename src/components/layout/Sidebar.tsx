@@ -1,6 +1,6 @@
-
 import { cn } from "@/lib/utils";
-import { useAuth } from "../../hooks/useAuth";
+import { useAuthStore } from "../../stores/authStore";
+import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
 import { usePermissions } from "../../hooks/usePermissions";
 import {
   LayoutDashboard,
@@ -29,7 +29,8 @@ const menuItems = [
 ];
 
 const Sidebar = () => {
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuthStore();
+  const { signOut } = useSupabaseAuth();
   const { canAccessPage } = usePermissions();
   const navigate = useNavigate();
   const location = useLocation();
@@ -42,11 +43,28 @@ const Sidebar = () => {
 
   const handleLogout = async () => {
     try {
-      console.log('Sidebar: Starting logout...');
-      await signOut();
-      console.log('Sidebar: Logout completed');
+      console.log('Sidebar: Starting logout process...');
+      
+      // Nettoyer immédiatement le store Zustand
+      logout();
+      
+      // Rediriger immédiatement vers la page de connexion
+      navigate("/connexion", { replace: true });
+      
+      // Ensuite, essayer de nettoyer la session Supabase en arrière-plan
+      try {
+        await signOut();
+        console.log('Sidebar: Supabase logout completed');
+      } catch (supabaseError) {
+        console.log('Sidebar: Supabase logout failed but local logout succeeded:', supabaseError);
+        // Ne pas considérer ceci comme une erreur bloquante
+      }
+      
     } catch (error) {
       console.error('Sidebar: Logout error:', error);
+      // En cas d'erreur globale, forcer quand même la déconnexion locale
+      logout();
+      navigate("/connexion", { replace: true });
     }
   };
 
