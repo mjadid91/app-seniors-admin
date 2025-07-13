@@ -5,49 +5,59 @@ import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import { useAuthStore } from "../stores/authStore";
 
 const Index = () => {
-  const { user, isAuthenticated, loading } = useSupabaseAuth();
+  const { user, isAuthenticated, loading, isInitialized } = useSupabaseAuth();
   const { setUser, setAuthenticated } = useAuthStore();
-  const [isInitializing, setIsInitializing] = useState(true);
   const navigate = useNavigate();
 
   // Synchroniser l'état d'authentification avec le store global
   useEffect(() => {
+    // Attendre que l'authentification soit initialisée
+    if (!isInitialized) {
+      console.log('Index: Auth not initialized yet, waiting...');
+      return;
+    }
+
+    console.log('Index: Synchronizing auth state', { 
+      user: user ? { id: user.id, role: user.role } : null, 
+      isAuthenticated, 
+      loading 
+    });
+    
+    // Synchroniser avec le store
+    const currentUser = useAuthStore.getState().user;
+    const currentAuth = useAuthStore.getState().isAuthenticated;
+    
+    if (currentUser?.id !== user?.id) {
+      console.log('Index: Updating user in store');
+      setUser(user);
+    }
+    
+    if (currentAuth !== isAuthenticated) {
+      console.log('Index: Updating auth status in store');
+      setAuthenticated(isAuthenticated);
+    }
+    
+    // Redirection après synchronisation
     if (!loading) {
-      console.log('Index: Synchronizing auth state', { user, isAuthenticated });
-      
-      // Only update store if the values have actually changed
-      const currentUser = useAuthStore.getState().user;
-      const currentAuth = useAuthStore.getState().isAuthenticated;
-      
-      if (currentUser?.id !== user?.id) {
-        setUser(user);
-      }
-      
-      if (currentAuth !== isAuthenticated) {
-        setAuthenticated(isAuthenticated);
-      }
-      
-      setIsInitializing(false);
-      
-      // Rediriger vers dashboard si authentifié
       if (isAuthenticated && user) {
-        console.log('Index: Redirecting to dashboard');
-        navigate("/dashboard");
+        console.log('Index: User authenticated, redirecting to dashboard');
+        navigate("/dashboard", { replace: true });
       } else {
-        // Rediriger vers la page de connexion si non authentifié
-        console.log('Index: Redirecting to login');
-        navigate("/connexion");
+        console.log('Index: User not authenticated, redirecting to login');
+        navigate("/connexion", { replace: true });
       }
     }
-  }, [user?.id, isAuthenticated, loading, navigate]); // Use user?.id instead of user object
+  }, [user?.id, isAuthenticated, loading, isInitialized, navigate, setUser, setAuthenticated]);
 
-  // Traite explicitement l'écran de chargement tant que l'auth n'est pas prête
-  if (loading || isInitializing) {
+  // Afficher le loading tant que l'auth n'est pas initialisée ou en cours de chargement
+  if (!isInitialized || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Chargement de l'application...</p>
+          <p className="text-slate-600">
+            {!isInitialized ? 'Initialisation de l\'application...' : 'Chargement...'}
+          </p>
         </div>
       </div>
     );

@@ -4,27 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuthStore } from "../../stores/authStore";
 import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
 import { AlertCircle } from "lucide-react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { setUser, setAuthenticated } = useAuthStore();
-  const { signIn, user, isAuthenticated } = useSupabaseAuth();
+  const { signIn, user, isAuthenticated, loading: authLoading, isInitialized } = useSupabaseAuth();
   const navigate = useNavigate();
 
   // Rediriger vers dashboard si déjà authentifié
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isInitialized && !authLoading && isAuthenticated && user) {
       console.log('LoginPage: User already authenticated, redirecting to dashboard');
-      navigate("/dashboard");
+      navigate("/dashboard", { replace: true });
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, authLoading, isInitialized, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,15 +42,28 @@ const LoginPage = () => {
       if (!result.success) {
         setError(result.error || "Erreur de connexion");
       } else {
-        console.log('LoginPage: Login successful, auth state will be handled by useSupabaseAuth');
+        console.log('LoginPage: Login successful');
         // La redirection sera gérée par useEffect quand l'état d'auth changera
       }
     } catch (err) {
+      console.error('LoginPage: Login error:', err);
       setError("Une erreur est survenue lors de la connexion");
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Afficher le chargement si l'auth n'est pas encore initialisée
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Initialisation...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
@@ -80,7 +91,7 @@ const LoginPage = () => {
                   placeholder="admin@appseniors.fr"
                   required
                   className="border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
-                  disabled={isLoading}
+                  disabled={isLoading || authLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -93,7 +104,7 @@ const LoginPage = () => {
                   placeholder="••••••••"
                   required
                   className="border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
-                  disabled={isLoading}
+                  disabled={isLoading || authLoading}
                 />
               </div>
               {error && (
@@ -105,9 +116,9 @@ const LoginPage = () => {
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200 hover:shadow-xl"
-                disabled={isLoading}
+                disabled={isLoading || authLoading}
               >
-                {isLoading ? (
+                {isLoading || authLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     Connexion...
@@ -118,20 +129,13 @@ const LoginPage = () => {
               </Button>
             </form>
             
-            <div className="text-center">
-              <Link
-                to="/forgot-password"
-                className="text-sm text-blue-600 hover:text-blue-700 transition-colors font-medium"
-              >
-                Mot de passe oublié ?
-              </Link>
-            </div>
-            
             <div className="mt-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
               <p className="text-xs text-blue-800 font-medium mb-2">Informations importantes :</p>
               <div className="text-xs text-blue-700 space-y-1">
-                <div><strong>Seuls les administrateurs, modérateurs, support et visualisateur</strong> peuvent se connecter</div>
-                <div>Utilisez l'email et mot de passe exacts de votre compte</div>
+                <div><strong>Administrateur :</strong> Accès complet à toutes les fonctionnalités</div>
+                <div><strong>Visualisateur :</strong> Accès en lecture seule à toutes les pages</div>
+                <div><strong>Support :</strong> Accès uniquement au dashboard et support</div>
+                <div><strong>Modérateur :</strong> Accès uniquement au dashboard et modération</div>
               </div>
             </div>
           </CardContent>
