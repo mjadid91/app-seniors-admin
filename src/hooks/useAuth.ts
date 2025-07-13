@@ -18,7 +18,6 @@ export const useAuth = () => {
     setInitialized,
     setSessionId,
     logout: logoutStore,
-    reset,
   } = useAuthStore();
 
   const { toast } = useToast();
@@ -108,8 +107,7 @@ export const useAuth = () => {
 
     const initializeAuth = async () => {
       console.log('useAuth: Initializing authentication...');
-      setLoading(true);
-
+      
       try {
         // Vérifier la session existante
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -117,7 +115,9 @@ export const useAuth = () => {
         if (error) {
           console.error('useAuth: Error getting session:', error);
           if (mounted) {
-            logoutStore();
+            setUser(null);
+            setAuthenticated(false);
+            setSessionId(null);
             setInitialized(true);
             setLoading(false);
           }
@@ -133,16 +133,22 @@ export const useAuth = () => {
             setUser(appUser);
             setAuthenticated(true);
           } else if (mounted) {
-            logoutStore();
+            setUser(null);
+            setAuthenticated(false);
+            setSessionId(null);
           }
         } else if (mounted) {
           console.log('useAuth: No existing session');
-          logoutStore();
+          setUser(null);
+          setAuthenticated(false);
+          setSessionId(null);
         }
       } catch (error) {
         console.error('useAuth: Error during initialization:', error);
         if (mounted) {
-          logoutStore();
+          setUser(null);
+          setAuthenticated(false);
+          setSessionId(null);
         }
       } finally {
         if (mounted) {
@@ -168,8 +174,16 @@ export const useAuth = () => {
       } else if (event === 'SIGNED_OUT' || !session) {
         console.log('useAuth: User signed out');
         if (mounted) {
-          logoutStore();
+          setUser(null);
+          setAuthenticated(false);
+          setSessionId(null);
         }
+      }
+      
+      // S'assurer que l'initialisation est marquée comme terminée
+      if (mounted && !isInitialized) {
+        setInitialized(true);
+        setLoading(false);
       }
     });
 
@@ -179,7 +193,7 @@ export const useAuth = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [setUser, setAuthenticated, setLoading, setInitialized, setSessionId, logoutStore, mapSupabaseUserToAppUser]);
+  }, [setUser, setAuthenticated, setLoading, setInitialized, setSessionId, mapSupabaseUserToAppUser, isInitialized]);
 
   // Fonction de connexion
   const signIn = async (email: string, password: string) => {
@@ -218,7 +232,9 @@ export const useAuth = () => {
       console.log('useAuth: Signing out...');
       
       // Nettoyer le store immédiatement
-      logoutStore();
+      setUser(null);
+      setAuthenticated(false);
+      setSessionId(null);
       
       // Déconnecter de Supabase (en arrière-plan)
       await supabase.auth.signOut();
@@ -231,29 +247,6 @@ export const useAuth = () => {
       return { success: true };
     }
   };
-
-  // Gestion de la navigation automatique
-  useEffect(() => {
-    if (!isInitialized || isLoading) return;
-
-    const currentPath = location.pathname;
-    const isPublicRoute = currentPath === '/connexion' || currentPath === '/';
-
-    console.log('useAuth: Navigation check:', {
-      currentPath,
-      isAuthenticated,
-      isPublicRoute,
-      hasUser: !!user,
-    });
-
-    if (isAuthenticated && user && isPublicRoute) {
-      console.log('useAuth: Redirecting authenticated user to dashboard');
-      navigate('/dashboard', { replace: true });
-    } else if (!isAuthenticated && !isPublicRoute) {
-      console.log('useAuth: Redirecting unauthenticated user to login');
-      navigate('/connexion', { replace: true });
-    }
-  }, [isAuthenticated, user, isInitialized, isLoading, location.pathname, navigate]);
 
   return {
     user,

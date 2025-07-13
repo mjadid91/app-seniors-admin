@@ -32,7 +32,7 @@ interface AuthState {
 const initialState = {
   user: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: false,
   isInitialized: false,
   sessionId: null,
 };
@@ -53,6 +53,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setLoading: (loading: boolean) => {
+        console.log('AuthStore: Setting loading:', loading);
         set({ isLoading: loading });
       },
 
@@ -62,13 +63,16 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setSessionId: (sessionId: string | null) => {
+        console.log('AuthStore: Setting sessionId:', sessionId ? 'present' : 'null');
         set({ sessionId });
       },
 
       logout: () => {
         console.log('AuthStore: Logging out');
         set({
-          ...initialState,
+          user: null,
+          isAuthenticated: false,
+          sessionId: null,
           isLoading: false,
           isInitialized: true,
         });
@@ -85,7 +89,7 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated,
         sessionId: state.sessionId,
-        isInitialized: state.isInitialized,
+        // Ne pas persister isInitialized pour forcer la réinitialisation
       }),
     }
   )
