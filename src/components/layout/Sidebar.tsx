@@ -29,7 +29,7 @@ const menuItems = [
 ];
 
 const Sidebar = () => {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const { signOut } = useSupabaseAuth();
   const { canAccessPage } = usePermissions();
   const navigate = useNavigate();
@@ -41,9 +41,30 @@ const Sidebar = () => {
     }
   };
 
-  const handleLogout = () => {
-    signOut();
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      console.log('Sidebar: Starting logout process...');
+      
+      // Effectuer la déconnexion Supabase
+      const result = await signOut();
+      
+      if (result?.success !== false) {
+        // Nettoyer le store Zustand
+        logout();
+        
+        console.log('Sidebar: Logout successful, redirecting to login...');
+        
+        // Rediriger vers la page de connexion
+        navigate("/connexion", { replace: true });
+      } else {
+        console.error('Sidebar: Logout failed:', result?.error);
+      }
+    } catch (error) {
+      console.error('Sidebar: Logout error:', error);
+      // En cas d'erreur, forcer quand même la déconnexion locale
+      logout();
+      navigate("/connexion", { replace: true });
+    }
   };
 
   const getItemStyle = (item: typeof menuItems[0]) => {

@@ -6,13 +6,12 @@ import { useAuthStore } from "../stores/authStore";
 
 const Index = () => {
   const { user, isAuthenticated, loading, isInitialized } = useSupabaseAuth();
-  const { setUser, setAuthenticated } = useAuthStore();
+  const { setUser, setAuthenticated, logout } = useAuthStore();
   const navigate = useNavigate();
   const [hasNavigated, setHasNavigated] = useState(false);
 
   // Synchroniser l'état d'authentification avec le store global
   useEffect(() => {
-    // Attendre que l'authentification soit initialisée
     if (!isInitialized) {
       console.log('Index: Auth not initialized yet, waiting...');
       return;
@@ -25,20 +24,28 @@ const Index = () => {
       hasNavigated
     });
     
-    // Synchroniser avec le store une seule fois
+    // Synchroniser avec le store
     const currentUser = useAuthStore.getState().user;
     const currentAuth = useAuthStore.getState().isAuthenticated;
     
-    if (currentUser?.id !== user?.id) {
-      console.log('Index: Updating user in store');
-      setUser(user);
+    if (isAuthenticated && user) {
+      if (currentUser?.id !== user.id) {
+        console.log('Index: Updating user in store');
+        setUser(user);
+      }
+      
+      if (!currentAuth) {
+        console.log('Index: Updating auth status to true in store');
+        setAuthenticated(true);
+      }
+    } else {
+      // Si pas authentifié, nettoyer le store
+      if (currentAuth || currentUser) {
+        console.log('Index: Clearing auth state in store');
+        logout();
+      }
     }
-    
-    if (currentAuth !== isAuthenticated) {
-      console.log('Index: Updating auth status in store');
-      setAuthenticated(isAuthenticated);
-    }
-  }, [user?.id, isAuthenticated, isInitialized, setUser, setAuthenticated]);
+  }, [user?.id, isAuthenticated, isInitialized, setUser, setAuthenticated, logout]);
 
   // Gérer la navigation une seule fois
   useEffect(() => {
@@ -73,7 +80,6 @@ const Index = () => {
     );
   }
 
-  // Cette page ne devrait jamais afficher de contenu car elle redirige toujours
   return null;
 };
 

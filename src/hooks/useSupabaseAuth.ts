@@ -41,7 +41,6 @@ export const useSupabaseAuth = () => {
         console.error('useSupabaseAuth: Error during initialization:', error);
       } finally {
         if (mounted) {
-          // Délai pour s'assurer que tous les états sont synchronisés
           initializationTimeout = setTimeout(() => {
             if (mounted) {
               setIsLoading(false);
@@ -61,11 +60,11 @@ export const useSupabaseAuth = () => {
       
       if (!mounted) return;
 
-      // Éviter les mises à jour rapides multiples
       if (event === 'SIGNED_IN' && session) {
         setSession(session);
         findOrCreateUserMapping(session.user);
       } else if (event === 'SIGNED_OUT' || !session) {
+        console.log('useSupabaseAuth: User signed out, clearing states');
         setSession(null);
         clearUserMapping();
       }
@@ -107,16 +106,24 @@ export const useSupabaseAuth = () => {
 
   const signOut = async () => {
     try {
-      console.log('useSupabaseAuth: Signing out...');
+      console.log('useSupabaseAuth: Starting sign out process...');
       
+      // D'abord nettoyer les états locaux
+      setSession(null);
+      clearUserMapping();
+      
+      // Ensuite effectuer la déconnexion Supabase
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error('useSupabaseAuth: Sign out error:', error);
+        throw error;
       }
       
-      clearUserMapping();
+      console.log('useSupabaseAuth: Sign out successful');
+      return { success: true };
     } catch (error) {
       console.error('useSupabaseAuth: Sign out exception:', error);
+      return { success: false, error: 'Erreur lors de la déconnexion' };
     }
   };
 
@@ -140,7 +147,6 @@ export const useSupabaseAuth = () => {
 
   const appUser = convertToAppUser();
   
-  // Logique simplifiée pour l'authentification
   const isAuthenticated = isInitialized && !!session?.user && !!userMapping;
   const loading = isLoading || mappingLoading || !isInitialized;
 

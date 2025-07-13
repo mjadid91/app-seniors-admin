@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
 import { AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../stores/authStore";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -14,7 +15,14 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, user, isAuthenticated, loading: authLoading, isInitialized } = useSupabaseAuth();
+  const { logout } = useAuthStore();
   const navigate = useNavigate();
+
+  // S'assurer que l'état de connexion est nettoyé au chargement de la page
+  useEffect(() => {
+    console.log('LoginPage: Ensuring clean state on load');
+    logout();
+  }, [logout]);
 
   // Rediriger vers dashboard si déjà authentifié
   useEffect(() => {
