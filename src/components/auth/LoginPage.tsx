@@ -4,42 +4,32 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
+import { useAuth } from "../../hooks/useAuth";
 import { AlertCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "../../stores/authStore";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const { signIn, user, isAuthenticated, loading: authLoading, isInitialized } = useSupabaseAuth();
-  const { logout } = useAuthStore();
-  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const { signIn, isAuthenticated, isLoading, isInitialized } = useAuth();
 
-  // S'assurer que l'état de connexion est nettoyé au chargement de la page
+  // Nettoyer l'erreur quand l'utilisateur tape
   useEffect(() => {
-    console.log('LoginPage: Ensuring clean state on load');
-    logout();
-  }, [logout]);
-
-  // Rediriger vers dashboard si déjà authentifié
-  useEffect(() => {
-    if (isInitialized && !authLoading && isAuthenticated && user) {
-      console.log('LoginPage: User already authenticated, redirecting to dashboard');
-      navigate("/dashboard", { replace: true });
+    if (error) {
+      setError("");
     }
-  }, [isAuthenticated, user, authLoading, isInitialized, navigate]);
+  }, [email, password]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setIsLoading(true);
+    setIsSubmitting(true);
 
     if (!email.trim() || !password) {
       setError("Veuillez saisir votre email et mot de passe");
-      setIsLoading(false);
+      setIsSubmitting(false);
       return;
     }
 
@@ -51,13 +41,13 @@ const LoginPage = () => {
         setError(result.error || "Erreur de connexion");
       } else {
         console.log('LoginPage: Login successful');
-        // La redirection sera gérée par useEffect quand l'état d'auth changera
+        // La redirection sera gérée automatiquement par useAuth
       }
     } catch (err) {
       console.error('LoginPage: Login error:', err);
       setError("Une erreur est survenue lors de la connexion");
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -99,7 +89,7 @@ const LoginPage = () => {
                   placeholder="admin@appseniors.fr"
                   required
                   className="border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
-                  disabled={isLoading || authLoading}
+                  disabled={isSubmitting || isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -112,7 +102,7 @@ const LoginPage = () => {
                   placeholder="••••••••"
                   required
                   className="border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
-                  disabled={isLoading || authLoading}
+                  disabled={isSubmitting || isLoading}
                 />
               </div>
               {error && (
@@ -124,9 +114,9 @@ const LoginPage = () => {
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200 hover:shadow-xl"
-                disabled={isLoading || authLoading}
+                disabled={isSubmitting || isLoading}
               >
-                {isLoading || authLoading ? (
+                {isSubmitting || isLoading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     Connexion...
