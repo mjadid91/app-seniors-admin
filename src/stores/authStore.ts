@@ -36,6 +36,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
+        console.log('AuthStore: Clearing all auth data');
         set({ 
           user: null, 
           isAuthenticated: false, 
@@ -53,10 +54,12 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setUser: (user: User | null) => {
+        console.log('AuthStore: Setting user:', user ? user.email : 'null');
         set({ user });
       },
 
       setAuthenticated: (authenticated: boolean) => {
+        console.log('AuthStore: Setting authenticated:', authenticated);
         set({ isAuthenticated: authenticated });
       }
     }),
