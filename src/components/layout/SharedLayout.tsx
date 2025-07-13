@@ -5,7 +5,7 @@ import Header from "./Header";
 import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
 
 const SharedLayout = () => {
-  const { loading, isInitialized } = useSupabaseAuth();
+  const { loading, isInitialized, isAuthenticated } = useSupabaseAuth();
 
   // Afficher le chargement global si l'auth n'est pas prête
   if (!isInitialized || loading) {
@@ -14,6 +14,18 @@ const SharedLayout = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-slate-600">Chargement de l'interface...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si pas authentifié à ce stade, ne pas afficher le layout
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Vérification de l'authentification...</p>
         </div>
       </div>
     );

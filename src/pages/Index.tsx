@@ -8,6 +8,7 @@ const Index = () => {
   const { user, isAuthenticated, loading, isInitialized } = useSupabaseAuth();
   const { setUser, setAuthenticated } = useAuthStore();
   const navigate = useNavigate();
+  const [hasNavigated, setHasNavigated] = useState(false);
 
   // Synchroniser l'état d'authentification avec le store global
   useEffect(() => {
@@ -20,10 +21,11 @@ const Index = () => {
     console.log('Index: Synchronizing auth state', { 
       user: user ? { id: user.id, role: user.role } : null, 
       isAuthenticated, 
-      loading 
+      loading,
+      hasNavigated
     });
     
-    // Synchroniser avec le store
+    // Synchroniser avec le store une seule fois
     const currentUser = useAuthStore.getState().user;
     const currentAuth = useAuthStore.getState().isAuthenticated;
     
@@ -36,18 +38,26 @@ const Index = () => {
       console.log('Index: Updating auth status in store');
       setAuthenticated(isAuthenticated);
     }
-    
-    // Redirection après synchronisation
-    if (!loading) {
-      if (isAuthenticated && user) {
-        console.log('Index: User authenticated, redirecting to dashboard');
-        navigate("/dashboard", { replace: true });
-      } else {
-        console.log('Index: User not authenticated, redirecting to login');
-        navigate("/connexion", { replace: true });
-      }
+  }, [user?.id, isAuthenticated, isInitialized, setUser, setAuthenticated]);
+
+  // Gérer la navigation une seule fois
+  useEffect(() => {
+    if (!isInitialized || loading || hasNavigated) {
+      return;
     }
-  }, [user?.id, isAuthenticated, loading, isInitialized, navigate, setUser, setAuthenticated]);
+
+    console.log('Index: Checking navigation', { isAuthenticated, user: !!user });
+
+    if (isAuthenticated && user) {
+      console.log('Index: User authenticated, redirecting to dashboard');
+      setHasNavigated(true);
+      navigate("/dashboard", { replace: true });
+    } else {
+      console.log('Index: User not authenticated, redirecting to login');
+      setHasNavigated(true);
+      navigate("/connexion", { replace: true });
+    }
+  }, [user, isAuthenticated, loading, isInitialized, navigate, hasNavigated]);
 
   // Afficher le loading tant que l'auth n'est pas initialisée ou en cours de chargement
   if (!isInitialized || loading) {

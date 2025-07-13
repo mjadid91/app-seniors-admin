@@ -7,17 +7,18 @@ import { useSupabaseUserMapping } from './useSupabaseUserMapping';
 
 export const useSupabaseAuth = () => {
   const [session, setSession] = useState<Session | null>(null);
-  const [isSessionLoading, setIsSessionLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const { userMapping, isLoading: mappingLoading, findOrCreateUserMapping, clearUserMapping } = useSupabaseUserMapping();
 
   useEffect(() => {
     let mounted = true;
+    let initializationTimeout: NodeJS.Timeout;
 
     const initializeAuth = async () => {
       try {
-        console.log('useSupabaseAuth: Initializing authentication...');
-        setIsSessionLoading(true);
+        console.log('useSupabaseAuth: Starting initialization...');
+        setIsLoading(true);
 
         // Get initial session
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -25,7 +26,7 @@ export const useSupabaseAuth = () => {
         if (error) {
           console.error('useSupabaseAuth: Error getting session:', error);
         } else {
-          console.log('useSupabaseAuth: Initial session retrieved:', session);
+          console.log('useSupabaseAuth: Initial session retrieved:', !!session);
           
           if (mounted) {
             setSession(session);
@@ -40,9 +41,14 @@ export const useSupabaseAuth = () => {
         console.error('useSupabaseAuth: Error during initialization:', error);
       } finally {
         if (mounted) {
-          setIsSessionLoading(false);
-          setIsInitialized(true);
-          console.log('useSupabaseAuth: Initialization complete');
+          // Délai pour s'assurer que tous les états sont synchronisés
+          initializationTimeout = setTimeout(() => {
+            if (mounted) {
+              setIsLoading(false);
+              setIsInitialized(true);
+              console.log('useSupabaseAuth: Initialization complete');
+            }
+          }, 100);
         }
       }
     };
@@ -50,23 +56,19 @@ export const useSupabaseAuth = () => {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('useSupabaseAuth: Auth state changed:', { event, session });
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('useSupabaseAuth: Auth state changed:', { event, hasSession: !!session });
       
       if (!mounted) return;
 
-      setIsSessionLoading(true);
-      setSession(session);
-      
-      if (session?.user) {
-        console.log('useSupabaseAuth: User authenticated, fetching mapping...');
-        await findOrCreateUserMapping(session.user);
-      } else {
-        console.log('useSupabaseAuth: User signed out, clearing mapping...');
+      // Éviter les mises à jour rapides multiples
+      if (event === 'SIGNED_IN' && session) {
+        setSession(session);
+        findOrCreateUserMapping(session.user);
+      } else if (event === 'SIGNED_OUT' || !session) {
+        setSession(null);
         clearUserMapping();
       }
-
-      setIsSessionLoading(false);
     });
 
     // Initialize auth
@@ -74,6 +76,9 @@ export const useSupabaseAuth = () => {
 
     return () => {
       mounted = false;
+      if (initializationTimeout) {
+        clearTimeout(initializationTimeout);
+      }
       subscription.unsubscribe();
     };
   }, []);
@@ -81,7 +86,6 @@ export const useSupabaseAuth = () => {
   const signIn = async (email: string, password: string) => {
     try {
       console.log('useSupabaseAuth: Signing in...', email);
-      setIsSessionLoading(true);
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -90,7 +94,6 @@ export const useSupabaseAuth = () => {
 
       if (error) {
         console.error('useSupabaseAuth: Sign in error:', error);
-        setIsSessionLoading(false);
         return { success: false, error: error.message };
       }
 
@@ -98,7 +101,6 @@ export const useSupabaseAuth = () => {
       return { success: true, user: data.user };
     } catch (error) {
       console.error('useSupabaseAuth: Sign in exception:', error);
-      setIsSessionLoading(false);
       return { success: false, error: 'Erreur de connexion' };
     }
   };
@@ -106,7 +108,6 @@ export const useSupabaseAuth = () => {
   const signOut = async () => {
     try {
       console.log('useSupabaseAuth: Signing out...');
-      setIsSessionLoading(true);
       
       const { error } = await supabase.auth.signOut();
       if (error) {
@@ -114,17 +115,14 @@ export const useSupabaseAuth = () => {
       }
       
       clearUserMapping();
-      setIsSessionLoading(false);
     } catch (error) {
       console.error('useSupabaseAuth: Sign out exception:', error);
-      setIsSessionLoading(false);
     }
   };
 
   // Convert user mapping to app User type
   const convertToAppUser = (): User | null => {
     if (!userMapping || !session?.user) {
-      console.log('useSupabaseAuth: No user mapping or session available');
       return null;
     }
     
@@ -137,26 +135,27 @@ export const useSupabaseAuth = () => {
       dateInscription: session.user.created_at || new Date().toISOString(),
     };
 
-    console.log('useSupabaseAuth: Converted app user:', appUser);
     return appUser;
   };
 
   const appUser = convertToAppUser();
-  const isAuthenticated = !!session?.user && !!userMapping && isInitialized;
-  const totalLoading = isSessionLoading || mappingLoading || !isInitialized;
+  
+  // Logique simplifiée pour l'authentification
+  const isAuthenticated = isInitialized && !!session?.user && !!userMapping;
+  const loading = isLoading || mappingLoading || !isInitialized;
 
   console.log('useSupabaseAuth: Current state:', {
     hasSession: !!session,
     hasUserMapping: !!userMapping,
     isAuthenticated,
-    totalLoading,
+    loading,
     isInitialized,
     userRole: appUser?.role
   });
 
   return {
     session,
-    loading: totalLoading,
+    loading,
     user: appUser,
     isAuthenticated,
     isInitialized,
