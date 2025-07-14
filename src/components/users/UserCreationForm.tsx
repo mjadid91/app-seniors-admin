@@ -82,6 +82,18 @@ const UserCreationForm = ({
     return null;
   }, []);
 
+  // Wrapper pour la validation lors des changements de champs
+  const handleFormDataChange = useCallback((newFormData: typeof formData) => {
+    setFormData(newFormData);
+    
+    // Validation des champs modifiés
+    Object.keys(newFormData).forEach(field => {
+      if (newFormData[field as keyof typeof formData] !== formData[field as keyof typeof formData]) {
+        setTimeout(() => validateSingleField(field, newFormData[field as keyof typeof formData]), 100);
+      }
+    });
+  }, [formData, setFormData, validateSingleField]);
+
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -163,45 +175,37 @@ const UserCreationForm = ({
     toast
   ]);
 
-  // Gestion des changements de champs avec validation
-  const handleFieldChange = useCallback((field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Validation immédiate du champ modifié
-    setTimeout(() => validateSingleField(field, value), 100);
-  }, [setFormData, validateSingleField]);
-
   const hasFormErrors = hasErrors || !!emailError || isEmailChecking || categoriesLoading;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4" noValidate>
       <UserBasicInfoFields 
         formData={formData} 
-        setFormData={handleFieldChange}
+        setFormData={handleFormDataChange}
         errors={errors}
       />
       
       <EmailField 
         formData={formData} 
-        setFormData={handleFieldChange}
+        setFormData={handleFormDataChange}
         error={emailError}
         isChecking={isEmailChecking}
       />
 
       <RoleSelector 
         formData={formData} 
-        setFormData={handleFieldChange}
+        setFormData={handleFormDataChange}
         error={errors.categoryId}
       />
 
       <PasswordGenerator 
         password={password}
         onPasswordChange={setPassword}
-        error={validatePassword(password)}
       />
 
       <PreferencesFields 
         formData={formData} 
-        setFormData={handleFieldChange}
+        setFormData={handleFormDataChange}
         errors={{
           languePreferee: errors.languePreferee,
           devise: errors.devise

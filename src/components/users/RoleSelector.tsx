@@ -7,9 +7,10 @@ import { UserFormData } from "../../hooks/useUserFormData";
 interface RoleSelectorProps {
   formData: UserFormData;
   setFormData: (data: UserFormData) => void;
+  error?: string;
 }
 
-const RoleSelector = ({ formData, setFormData }: RoleSelectorProps) => {
+const RoleSelector = ({ formData, setFormData, error }: RoleSelectorProps) => {
   const { categories, loading: categoriesLoading } = useUserCategories();
 
   const getCategoryDescription = (category: any) => {
@@ -46,7 +47,7 @@ const RoleSelector = ({ formData, setFormData }: RoleSelectorProps) => {
           onValueChange={(value) => setFormData({ ...formData, categoryId: parseInt(value) })}
           required
         >
-          <SelectTrigger>
+          <SelectTrigger className={error ? "border-red-500" : ""}>
             <SelectValue placeholder="Sélectionner une catégorie" />
           </SelectTrigger>
           <SelectContent>
@@ -58,9 +59,11 @@ const RoleSelector = ({ formData, setFormData }: RoleSelectorProps) => {
                       {getCategoryDescription(category)}
                     </SelectItem>
                 ))}
-
           </SelectContent>
         </Select>
+      )}
+      {error && (
+        <p className="text-sm text-red-600">{error}</p>
       )}
       <p className="text-xs text-muted-foreground">
         Sélectionnez la catégorie appropriée. Les seniors (catégorie 1) et aidants (catégorie 4) auront automatiquement leurs profils spécifiques créés.

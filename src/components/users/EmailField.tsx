@@ -2,17 +2,16 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle } from "lucide-react";
-import { useEmailValidation } from "./useEmailValidation";
 import { UserFormData } from "../../hooks/useUserFormData";
 
 interface EmailFieldProps {
   formData: UserFormData;
   setFormData: (data: UserFormData) => void;
+  error?: string | null;
+  isChecking?: boolean;
 }
 
-const EmailField = ({ formData, setFormData }: EmailFieldProps) => {
-  const { emailError, isEmailChecking } = useEmailValidation(formData.email);
-
+const EmailField = ({ formData, setFormData, error, isChecking }: EmailFieldProps) => {
   return (
     <div className="space-y-2">
       <Label htmlFor="email">Adresse email *</Label>
@@ -22,18 +21,18 @@ const EmailField = ({ formData, setFormData }: EmailFieldProps) => {
         value={formData.email}
         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
         required
-        className={emailError ? "border-red-500" : ""}
+        className={error ? "border-red-500" : ""}
       />
-      {isEmailChecking && (
+      {isChecking && (
         <p className="text-sm text-blue-600 flex items-center gap-1">
           <div className="w-3 h-3 border border-blue-600 border-t-transparent rounded-full animate-spin"></div>
           Vérification de l'email...
         </p>
       )}
-      {emailError && (
+      {error && (
         <p className="text-sm text-red-600 flex items-center gap-1">
           <AlertCircle className="w-4 h-4" />
-          {emailError}
+          {error}
         </p>
       )}
     </div>
@@ -41,4 +40,3 @@ const EmailField = ({ formData, setFormData }: EmailFieldProps) => {
 };
 
 export default EmailField;
-export { useEmailValidation };
