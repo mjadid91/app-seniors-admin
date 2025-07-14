@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Trash2, Edit, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { usePermissions } from "@/hooks/usePermissions";
+import { usePermissions, PERMISSIONS } from "@/hooks/usePermissions";
 
 interface CommissionRate {
   TypeTransaction: string;
@@ -32,7 +32,7 @@ const CommissionManagement = () => {
   const { hasPermission } = usePermissions();
 
   // Vérifier les permissions
-  const canManageCommissions = hasPermission("MANAGE_FINANCES");
+  const canManageCommissions = hasPermission(PERMISSIONS.MANAGE_FINANCES);
 
   const fetchCommissionRates = async () => {
     try {

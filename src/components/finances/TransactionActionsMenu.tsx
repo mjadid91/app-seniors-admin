@@ -12,7 +12,7 @@ import { FinanceTransaction } from "@/hooks/useFinancesTransactions";
 import TransactionDetailsModal from "./TransactionDetailsModal";
 import EditTransactionModal from "./EditTransactionModal";
 import DeleteTransactionModal from "./DeleteTransactionModal";
-import { usePermissions } from "@/hooks/usePermissions";
+import { usePermissions, PERMISSIONS } from "@/hooks/usePermissions";
 
 interface TransactionActionsMenuProps {
   transaction: FinanceTransaction;
@@ -26,8 +26,8 @@ const TransactionActionsMenu = ({ transaction, onTransactionUpdated }: Transacti
   const { hasPermission } = usePermissions();
 
   // Vérifier les permissions
-  const canManageFinances = hasPermission("MANAGE_FINANCES");
-  const canViewFinances = hasPermission("VIEW_FINANCES");
+  const canManageFinances = hasPermission(PERMISSIONS.MANAGE_FINANCES);
+  const canViewFinances = hasPermission(PERMISSIONS.VIEW_FINANCES);
 
   // Si l'utilisateur n'a pas les permissions de base, ne rien afficher
   if (!canViewFinances) {

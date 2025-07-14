@@ -10,7 +10,7 @@ import CommissionSummary from "./CommissionSummary";
 import TransactionActionsMenu from "./TransactionActionsMenu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info, AlertCircle } from "lucide-react";
-import { usePermissions } from "@/hooks/usePermissions";
+import { usePermissions, PERMISSIONS } from "@/hooks/usePermissions";
 
 const Finances = () => {
     const { data: transactions, isLoading, error, refetch } = useFinancesTransactions();
@@ -18,8 +18,8 @@ const Finances = () => {
     const { hasPermission, canAccessPage } = usePermissions();
 
     // Vérifier les permissions
-    const canManageFinances = hasPermission("MANAGE_FINANCES");
-    const canViewFinances = hasPermission("VIEW_FINANCES");
+    const canManageFinances = hasPermission(PERMISSIONS.MANAGE_FINANCES);
+    const canViewFinances = hasPermission(PERMISSIONS.VIEW_FINANCES);
 
     if (!canAccessPage("finances")) {
         return (
