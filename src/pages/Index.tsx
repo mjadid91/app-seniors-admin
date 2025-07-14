@@ -9,25 +9,11 @@ const Index = () => {
   const { setUser, setAuthenticated, logout } = useAuthStore();
   const navigate = useNavigate();
   const [hasNavigated, setHasNavigated] = useState(false);
-  const [isLogoutInProgress, setIsLogoutInProgress] = useState(false);
-
-  // Détecter si une déconnexion est en cours
-  useEffect(() => {
-    const currentPath = window.location.pathname;
-    if (currentPath === '/connexion') {
-      setIsLogoutInProgress(true);
-      // Réinitialiser après un délai pour permettre la reconnexion
-      const timer = setTimeout(() => {
-        setIsLogoutInProgress(false);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, []);
 
   // Synchroniser l'état d'authentification avec le store global
   useEffect(() => {
-    if (!isInitialized || isLogoutInProgress) {
-      console.log('Index: Auth not initialized or logout in progress, waiting...');
+    if (!isInitialized) {
+      console.log('Index: Auth not initialized, waiting...');
       return;
     }
 
@@ -35,8 +21,7 @@ const Index = () => {
       user: user ? { id: user.id, role: user.role } : null, 
       isAuthenticated, 
       loading,
-      hasNavigated,
-      isLogoutInProgress
+      hasNavigated
     });
     
     // Synchroniser avec le store
@@ -60,11 +45,11 @@ const Index = () => {
         logout();
       }
     }
-  }, [user?.id, isAuthenticated, isInitialized, isLogoutInProgress, setUser, setAuthenticated, logout]);
+  }, [user?.id, isAuthenticated, isInitialized, setUser, setAuthenticated, logout]);
 
   // Gérer la navigation une seule fois
   useEffect(() => {
-    if (!isInitialized || loading || hasNavigated || isLogoutInProgress) {
+    if (!isInitialized || loading || hasNavigated) {
       return;
     }
 
@@ -79,7 +64,7 @@ const Index = () => {
       setHasNavigated(true);
       navigate("/connexion", { replace: true });
     }
-  }, [user, isAuthenticated, loading, isInitialized, navigate, hasNavigated, isLogoutInProgress]);
+  }, [user, isAuthenticated, loading, isInitialized, navigate, hasNavigated]);
 
   // Afficher le loading tant que l'auth n'est pas initialisée ou en cours de chargement
   if (!isInitialized || loading) {

@@ -35,40 +35,23 @@ export const useSupabaseAuth = () => {
 
   useEffect(() => {
     let mounted = true;
-    let initializationTimeout: NodeJS.Timeout;
-    let retryCount = 0;
-    const maxRetries = 3;
 
     const initializeAuth = async () => {
       try {
         console.log('useSupabaseAuth: Starting initialization...');
-        setIsLoading(true);
-        setError(null);
-
-        // Tentative de récupération de la session avec retry
-        const attemptGetSession = async (): Promise<Session | null> => {
-          for (let i = 0; i < maxRetries; i++) {
-            try {
-              const { data: { session }, error } = await supabase.auth.getSession();
-              
-              if (error) {
-                if (i === maxRetries - 1) throw error;
-                console.warn(`useSupabaseAuth: Session attempt ${i + 1} failed, retrying...`);
-                await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-                continue;
-              }
-              
-              return session;
-            } catch (err) {
-              if (i === maxRetries - 1) throw err;
-              await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-            }
-          }
-          return null;
-        };
-
-        const session = await attemptGetSession();
         
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('useSupabaseAuth: Session error:', error);
+          if (mounted) {
+            handleError(error, 'Session retrieval failed');
+            setIsLoading(false);
+            setIsInitialized(true);
+          }
+          return;
+        }
+
         if (mounted) {
           console.log('useSupabaseAuth: Initial session retrieved:', !!session);
           setSession(session);
@@ -78,28 +61,26 @@ export const useSupabaseAuth = () => {
             try {
               await findOrCreateUserMapping(session.user);
             } catch (mappingError) {
+              console.error('useSupabaseAuth: User mapping failed:', mappingError);
               handleError(mappingError, 'User mapping failed');
             }
           }
+          
+          // Toujours marquer comme initialisé, même en cas d'erreur
+          setIsLoading(false);
+          setIsInitialized(true);
         }
       } catch (error) {
+        console.error('useSupabaseAuth: Initialization error:', error);
         if (mounted) {
           handleError(error, 'Initialization failed');
-        }
-      } finally {
-        if (mounted) {
-          initializationTimeout = setTimeout(() => {
-            if (mounted) {
-              setIsLoading(false);
-              setIsInitialized(true);
-              console.log('useSupabaseAuth: Initialization complete');
-            }
-          }, 100);
+          setIsLoading(false);
+          setIsInitialized(true);
         }
       }
     };
 
-    // Écouter les changements d'authentification avec gestion d'erreur
+    // Écouter les changements d'authentification
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -121,6 +102,7 @@ export const useSupabaseAuth = () => {
           setSession(session);
         }
       } catch (error) {
+        console.error('useSupabaseAuth: Auth state change error:', error);
         handleError(error, `Auth state change (${event})`);
       }
     });
@@ -130,9 +112,6 @@ export const useSupabaseAuth = () => {
 
     return () => {
       mounted = false;
-      if (initializationTimeout) {
-        clearTimeout(initializationTimeout);
-      }
       subscription.unsubscribe();
     };
   }, [findOrCreateUserMapping, clearUserMapping, handleError]);
@@ -234,7 +213,7 @@ export const useSupabaseAuth = () => {
     
     try {
       const appUser: User = {
-        id: String(userMapping.dbUserId), // Assurer la conversion en string
+        id: String(userMapping.dbUserId),
         nom: userMapping.nom || '',
         prenom: userMapping.prenom || '',
         email: userMapping.email || session.user.email || '',
@@ -250,15 +229,16 @@ export const useSupabaseAuth = () => {
 
       return appUser;
     } catch (error) {
-      handleError(error, 'User conversion failed');
+      console.error('useSupabaseAuth: User conversion failed:', error);
       return null;
     }
-  }, [userMapping, session?.user, handleError]);
+  }, [userMapping, session?.user]);
 
   const appUser = convertToAppUser();
   
+  // Logique d'authentification corrigée
   const isAuthenticated = isInitialized && !!session?.user && !!userMapping && !error;
-  const loading = isLoading || mappingLoading || !isInitialized;
+  const loading = isLoading || (!isInitialized && mappingLoading);
 
   console.log('useSupabaseAuth: Current state:', {
     hasSession: !!session,
