@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Percent, Calculator } from "lucide-react";
+import { Percent, Calculator, Euro } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface CommissionRate {
@@ -13,10 +13,11 @@ interface CommissionRate {
 const CommissionSummary = () => {
   const [commissionRates, setCommissionRates] = useState<CommissionRate[]>([]);
   const [totalCommissions, setTotalCommissions] = useState<number>(0);
+  const [totalCommissionAmount, setTotalCommissionAmount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([fetchCommissionRates(), fetchTotalCommissions()]);
+    Promise.all([fetchCommissionRates(), fetchTotalCommissions(), fetchTotalCommissionAmount()]);
   }, []);
 
   const fetchCommissionRates = async () => {
@@ -43,6 +44,21 @@ const CommissionSummary = () => {
       setTotalCommissions(count || 0);
     } catch (error) {
       console.error("Erreur lors du chargement du nombre total de commissions:", error);
+    }
+  };
+
+  const fetchTotalCommissionAmount = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("VersementCommissions")
+        .select("MontantCommission");
+
+      if (error) throw error;
+      
+      const total = data?.reduce((sum, commission) => sum + (commission.MontantCommission || 0), 0) || 0;
+      setTotalCommissionAmount(total);
+    } catch (error) {
+      console.error("Erreur lors du chargement du montant total des commissions:", error);
     } finally {
       setLoading(false);
     }
@@ -89,7 +105,7 @@ const CommissionSummary = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="space-y-2">
             <h4 className="font-medium text-sm text-gray-700">Taux par type de transaction</h4>
             <div className="space-y-2">
@@ -123,7 +139,7 @@ const CommissionSummary = () => {
           <div className="space-y-2">
             <h4 className="font-medium text-sm text-gray-700 flex items-center gap-1">
               <Calculator className="h-4 w-4" />
-              Nombre total de commissions
+              Nombre de commissions
             </h4>
             <div className="bg-orange-50 p-3 rounded-lg">
               <div className="flex items-center justify-between">
@@ -131,7 +147,23 @@ const CommissionSummary = () => {
                 <span className="text-2xl font-bold text-orange-600">{totalCommissions}</span>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Nombre total de versements de commissions effectués
+                Nombre total de versements effectués
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h4 className="font-medium text-sm text-gray-700 flex items-center gap-1">
+              <Euro className="h-4 w-4" />
+              Montant total versé
+            </h4>
+            <div className="bg-green-50 p-3 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Total versé</span>
+                <span className="text-2xl font-bold text-green-600">{totalCommissionAmount.toFixed(2)}€</span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Montant total des commissions versées
               </p>
             </div>
           </div>
