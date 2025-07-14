@@ -29,45 +29,175 @@ export const useFinancesTransactions = () => {
   return useQuery<FinanceTransaction[]>({
     queryKey: ["finances-transactions"],
     queryFn: async () => {
-      console.log("Récupération des transactions depuis la vue...");
+      console.log("Récupération des transactions...");
       
       try {
-        const { data: transactions, error } = await supabase
-          .from("v_financestransactions")
-          .select("*")
-          .order("date", { ascending: false });
+        // Récupération des paramètres de commission
+        const { data: commissionRates, error: commissionError } = await supabase
+          .from("ParametresCommission")
+          .select("*");
 
-        if (error) {
-          console.error("Erreur lors du chargement des transactions:", error);
-          throw new Error("Erreur lors du chargement des transactions");
+        if (commissionError) {
+          console.error("Erreur lors du chargement des taux de commission:", commissionError);
         }
 
-        // Map the data to ensure backward compatibility with existing code
-        const mappedTransactions: FinanceTransaction[] = (transactions || []).map(transaction => ({
-          id: transaction.id,
-          type: transaction.type,
-          utilisateur: transaction.utilisateur,
-          montant: transaction.montant || 0,
-          commission: transaction.commission || 0,
-          date: transaction.date,
-          statut: transaction.statut,
-          categorie_type: transaction.categorie_type,
-          original_id: transaction.original_id,
-          id_utilisateurs: transaction.id_utilisateurs,
-          id_commande: transaction.id_commande,
-          id_activite_remuneree: transaction.id_activite_remuneree,
-          id_service_post_mortem: transaction.id_service_post_mortem,
-          id_don_cagnotte: transaction.id_don_cagnotte,
-          // Legacy fields for backward compatibility
-          originalId: transaction.original_id,
-          idCommande: transaction.id_commande,
-          idActiviteRemuneree: transaction.id_activite_remuneree,
-          idServicePostMortem: transaction.id_service_post_mortem,
-          idDonCagnotte: transaction.id_don_cagnotte
-        }));
+        const getCommissionRate = (type: string) => {
+          const rate = commissionRates?.find(r => r.TypeTransaction === type);
+          return rate ? rate.Pourcentage : 5.0; // 5% par défaut
+        };
 
-        console.log("Transactions récupérées depuis la vue:", mappedTransactions);
-        return mappedTransactions;
+        // Récupération des transactions d'activités rémunérées
+        const { data: activiteTransactions, error: activiteError } = await supabase
+          .from("ActiviteRemuneree_Utilisateurs")
+          .select(`
+            *,
+            Utilisateurs(Nom, Prenom)
+          `)
+          .order("DateTransaction", { ascending: false });
+
+        if (activiteError) {
+          console.error("Erreur activités:", activiteError);
+        }
+
+        // Récupération des commandes
+        const { data: commandeTransactions, error: commandeError } = await supabase
+          .from("Commande")
+          .select(`
+            *,
+            Utilisateurs(Nom, Prenom)
+          `)
+          .order("DateCommande", { ascending: false });
+
+        if (commandeError) {
+          console.error("Erreur commandes:", commandeError);
+        }
+
+        // Récupération des services post-mortem
+        const { data: postMortemTransactions, error: postMortemError } = await supabase
+          .from("ServicePostMortem")
+          .select(`
+            *
+          `)
+          .order("DateService", { ascending: false });
+
+        if (postMortemError) {
+          console.error("Erreur services post-mortem:", postMortemError);
+        }
+
+        // Récupération des dons (SANS commission)
+        const { data: donTransactions, error: donError } = await supabase
+          .from("DonCagnotte")
+          .select(`
+            *,
+            Utilisateurs(Nom, Prenom)
+          `)
+          .order("DateDon", { ascending: false });
+
+        if (donError) {
+          console.error("Erreur dons:", donError);
+        }
+
+        const transactions: FinanceTransaction[] = [];
+
+        // Traitement des activités rémunérées (AVEC commission)
+        activiteTransactions?.forEach((transaction, index) => {
+          const commissionRate = getCommissionRate('Activite');
+          const commission = (transaction.MontantRevenu * commissionRate) / 100;
+          
+          transactions.push({
+            id: index + 1,
+            type: 'Activité rémunérée',
+            utilisateur: transaction.Utilisateurs ? 
+              `${transaction.Utilisateurs.Prenom} ${transaction.Utilisateurs.Nom}` : 
+              'Utilisateur inconnu',
+            montant: transaction.MontantRevenu || 0,
+            commission: commission,
+            date: transaction.DateTransaction,
+            statut: transaction.StatutPaiement,
+            categorie_type: 'activite',
+            original_id: transaction.IDActiviteRemuneree,
+            id_utilisateurs: transaction.IDUtilisateurs,
+            id_activite_remuneree: transaction.IDActiviteRemuneree,
+            // Legacy fields
+            originalId: transaction.IDActiviteRemuneree,
+            idActiviteRemuneree: transaction.IDActiviteRemuneree
+          });
+        });
+
+        // Traitement des commandes (AVEC commission)
+        commandeTransactions?.forEach((transaction, index) => {
+          const commissionRate = getCommissionRate('Commande');
+          const commission = (transaction.MontantTotal * commissionRate) / 100;
+          
+          transactions.push({
+            id: index + 10000,
+            type: 'Commande',
+            utilisateur: transaction.Utilisateurs ? 
+              `${transaction.Utilisateurs.Prenom} ${transaction.Utilisateurs.Nom}` : 
+              'Utilisateur inconnu',
+            montant: transaction.MontantTotal || 0,
+            commission: commission,
+            date: transaction.DateCommande,
+            statut: transaction.StatutCommande,
+            categorie_type: 'commande',
+            original_id: transaction.IDCommande,
+            id_utilisateurs: transaction.IDUtilisateurPayeur,
+            id_commande: transaction.IDCommande,
+            // Legacy fields
+            originalId: transaction.IDCommande,
+            idCommande: transaction.IDCommande
+          });
+        });
+
+        // Traitement des services post-mortem (AVEC commission)
+        postMortemTransactions?.forEach((transaction, index) => {
+          const commissionRate = getCommissionRate('PostMortem');
+          const commission = (transaction.MontantPrestation * commissionRate) / 100;
+          
+          transactions.push({
+            id: index + 20000,
+            type: 'Service post-mortem',
+            utilisateur: transaction.Prestataire || 'Prestataire inconnu',
+            montant: transaction.MontantPrestation || 0,
+            commission: commission,
+            date: transaction.DateService,
+            statut: transaction.StatutService || 'En cours',
+            categorie_type: 'postmortem',
+            original_id: transaction.IDServicePostMortem,
+            id_service_post_mortem: transaction.IDServicePostMortem,
+            // Legacy fields
+            originalId: transaction.IDServicePostMortem,
+            idServicePostMortem: transaction.IDServicePostMortem
+          });
+        });
+
+        // Traitement des dons (SANS commission)
+        donTransactions?.forEach((transaction, index) => {
+          transactions.push({
+            id: index + 30000,
+            type: 'Don cagnotte',
+            utilisateur: transaction.Utilisateurs ? 
+              `${transaction.Utilisateurs.Prenom} ${transaction.Utilisateurs.Nom}` : 
+              'Donateur inconnu',
+            montant: transaction.Montant || 0,
+            commission: 0, // PAS DE COMMISSION pour les dons
+            date: transaction.DateDon,
+            statut: 'Validé',
+            categorie_type: 'don',
+            original_id: transaction.IDDonCagnotte,
+            id_utilisateurs: transaction.IDDonateur,
+            id_don_cagnotte: transaction.IDDonCagnotte,
+            // Legacy fields
+            originalId: transaction.IDDonCagnotte,
+            idDonCagnotte: transaction.IDDonCagnotte
+          });
+        });
+
+        // Tri par date décroissante
+        transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        console.log("Transactions traitées:", transactions);
+        return transactions;
       } catch (error) {
         console.error("Erreur lors de la récupération des transactions:", error);
         throw error;
