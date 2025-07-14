@@ -41,15 +41,15 @@ export const useDashboardStats = () => {
           .from("SignalementContenu")
           .select("*", { count: "exact", head: true });
 
-        // Pour les revenus, on va utiliser les commandes existantes car VersementCommission n'existe pas
-        const { data: commandesData, error: commandesError } = await supabase
-          .from("Commande")
-          .select("MontantTotal");
+        // Revenus = Montant total des commissions versées
+        const { data: commissionsData, error: commissionsError } = await supabase
+          .from("VersementCommissions")
+          .select("MontantCommission");
 
-        const revenus = commandesError || !commandesData
+        const revenus = commissionsError || !commissionsData
           ? 0
-          : commandesData.reduce(
-              (sum: number, row: any) => sum + (Number(row.MontantTotal) || 0),
+          : commissionsData.reduce(
+              (sum: number, row: any) => sum + (Number(row.MontantCommission) || 0),
               0
             );
 
