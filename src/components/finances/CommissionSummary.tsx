@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Percent } from "lucide-react";
+import { Percent, Calculator } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface CommissionRate {
@@ -12,10 +12,11 @@ interface CommissionRate {
 
 const CommissionSummary = () => {
   const [commissionRates, setCommissionRates] = useState<CommissionRate[]>([]);
+  const [totalCommissions, setTotalCommissions] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchCommissionRates();
+    Promise.all([fetchCommissionRates(), fetchTotalCommissions()]);
   }, []);
 
   const fetchCommissionRates = async () => {
@@ -29,6 +30,19 @@ const CommissionSummary = () => {
       setCommissionRates(data || []);
     } catch (error) {
       console.error("Erreur lors du chargement des taux de commission:", error);
+    }
+  };
+
+  const fetchTotalCommissions = async () => {
+    try {
+      const { count, error } = await supabase
+        .from("VersementCommissions")
+        .select("*", { count: "exact", head: true });
+
+      if (error) throw error;
+      setTotalCommissions(count || 0);
+    } catch (error) {
+      console.error("Erreur lors du chargement du nombre total de commissions:", error);
     } finally {
       setLoading(false);
     }
@@ -75,7 +89,7 @@ const CommissionSummary = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <h4 className="font-medium text-sm text-gray-700">Taux par type de transaction</h4>
             <div className="space-y-2">
@@ -102,6 +116,22 @@ const CommissionSummary = () => {
               </div>
               <p className="text-xs text-gray-500 mt-1">
                 Somme des pourcentages appliqués sur les transactions éligibles
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <h4 className="font-medium text-sm text-gray-700 flex items-center gap-1">
+              <Calculator className="h-4 w-4" />
+              Nombre total de commissions
+            </h4>
+            <div className="bg-orange-50 p-3 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Commissions versées</span>
+                <span className="text-2xl font-bold text-orange-600">{totalCommissions}</span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Nombre total de versements de commissions effectués
               </p>
             </div>
           </div>
