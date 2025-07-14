@@ -1,4 +1,3 @@
-
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -14,13 +13,9 @@ import { useSupabaseDevises } from "@/hooks/useSupabaseDevises";
 interface PreferencesFieldsProps {
   formData: UserFormData;
   setFormData: (data: UserFormData) => void;
-  errors?: {
-    languePreferee?: string;
-    devise?: string;
-  };
 }
 
-const PreferencesFields = ({ formData, setFormData, errors }: PreferencesFieldsProps) => {
+const PreferencesFields = ({ formData, setFormData }: PreferencesFieldsProps) => {
   const { langues, loading: loadingLangues } = useSupabaseLangues();
   const { devises, loading: loadingDevises } = useSupabaseDevises();
 
@@ -36,7 +31,7 @@ const PreferencesFields = ({ formData, setFormData, errors }: PreferencesFieldsP
                   value={formData.languePreferee}
                   onValueChange={(value) => setFormData({ ...formData, languePreferee: value })}
               >
-                <SelectTrigger className={errors?.languePreferee ? "border-red-500" : ""}>
+                <SelectTrigger>
                   <SelectValue placeholder="Sélectionner..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -47,9 +42,6 @@ const PreferencesFields = ({ formData, setFormData, errors }: PreferencesFieldsP
                   ))}
                 </SelectContent>
               </Select>
-          )}
-          {errors?.languePreferee && (
-            <p className="text-sm text-red-600">{errors.languePreferee}</p>
           )}
         </div>
 
@@ -63,7 +55,7 @@ const PreferencesFields = ({ formData, setFormData, errors }: PreferencesFieldsP
                   value={formData.devise}
                   onValueChange={(value) => setFormData({ ...formData, devise: value })}
               >
-                <SelectTrigger className={errors?.devise ? "border-red-500" : ""}>
+                <SelectTrigger>
                   <SelectValue placeholder="Sélectionner..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -74,9 +66,6 @@ const PreferencesFields = ({ formData, setFormData, errors }: PreferencesFieldsP
                   ))}
                 </SelectContent>
               </Select>
-          )}
-          {errors?.devise && (
-            <p className="text-sm text-red-600">{errors.devise}</p>
           )}
         </div>
       </div>
