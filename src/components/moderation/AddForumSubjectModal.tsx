@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +20,7 @@ const AddForumSubjectModal = ({ isOpen, onClose, onSuccess }: AddForumSubjectMod
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     titre: "",
+    contenu: "",
     auteurId: "",
     forumId: ""
   });
@@ -74,6 +76,7 @@ const AddForumSubjectModal = ({ isOpen, onClose, onSuccess }: AddForumSubjectMod
         .insert({
           IDSujetForum: nextId,
           TitreSujet: formData.titre,
+          ContenuSujet: formData.contenu,
           IDUtilisateurs: parseInt(formData.auteurId),
           IDForum: parseInt(formData.forumId),
           DateCreationSujet: new Date().toISOString().split('T')[0],
@@ -91,6 +94,7 @@ const AddForumSubjectModal = ({ isOpen, onClose, onSuccess }: AddForumSubjectMod
       onClose();
       setFormData({
         titre: "",
+        contenu: "",
         auteurId: "",
         forumId: ""
       });
@@ -119,6 +123,17 @@ const AddForumSubjectModal = ({ isOpen, onClose, onSuccess }: AddForumSubjectMod
             <Input
               value={formData.titre}
               onChange={(e) => setFormData(prev => ({ ...prev, titre: e.target.value }))}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Contenu du sujet</label>
+            <Textarea
+              value={formData.contenu}
+              onChange={(e) => setFormData(prev => ({ ...prev, contenu: e.target.value }))}
+              placeholder="Décrivez votre sujet..."
+              className="min-h-[100px]"
               required
             />
           </div>

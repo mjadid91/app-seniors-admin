@@ -6,6 +6,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { User, Calendar, MessageSquare, Shield } from "lucide-react";
 import { ForumPost } from './types';
 import { getStatutBadgeColor } from './utils';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ViewForumPostModalProps {
   isOpen: boolean;
@@ -15,6 +17,38 @@ interface ViewForumPostModalProps {
 }
 
 const ViewForumPostModal = ({ isOpen, onClose, post, onModerate }: ViewForumPostModalProps) => {
+  // Récupérer le contenu détaillé du sujet depuis la base de données
+  const { data: forumSubjectData } = useQuery({
+    queryKey: ['forum-subject-detail', post?.id],
+    queryFn: async () => {
+      if (!post?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('SujetForum')
+        .select(`
+          IDSujetForum,
+          TitreSujet,
+          ContenuSujet,
+          DateCreationSujet,
+          NbVues,
+          IDUtilisateurs,
+          IDForum,
+          Utilisateurs!inner(Nom, Prenom),
+          Forum!inner(TitreForum)
+        `)
+        .eq('IDSujetForum', parseInt(post.id))
+        .single();
+      
+      if (error) {
+        console.error('Error fetching forum subject:', error);
+        return null;
+      }
+      
+      return data;
+    },
+    enabled: !!post?.id && isOpen
+  });
+
   if (!post) return null;
 
   const handleModerate = () => {
@@ -22,6 +56,14 @@ const ViewForumPostModal = ({ isOpen, onClose, post, onModerate }: ViewForumPost
       onModerate(post);
     }
   };
+
+  const displayData = forumSubjectData || post;
+  const titre = forumSubjectData?.TitreSujet || post.titre;
+  const contenu = forumSubjectData?.ContenuSujet || "Contenu non disponible";
+  const auteur = forumSubjectData?.Utilisateurs ? 
+    `${forumSubjectData.Utilisateurs.Prenom} ${forumSubjectData.Utilisateurs.Nom}` : 
+    post.auteur;
+  const dateCreation = forumSubjectData?.DateCreationSujet || post.dateCreation;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -36,14 +78,14 @@ const ViewForumPostModal = ({ isOpen, onClose, post, onModerate }: ViewForumPost
         <div className="space-y-6">
           <Card>
             <CardContent className="p-4">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4">{post.titre}</h3>
+              <h3 className="text-lg font-semibold text-slate-800 mb-4">{titre}</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3">
                   <User className="h-5 w-5 text-slate-500" />
                   <div>
                     <p className="text-sm text-slate-600">Auteur</p>
-                    <p className="font-medium text-slate-800">{post.auteur}</p>
+                    <p className="font-medium text-slate-800">{auteur}</p>
                   </div>
                 </div>
 
@@ -52,7 +94,7 @@ const ViewForumPostModal = ({ isOpen, onClose, post, onModerate }: ViewForumPost
                   <div>
                     <p className="text-sm text-slate-600">Date de création</p>
                     <p className="font-medium text-slate-800">
-                      {new Date(post.dateCreation).toLocaleDateString('fr-FR')}
+                      {new Date(dateCreation).toLocaleDateString('fr-FR')}
                     </p>
                   </div>
                 </div>
@@ -87,11 +129,10 @@ const ViewForumPostModal = ({ isOpen, onClose, post, onModerate }: ViewForumPost
 
           <Card>
             <CardContent className="p-4">
-              <h4 className="font-semibold text-slate-800 mb-2">Contenu du sujet</h4>
-              <p className="text-slate-600">
-                Contenu détaillé du sujet de forum. Ceci est un exemple de contenu 
-                qui pourrait contenir le texte complet du sujet posté par l'utilisateur.
-              </p>
+              <h4 className="font-semibold text-slate-800 mb-3">Contenu du sujet</h4>
+              <div className="prose max-w-none">
+                <p className="text-slate-600 whitespace-pre-wrap">{contenu}</p>
+              </div>
             </CardContent>
           </Card>
 

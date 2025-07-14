@@ -2953,6 +2953,7 @@ export type Database = {
       }
       SujetForum: {
         Row: {
+          ContenuSujet: string | null
           DateCreationSujet: string
           IDForum: number | null
           IDSujetForum: number
@@ -2961,6 +2962,7 @@ export type Database = {
           TitreSujet: string
         }
         Insert: {
+          ContenuSujet?: string | null
           DateCreationSujet: string
           IDForum?: number | null
           IDSujetForum?: number
@@ -2969,6 +2971,7 @@ export type Database = {
           TitreSujet: string
         }
         Update: {
+          ContenuSujet?: string | null
           DateCreationSujet?: string
           IDForum?: number | null
           IDSujetForum?: number
