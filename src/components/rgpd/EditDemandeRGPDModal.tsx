@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useTraiterDemandeRGPD, type DemandeRGPD } from "@/hooks/useSupabaseRGPD";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 
 interface EditDemandeRGPDModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface EditDemandeRGPDModalProps {
 const EditDemandeRGPDModal = ({ isOpen, onClose, demande, onSuccess }: EditDemandeRGPDModalProps) => {
   const { toast } = useToast();
   const [statut, setStatut] = useState("");
+  const { user } = useSupabaseAuth();
 
   const traiterDemandeMutation = useTraiterDemandeRGPD();
 
@@ -30,11 +32,20 @@ const EditDemandeRGPDModal = ({ isOpen, onClose, demande, onSuccess }: EditDeman
 
     if (!demande) return;
 
+    if (!user) {
+      toast({
+        title: "Erreur",
+        description: "Vous devez être connecté pour modifier une demande",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       await traiterDemandeMutation.mutateAsync({
         demandeId: demande.IDDemandeRGPD,
         statut: statut,
-        traitePar: 1 // TODO: Utiliser l'ID de l'utilisateur connecté
+        traitePar: parseInt(user.id) // Utiliser l'ID de l'utilisateur connecté
       });
 
       toast({
@@ -45,6 +56,7 @@ const EditDemandeRGPDModal = ({ isOpen, onClose, demande, onSuccess }: EditDeman
       onSuccess();
       onClose();
     } catch (error) {
+      console.error("Erreur lors de la modification:", error);
       toast({
         title: "Erreur",
         description: "Impossible de modifier la demande",
@@ -90,7 +102,7 @@ const EditDemandeRGPDModal = ({ isOpen, onClose, demande, onSuccess }: EditDeman
             <Button type="button" variant="outline" onClick={onClose}>
               Annuler
             </Button>
-            <Button type="submit" disabled={traiterDemandeMutation.isPending}>
+            <Button type="submit" disabled={traiterDemandeMutation.isPending || !user}>
               {traiterDemandeMutation.isPending ? "Modification..." : "Modifier"}
             </Button>
           </div>

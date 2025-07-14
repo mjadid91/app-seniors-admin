@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -137,18 +136,40 @@ export const useTraiterDemandeRGPD = () => {
       statut: string; 
       traitePar: number 
     }) => {
-      const currentDate = new Date().toISOString().split('T')[0]; // Format ISO date
+      const currentDate = new Date().toISOString().split('T')[0];
       
-      const { error } = await supabase
-        .from("DemandeRGPD")
-        .update({
-          Statut: statut,
-          TraitePar: traitePar,
-          DateTraitement: currentDate
-        })
-        .eq("IDDemandeRGPD", demandeId);
+      // Vérifier d'abord si l'utilisateur existe dans la table Utilisateurs
+      const { data: userData, error: userError } = await supabase
+        .from("Utilisateurs")
+        .select("IDUtilisateurs")
+        .eq("IDUtilisateurs", traitePar)
+        .single();
       
-      if (error) throw new Error(error.message);
+      if (userError || !userData) {
+        // Si l'utilisateur n'existe pas, on met à jour sans le champ TraitePar
+        console.log("Utilisateur non trouvé, mise à jour sans TraitePar");
+        const { error } = await supabase
+          .from("DemandeRGPD")
+          .update({
+            Statut: statut,
+            DateTraitement: currentDate
+          })
+          .eq("IDDemandeRGPD", demandeId);
+        
+        if (error) throw new Error(error.message);
+      } else {
+        // L'utilisateur existe, on peut faire la mise à jour complète
+        const { error } = await supabase
+          .from("DemandeRGPD")
+          .update({
+            Statut: statut,
+            TraitePar: traitePar,
+            DateTraitement: currentDate
+          })
+          .eq("IDDemandeRGPD", demandeId);
+        
+        if (error) throw new Error(error.message);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["demandes-rgpd"] });
