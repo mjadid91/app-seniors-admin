@@ -91,16 +91,23 @@
     --sidebar-accent-foreground: 240 5% 96%;
     --sidebar-border: 240 4% 16%;
     --sidebar-ring: 217 91% 60%;
+
+    /* AppSeniors Admin Custom Colors for Dark Mode */
+    --app-primary: 221 83% 59%;
+    --app-background: 222 84% 5%;
+    --app-text: 210 40% 98%;
+    --app-success: 142 71% 45%;
+    --app-error: 0 84% 60%;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border transition-colors duration-200;
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans transition-colors duration-200;
   }
 
   /* Ensure all headings use Poppins */
@@ -121,5 +128,43 @@
   /* Ensure all text elements use Poppins */
   p, span, div, a, label {
     @apply font-sans;
+  }
+
+  /* Smooth transitions for theme changes */
+  html {
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  }
+}
+
+/* Custom animations for theme transitions */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 }

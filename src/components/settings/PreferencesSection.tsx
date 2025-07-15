@@ -6,13 +6,14 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/hooks/useTheme";
 import { Moon, Sun, Monitor, Globe, Palette, Settings, Bell } from "lucide-react";
 
 const PreferencesSection = () => {
   const { toast } = useToast();
+  const { theme, setTheme, actualTheme } = useTheme();
   
   const [preferences, setPreferences] = useState({
-    theme: "system",
     darkMode: false,
     language: "fr",
     region: "FR",
@@ -33,11 +34,11 @@ const PreferencesSection = () => {
     }
   });
 
-  const handleThemeChange = (theme: string) => {
-    setPreferences(prev => ({ ...prev, theme }));
+  const handleThemeChange = (newTheme: "light" | "dark" | "system") => {
+    setTheme(newTheme);
     toast({
       title: "Thème modifié",
-      description: `Thème ${theme === 'light' ? 'clair' : theme === 'dark' ? 'sombre' : 'système'} appliqué.`,
+      description: `Thème ${newTheme === 'light' ? 'clair' : newTheme === 'dark' ? 'sombre' : 'système'} appliqué.`,
     });
   };
 
@@ -72,9 +73,9 @@ const PreferencesSection = () => {
   };
 
   const themeOptions = [
-    { value: "light", label: "Clair", icon: Sun },
-    { value: "dark", label: "Sombre", icon: Moon },
-    { value: "system", label: "Système", icon: Monitor }
+    { value: "light", label: "Clair", icon: Sun, description: "Interface claire" },
+    { value: "dark", label: "Sombre", icon: Moon, description: "Interface sombre" },
+    { value: "system", label: "Système", icon: Monitor, description: "Suit les préférences du système" }
   ];
 
   return (
@@ -91,33 +92,52 @@ const PreferencesSection = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="space-y-3">
+          <div className="space-y-4">
             <Label className="text-base font-medium">Mode d'affichage</Label>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {themeOptions.map((option) => {
                 const Icon = option.icon;
+                const isSelected = theme === option.value;
                 return (
                   <button
                     key={option.value}
-                    onClick={() => handleThemeChange(option.value)}
+                    onClick={() => handleThemeChange(option.value as "light" | "dark" | "system")}
                     className={`p-4 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
-                      preferences.theme === option.value
-                        ? "border-blue-500 bg-blue-50 text-blue-700"
-                        : "border-slate-200 hover:border-slate-300"
+                      isSelected
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border hover:border-primary/50 bg-card text-card-foreground"
                     }`}
                   >
                     <Icon className="h-6 w-6 mx-auto mb-2" />
                     <p className="text-sm font-medium">{option.label}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{option.description}</p>
                   </button>
                 );
               })}
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+              <div className="flex items-center gap-2">
+                {actualTheme === "dark" ? (
+                  <Moon className="h-4 w-4 text-blue-600" />
+                ) : (
+                  <Sun className="h-4 w-4 text-yellow-600" />
+                )}
+                <span className="text-sm font-medium">
+                  Thème actuel : {actualTheme === "dark" ? "Sombre" : "Clair"}
+                </span>
+              </div>
+              {theme === "system" && (
+                <span className="text-xs text-muted-foreground">
+                  (Détecté automatiquement)
+                </span>
+              )}
             </div>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <Label className="text-base font-medium">Mode sombre automatique</Label>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 Active automatiquement le mode sombre selon l'heure
               </p>
             </div>
@@ -146,7 +166,7 @@ const PreferencesSection = () => {
             <div className="space-y-2">
               <Label>Langue de l'interface</Label>
               <Select value={preferences.language} onValueChange={handleLanguageChange}>
-                <SelectTrigger className="transition-all duration-200 hover:border-blue-300">
+                <SelectTrigger className="transition-all duration-200 hover:border-primary">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -162,7 +182,7 @@ const PreferencesSection = () => {
             <div className="space-y-2">
               <Label>Région</Label>
               <Select value={preferences.region} onValueChange={handleRegionChange}>
-                <SelectTrigger className="transition-all duration-200 hover:border-blue-300">
+                <SelectTrigger className="transition-all duration-200 hover:border-primary">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -183,7 +203,7 @@ const PreferencesSection = () => {
                 value={preferences.timezone} 
                 onValueChange={(value) => setPreferences(prev => ({ ...prev, timezone: value }))}
               >
-                <SelectTrigger className="transition-all duration-200 hover:border-blue-300">
+                <SelectTrigger className="transition-all duration-200 hover:border-primary">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -202,7 +222,7 @@ const PreferencesSection = () => {
                 value={preferences.dateFormat} 
                 onValueChange={(value) => setPreferences(prev => ({ ...prev, dateFormat: value }))}
               >
-                <SelectTrigger className="transition-all duration-200 hover:border-blue-300">
+                <SelectTrigger className="transition-all duration-200 hover:border-primary">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -220,7 +240,7 @@ const PreferencesSection = () => {
               value={preferences.currency} 
               onValueChange={(value) => setPreferences(prev => ({ ...prev, currency: value }))}
             >
-              <SelectTrigger className="transition-all duration-200 hover:border-blue-300">
+              <SelectTrigger className="transition-all duration-200 hover:border-primary">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -257,7 +277,7 @@ const PreferencesSection = () => {
               <Label htmlFor="animations" className="font-medium">
                 Animations d'interface
               </Label>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 Activer les animations et transitions fluides
               </p>
             </div>
@@ -273,7 +293,7 @@ const PreferencesSection = () => {
               <Label htmlFor="compact-mode" className="font-medium">
                 Mode compact
               </Label>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 Réduire l'espacement pour afficher plus d'informations
               </p>
             </div>
@@ -289,7 +309,7 @@ const PreferencesSection = () => {
               <Label htmlFor="show-avatars" className="font-medium">
                 Afficher les avatars
               </Label>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 Afficher les photos de profil dans les listes
               </p>
             </div>
@@ -305,7 +325,7 @@ const PreferencesSection = () => {
               <Label htmlFor="auto-save" className="font-medium">
                 Sauvegarde automatique
               </Label>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 Sauvegarder automatiquement les modifications
               </p>
             </div>
@@ -335,7 +355,7 @@ const PreferencesSection = () => {
               <Label htmlFor="desktop-notifications" className="font-medium">
                 Notifications du bureau
               </Label>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 Afficher les notifications sur le bureau du système
               </p>
             </div>
@@ -351,7 +371,7 @@ const PreferencesSection = () => {
               <Label htmlFor="notification-sounds" className="font-medium">
                 Sons de notification
               </Label>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 Jouer un son lors de la réception de notifications
               </p>
             </div>
@@ -367,7 +387,7 @@ const PreferencesSection = () => {
               <Label htmlFor="notification-preview" className="font-medium">
                 Aperçu des notifications
               </Label>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 Afficher un aperçu du contenu dans les notifications
               </p>
             </div>
@@ -383,7 +403,7 @@ const PreferencesSection = () => {
               <Label htmlFor="compact-notifications" className="font-medium">
                 Notifications compactes
               </Label>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 Afficher les notifications dans un format plus compact
               </p>
             </div>
