@@ -2,18 +2,18 @@
 import { User } from "../../stores/authStore";
 import { UserStats } from "./userTypes";
 
-// Calcul des statistiques basé sur le statut EstDesactive
+// Calcul des statistiques basé sur le statut estDesactive
 export const calculateUserStats = (users: User[]): UserStats => {
   return {
     total: users.length,
-    active: users.filter(u => !u.EstDesactive).length,
-    inactive: users.filter(u => u.EstDesactive).length,
+    active: users.filter(u => !u.estDesactive).length,
+    inactive: users.filter(u => u.estDesactive).length,
     admins: users.filter(u => u.role === 'administrateur').length
   };
 };
 
 export const updateStatsAfterUserAdded = (prevStats: UserStats, newUser: User): UserStats => {
-  const isActive = !newUser.EstDesactive;
+  const isActive = !newUser.estDesactive;
   return {
     ...prevStats,
     total: prevStats.total + 1,
@@ -24,7 +24,7 @@ export const updateStatsAfterUserAdded = (prevStats: UserStats, newUser: User): 
 };
 
 export const updateStatsAfterUserDeleted = (prevStats: UserStats, deletedUser: User): UserStats => {
-  const wasActive = !deletedUser.EstDesactive;
+  const wasActive = !deletedUser.estDesactive;
   return {
     ...prevStats,
     total: prevStats.total - 1,
