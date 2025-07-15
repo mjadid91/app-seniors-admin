@@ -28,10 +28,21 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
     description: "",
     tarif: "",
     domaine: "",
+    statut: "",
   });
   const [domaines, setDomaines] = useState<Domaine[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Options de statut disponibles
+  const statutOptions = [
+    { value: "en_attente", label: "En attente" },
+    { value: "acceptee", label: "Acceptée" },
+    { value: "refusee", label: "Refusée" },
+    { value: "en_cours", label: "En cours" },
+    { value: "terminee", label: "Terminée" },
+    { value: "annulee", label: "Annulée" },
+  ];
 
   // Charger les domaines disponibles
   useEffect(() => {
@@ -56,14 +67,42 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
 
   // Initialiser le formulaire avec les données de la prestation
   useEffect(() => {
-    if (prestation && isOpen) {
-      setFormData({
-        titre: prestation.typePrestation,
-        description: "", // Pas de description dans l'interface actuelle
-        tarif: prestation.tarif.toString(),
-        domaine: "", // À récupérer depuis la base
-      });
-    }
+    const fetchPrestationDetails = async () => {
+      if (prestation && isOpen) {
+        // Récupérer les détails de la prestation depuis la table Prestation
+        const { data: prestationData, error: prestationError } = await supabase
+          .from("Prestation")
+          .select("*")
+          .eq("IDPrestation", parseInt(prestation.id))
+          .single();
+
+        if (prestationError) {
+          console.error("Erreur lors du chargement de la prestation:", prestationError);
+          return;
+        }
+
+        // Récupérer le statut depuis PrestationAidant
+        const { data: prestationAidantData, error: prestationAidantError } = await supabase
+          .from("PrestationAidant")
+          .select("StatutProposition")
+          .eq("IDBesoinSenior", parseInt(prestation.id))
+          .single();
+
+        if (prestationAidantError && prestationAidantError.code !== 'PGRST116') {
+          console.error("Erreur lors du chargement du statut:", prestationAidantError);
+        }
+
+        setFormData({
+          titre: prestationData?.Titre || prestation.typePrestation,
+          description: prestationData?.Description || "",
+          tarif: prestationData?.TarifIndicatif?.toString() || prestation.tarif.toString(),
+          domaine: prestationData?.IDDomaine?.toString() || "",
+          statut: prestationAidantData?.StatutProposition || "en_attente",
+        });
+      }
+    };
+
+    fetchPrestationDetails();
   }, [prestation, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,6 +111,7 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
 
     setIsLoading(true);
     try {
+      // Mettre à jour la table Prestation
       const updateData: any = {
         Titre: formData.titre,
         TarifIndicatif: parseFloat(formData.tarif),
@@ -85,13 +125,47 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
         updateData.IDDomaine = parseInt(formData.domaine);
       }
 
-      const { error } = await supabase
+      const { error: prestationError } = await supabase
           .from("Prestation")
           .update(updateData)
           .eq("IDPrestation", parseInt(prestation.id));
 
-      if (error) {
-        throw error;
+      if (prestationError) {
+        throw prestationError;
+      }
+
+      // Mettre à jour ou créer l'entrée dans PrestationAidant pour le statut
+      const { data: existingPrestationAidant } = await supabase
+        .from("PrestationAidant")
+        .select("IDPrestationAidant")
+        .eq("IDBesoinSenior", parseInt(prestation.id))
+        .single();
+
+      if (existingPrestationAidant) {
+        // Mettre à jour le statut existant
+        const { error: statutError } = await supabase
+          .from("PrestationAidant")
+          .update({ StatutProposition: formData.statut })
+          .eq("IDBesoinSenior", parseInt(prestation.id));
+
+        if (statutError) {
+          throw statutError;
+        }
+      } else {
+        // Créer une nouvelle entrée si elle n'existe pas
+        const { error: statutError } = await supabase
+          .from("PrestationAidant")
+          .insert({
+            IDBesoinSenior: parseInt(prestation.id),
+            StatutProposition: formData.statut,
+            DateProposition: new Date().toISOString().split('T')[0],
+            DelaiEstime: "À définir",
+            commentaires: "Statut mis à jour via l'interface admin"
+          });
+
+        if (statutError) {
+          throw statutError;
+        }
       }
 
       toast({
@@ -155,20 +229,38 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="domaine">Domaine</Label>
-              <Select value={formData.domaine} onValueChange={(value) => handleInputChange("domaine", value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un domaine" />
-                </SelectTrigger>
-                <SelectContent>
-                  {domaines.map((domaine) => (
-                      <SelectItem key={domaine.IDDomaine} value={domaine.IDDomaine.toString()}>
-                        {domaine.DomaineTitre}
-                      </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="domaine">Domaine</Label>
+                <Select value={formData.domaine} onValueChange={(value) => handleInputChange("domaine", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un domaine" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {domaines.map((domaine) => (
+                        <SelectItem key={domaine.IDDomaine} value={domaine.IDDomaine.toString()}>
+                          {domaine.DomaineTitre}
+                        </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="statut">Statut *</Label>
+                <Select value={formData.statut} onValueChange={(value) => handleInputChange("statut", value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un statut" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {statutOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="space-y-2">
