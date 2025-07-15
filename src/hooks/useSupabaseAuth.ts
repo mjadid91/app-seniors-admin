@@ -120,10 +120,16 @@ export const useSupabaseAuth = () => {
       
       if (!mounted) return;
 
+      // Ne pas nettoyer l'auth manuelle sur INITIAL_SESSION
+      if (event === 'INITIAL_SESSION' && !session && manualUserMapping) {
+        console.log('useSupabaseAuth: Ignoring INITIAL_SESSION cleanup due to manual auth');
+        return;
+      }
+
       if (event === 'SIGNED_IN' && session) {
         setSession(session);
         findOrCreateUserMapping(session.user);
-      } else if (event === 'SIGNED_OUT' || !session) {
+      } else if (event === 'SIGNED_OUT' || (!session && event !== 'INITIAL_SESSION')) {
         console.log('useSupabaseAuth: User signed out, clearing states');
         setSession(null);
         clearUserMapping();
