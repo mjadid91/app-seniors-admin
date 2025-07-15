@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,7 +35,7 @@ const Moderation = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <>
       {/* Header Section */}
       <div className="border-b border-slate-200 shadow-sm">
         <div className="max-w-full mx-auto px-6 lg:px-8 py-8">
@@ -201,7 +200,7 @@ const Moderation = () => {
         onClose={() => setIsAddGroupMembersModalOpen(false)}
         onSuccess={handleSuccess}
       />
-    </div>
+    </>
   );
 };
 
