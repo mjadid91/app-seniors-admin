@@ -630,6 +630,13 @@ export type Database = {
             referencedRelation: "Domaine"
             referencedColumns: ["IDDomaine"]
           },
+          {
+            foreignKeyName: "Competences_IDDomaine_fkey"
+            columns: ["IDDomaine"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDDomaine"]
+          },
         ]
       }
       ConsentementCookies: {
@@ -2236,6 +2243,13 @@ export type Database = {
             referencedRelation: "Domaine"
             referencedColumns: ["IDDomaine"]
           },
+          {
+            foreignKeyName: "Prestation_IDDomaine_fkey"
+            columns: ["IDDomaine"]
+            isOneToOne: false
+            referencedRelation: "prestations_dashboard_view"
+            referencedColumns: ["IDDomaine"]
+          },
         ]
       }
       Prestation_Localisation: {
@@ -3325,6 +3339,7 @@ export type Database = {
           evaluation_commentaire: string | null
           id: number | null
           IDAidant: number | null
+          IDDomaine: number | null
           IDSeniors: number | null
           senior_nom: string | null
           statut: string | null
