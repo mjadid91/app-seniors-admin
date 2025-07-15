@@ -11,7 +11,7 @@ export const MobileMenu = () => {
   const closeMenu = () => setIsOpen(false);
 
   return (
-    <div className="lg:hidden">
+    <>
       <button
         onClick={toggleMenu}
         className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -20,18 +20,18 @@ export const MobileMenu = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 bg-white border-b shadow-lg z-50">
+        <div className="absolute top-full left-0 right-0 bg-white border-b border-slate-200 shadow-lg z-50">
           <div className="px-4 py-3">
             <NavigationLinks 
-              className="flex-col space-y-1" 
+              className="flex-col space-y-1 space-x-0" 
               onItemClick={closeMenu}
             />
-            <div className="border-t pt-4 mt-4">
+            <div className="border-t border-slate-200 pt-4 mt-4">
               <ProfileDropdown />
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 };

@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { Settings, LogOut, ChevronDown } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
@@ -44,17 +43,17 @@ export const ProfileDropdown = () => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
+      <DropdownMenuTrigger className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
         <Avatar className="h-8 w-8">
           <AvatarFallback className="bg-primary text-primary-foreground font-medium text-xs">
             {user?.prenom?.[0]}{user?.nom?.[0]}
           </AvatarFallback>
         </Avatar>
-        <div className="text-left">
-          <p className="font-medium text-gray-900 text-sm">
+        <div className="flex flex-col items-start">
+          <span className="font-medium text-gray-900 text-sm">
             {user?.prenom} {user?.nom}
-          </p>
-          <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+          </span>
+          <span className="text-xs text-gray-500 capitalize">{user?.role}</span>
         </div>
         <ChevronDown className="h-4 w-4 text-gray-500" />
       </DropdownMenuTrigger>

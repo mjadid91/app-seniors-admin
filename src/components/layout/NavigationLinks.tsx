@@ -39,12 +39,12 @@ export const NavigationLinks = ({ className, onItemClick }: NavigationLinksProps
 
     const isActive = location.pathname === item.path;
     return isActive
-      ? "text-primary font-semibold bg-primary/5 border-b-2 border-primary"
+      ? "text-primary font-semibold border-b-2 border-primary"
       : "text-gray-700 hover:text-primary hover:bg-gray-50";
   };
 
   return (
-    <nav className={cn("flex items-center", className)}>
+    <nav className={cn("flex items-center space-x-1", className)}>
       {menuItems.map((item) => {
         const isAccessible = canAccessPage(item.id);
 
