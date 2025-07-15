@@ -39,12 +39,12 @@ export const NavigationLinks = ({ className, onItemClick }: NavigationLinksProps
 
     const isActive = location.pathname === item.path;
     return isActive
-      ? "text-primary font-semibold bg-blue-50 border-b-2 border-primary"
+      ? "text-primary font-semibold border-b-2 border-primary"
       : "text-gray-700 hover:text-primary hover:bg-gray-50";
   };
 
   return (
-    <nav className={cn("flex items-center space-x-1", className)}>
+    <nav className={cn("flex items-center space-x-2", className)}>
       {menuItems.map((item) => {
         const isAccessible = canAccessPage(item.id);
 
@@ -54,7 +54,7 @@ export const NavigationLinks = ({ className, onItemClick }: NavigationLinksProps
             onClick={() => handleNavigation(item)}
             disabled={!isAccessible}
             className={cn(
-              "px-4 py-2 text-sm font-medium transition-all duration-200 rounded-md whitespace-nowrap",
+              "px-3 py-2 text-sm font-medium transition-all duration-200 rounded-t-lg whitespace-nowrap",
               getItemStyle(item)
             )}
           >

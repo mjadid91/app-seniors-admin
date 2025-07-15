@@ -104,8 +104,8 @@ const UserManagement = () => {
       <ProtectedRoute requiredPage="users">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600 font-medium">Chargement des utilisateurs...</p>
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-slate-600">Chargement des utilisateurs...</p>
           </div>
         </div>
       </ProtectedRoute>
@@ -118,24 +118,25 @@ const UserManagement = () => {
       <ProtectedRoute requiredPage="users">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <span className="text-red-600 text-xl">⚠</span>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
-            <p className="text-gray-600 mb-6">{error}</p>
-            <div className="space-y-3">
+            <h3 className="text-lg font-medium text-slate-800 mb-2">Erreur de chargement</h3>
+            <p className="text-slate-600 mb-4">{error}</p>
+            <div className="space-y-2">
               <Button 
                 onClick={() => {
                   fetchUsers();
                   refetchSeniors();
                 }}
-                className="bg-primary hover:bg-primary/90"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
                 Réessayer
               </Button>
               <Button 
                 variant="outline"
                 onClick={() => window.location.reload()}
+                className="px-4 py-2"
               >
                 Recharger la page
               </Button>
@@ -148,52 +149,32 @@ const UserManagement = () => {
 
   return (
     <ProtectedRoute requiredPage="users">
-      <div className="space-y-8 animate-fade-in">
-        <div className="page-header">
-          <div>
-            <h1 className="page-title">Gestion des utilisateurs</h1>
-            <p className="page-description">
-              Gérez les utilisateurs administratifs, seniors et aidants de la plateforme
-            </p>
-          </div>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-slate-800">Gestion des utilisateurs</h1>
         </div>
 
         <Tabs defaultValue="admins" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1 rounded-lg">
-            <TabsTrigger 
-              value="admins" 
-              className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm"
-            >
-              Administratifs ({users.length})
-            </TabsTrigger>
-            <TabsTrigger 
-              value="seniors"
-              className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm"
-            >
-              Seniors ({seniors.length})
-            </TabsTrigger>
-            <TabsTrigger 
-              value="aidants"
-              className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm"
-            >
-              Aidants ({aidants.length})
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="admins">Administratifs ({users.length})</TabsTrigger>
+            <TabsTrigger value="seniors">Seniors ({seniors.length})</TabsTrigger>
+            <TabsTrigger value="aidants">Aidants ({aidants.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="admins" className="space-y-6">
             <UserStats stats={stats} />
             
-            <div className="section-header">
-              <h2 className="section-title">Utilisateurs administratifs</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Utilisateurs administratifs</h2>
               <UserManagementActions 
                 users={users}
                 onAddUser={handleAddUser}
               />
             </div>
 
-            <Card className="dashboard-card">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-gray-900">
+                <CardTitle>
                   Utilisateurs administratifs ({users.length})
                 </CardTitle>
               </CardHeader>
@@ -216,8 +197,8 @@ const UserManagement = () => {
           <TabsContent value="seniors" className="space-y-6">
             <SeniorsStats stats={seniorsStats} />
             
-            <div className="section-header">
-              <h2 className="section-title">Seniors</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Seniors</h2>
               {canManageUsers && (
                 <Button onClick={handleAddSenior} className="flex items-center gap-2">
                   <Plus className="h-4 w-4" />
@@ -226,9 +207,9 @@ const UserManagement = () => {
               )}
             </div>
             
-            <Card className="dashboard-card">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-gray-900">
+                <CardTitle>
                   Seniors ({seniors.length})
                 </CardTitle>
               </CardHeader>
@@ -249,8 +230,8 @@ const UserManagement = () => {
           <TabsContent value="aidants" className="space-y-6">
             <SeniorsStats stats={seniorsStats} />
             
-            <div className="section-header">
-              <h2 className="section-title">Aidants</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Aidants</h2>
               {canManageUsers && (
                 <Button onClick={handleAddAidant} className="flex items-center gap-2">
                   <Plus className="h-4 w-4" />
@@ -259,9 +240,9 @@ const UserManagement = () => {
               )}
             </div>
             
-            <Card className="dashboard-card">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-gray-900">
+                <CardTitle>
                   Aidants ({aidants.length})
                 </CardTitle>
               </CardHeader>
