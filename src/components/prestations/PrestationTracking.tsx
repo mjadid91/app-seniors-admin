@@ -133,11 +133,6 @@ const PrestationTracking = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <Calendar className="h-4 w-4" />
-              <span>Total : {filteredPrestations.length} prestations</span>
-            </div>
-
             <div className="flex gap-2">
               <Button
                   onClick={() => setIsAddModalOpen(true)}

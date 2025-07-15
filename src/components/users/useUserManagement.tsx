@@ -34,7 +34,6 @@ export const useUserManagement = (): UserManagementState & UserManagementActions
     }
   }, [users]);
 
-  // Filter users based on search term
   useEffect(() => {
     const filtered = filterUsers(users, searchTerm);
     setFilteredUsers(filtered);

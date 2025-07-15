@@ -5,7 +5,6 @@ export const useEmailValidation = (email: string) => {
   const [emailError, setEmailError] = useState("");
   const [isEmailChecking, setIsEmailChecking] = useState(false);
 
-  // Mock existing users for email validation
   const existingEmails = [
     'admin@appseniors.fr',
     'support@appseniors.fr',

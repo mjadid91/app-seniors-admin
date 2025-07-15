@@ -55,18 +55,13 @@ const UserCreationForm = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <UserBasicInfoFields formData={formData} setFormData={setFormData} />
-      
       <EmailField formData={formData} setFormData={setFormData} />
-
       <RoleSelector formData={formData} setFormData={setFormData} />
-
       <PasswordGenerator 
         password={password}
         onPasswordChange={setPassword}
       />
-
       <PreferencesFields formData={formData} setFormData={setFormData} />
-
       <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
         <p className="text-sm text-blue-700">
           <strong>Information :</strong> Le mot de passe sera affiché une seule fois après la création du compte. L'utilisateur devra le modifier lors de sa première connexion.

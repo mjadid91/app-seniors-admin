@@ -110,10 +110,6 @@ const PrestationDetailsModal = ({ isOpen, onClose, prestation }: PrestationDetai
                   <p className="font-medium text-slate-800">
                     {prestation.domaineNom || 'Non spécifié'}
                   </p>
-                  {/* Debug info */}
-                  {process.env.NODE_ENV === 'development' && (
-                      <p className="text-xs text-gray-400">Debug: {JSON.stringify(prestation.domaineNom)}</p>
-                  )}
                 </div>
               </div>
 

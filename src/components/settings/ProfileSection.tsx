@@ -97,14 +97,6 @@ const ProfileSection = () => {
           onSave={handleSave}
           isSaving={isSaving}
         />
-
-        {/* Section de debug pour vérifier les données */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg text-xs">
-          <p><strong>Debug - Données actuelles :</strong></p>
-          <p>Langue ID: {formData.langueId} - {formData.languePreferee}</p>
-          <p>Devise ID: {formData.deviseId} - {formData.devise}</p>
-          <p>Niveau langue: {formData.niveauLangue}</p>
-        </div>
       </CardContent>
     </Card>
   );

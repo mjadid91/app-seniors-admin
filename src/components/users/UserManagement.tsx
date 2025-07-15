@@ -173,12 +173,7 @@ const UserManagement = () => {
             </div>
 
             <Card>
-              <CardHeader>
-                <CardTitle>
-                  Utilisateurs administratifs ({users.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+              <CardContent className="p-6 space-y-6">
                 <UserSearch 
                   searchTerm={searchTerm}
                   onSearchChange={setSearchTerm}
