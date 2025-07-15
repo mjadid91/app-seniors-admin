@@ -26,7 +26,7 @@ const Finances = () => {
 
   if (!canAccessPage("finances")) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8 max-w-md w-full mx-4">
           <div className="text-center">
             <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
@@ -43,64 +43,58 @@ const Finances = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <FinanceHeader
-          canManageFinances={canManageFinances}
-          onAddTransaction={() => setIsModalOpen(true)}
-          totalTransactions={totalTransactions}
-          totalAmount={totalAmount}
-          totalCommissions={totalCommissions}
-        />
+    <div className="space-y-6">
+      <FinanceHeader
+        canManageFinances={canManageFinances}
+        onAddTransaction={() => setIsModalOpen(true)}
+        totalTransactions={totalTransactions}
+        totalAmount={totalAmount}
+        totalCommissions={totalCommissions}
+      />
 
-        {/* Résumé des commissions */}
-        <div className="mt-8">
-          <CommissionSummary />
-        </div>
+      {/* Résumé des commissions */}
+      <CommissionSummary />
 
-        {/* Contenu principal avec onglets */}
-        <div className="mt-8">
-          <Tabs defaultValue="transactions" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-white border border-slate-200">
-              <TabsTrigger 
-                value="transactions"
-                className="data-[state=active]:bg-slate-100 data-[state=active]:text-slate-900"
-              >
-                Transactions
-              </TabsTrigger>
-              <TabsTrigger 
-                value="commissions"
-                className="data-[state=active]:bg-slate-100 data-[state=active]:text-slate-900"
-              >
-                Gestion des Commissions
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="transactions" className="mt-6">
-              <FinanceTransactionTable
-                transactions={transactions || []}
-                isLoading={isLoading}
-                error={error}
-                onRefetch={refetch}
-                canManageFinances={canManageFinances}
-              />
-            </TabsContent>
-            
-            <TabsContent value="commissions" className="mt-6">
-              <CommissionManagement />
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        {/* Modal d'ajout de transaction */}
-        {canManageFinances && (
-          <AddTransactionModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            onTransactionAdded={refetch}
+      {/* Contenu principal avec onglets */}
+      <Tabs defaultValue="transactions" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 bg-white border border-slate-200">
+          <TabsTrigger 
+            value="transactions"
+            className="data-[state=active]:bg-slate-100 data-[state=active]:text-slate-900"
+          >
+            Transactions
+          </TabsTrigger>
+          <TabsTrigger 
+            value="commissions"
+            className="data-[state=active]:bg-slate-100 data-[state=active]:text-slate-900"
+          >
+            Gestion des Commissions
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="transactions" className="mt-6">
+          <FinanceTransactionTable
+            transactions={transactions || []}
+            isLoading={isLoading}
+            error={error}
+            onRefetch={refetch}
+            canManageFinances={canManageFinances}
           />
-        )}
-      </div>
+        </TabsContent>
+        
+        <TabsContent value="commissions" className="mt-6">
+          <CommissionManagement />
+        </TabsContent>
+      </Tabs>
+
+      {/* Modal d'ajout de transaction */}
+      {canManageFinances && (
+        <AddTransactionModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onTransactionAdded={refetch}
+        />
+      )}
     </div>
   );
 };

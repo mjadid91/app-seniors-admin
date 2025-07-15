@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 import TransactionActionsMenu from "./TransactionActionsMenu";
@@ -83,12 +84,12 @@ const FinanceTransactionTable = ({
           </TooltipProvider>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <div className="min-w-full">
+      <CardContent className="p-0">
+        <ScrollArea className="h-[600px] w-full">
+          <div className="p-6">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50">
+              <thead className="sticky top-0 bg-slate-50 z-10">
+                <tr className="border-b border-slate-200">
                   <th className="px-4 py-3 text-left font-medium text-slate-700">Date</th>
                   <th className="px-4 py-3 text-left font-medium text-slate-700">Type</th>
                   <th className="px-4 py-3 text-left font-medium text-slate-700">Utilisateur</th>
@@ -201,7 +202,7 @@ const FinanceTransactionTable = ({
               </tbody>
             </table>
           </div>
-        </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
