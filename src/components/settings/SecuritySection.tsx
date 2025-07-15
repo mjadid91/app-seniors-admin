@@ -68,7 +68,7 @@ const SecuritySection = () => {
     setIsLoading(true);
     
     try {
-      // Récupérer l'utilisateur actuel
+      // Vérifier d'abord le mot de passe actuel en tentant une reconnexion
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user?.email) {
         toast({
@@ -94,44 +94,27 @@ const SecuritySection = () => {
         return;
       }
 
-      // Mettre à jour le mot de passe dans Supabase Auth
-      const { error: authError } = await supabase.auth.updateUser({
+      // Si la vérification est réussie, mettre à jour le mot de passe
+      const { error } = await supabase.auth.updateUser({
         password: passwordData.newPassword
       });
 
-      if (authError) {
+      if (error) {
         toast({
           title: "Erreur",
-          description: "Impossible de modifier le mot de passe dans l'authentification.",
+          description: "Impossible de modifier le mot de passe. Veuillez réessayer.",
           variant: "destructive"
         });
-        return;
+      } else {
+        toast({
+          title: "Mot de passe modifié",
+          description: "Votre mot de passe a été mis à jour avec succès.",
+        });
+        
+        setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        setShowPasswordForm(false);
       }
-
-      // Mettre à jour le mot de passe dans la table Utilisateurs
-      const { error: dbError } = await supabase
-        .from('Utilisateurs')
-        .update({ 
-          MotDePasse: passwordData.newPassword,
-          DateModification: new Date().toISOString()
-        })
-        .eq('Email', userData.user.email);
-
-      if (dbError) {
-        console.warn('Erreur lors de la mise à jour du mot de passe en base:', dbError);
-        // Ne pas bloquer le processus car l'auth a déjà été mise à jour
-      }
-
-      toast({
-        title: "Mot de passe modifié",
-        description: "Votre mot de passe a été mis à jour avec succès.",
-      });
-      
-      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      setShowPasswordForm(false);
-
     } catch (error) {
-      console.error('Erreur lors du changement de mot de passe:', error);
       toast({
         title: "Erreur",
         description: "Une erreur inattendue s'est produite.",
