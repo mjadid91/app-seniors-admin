@@ -15,36 +15,39 @@ interface StatsCardProps {
 }
 
 const colorVariants = {
-  blue: "from-blue-500 to-blue-600",
+  blue: "from-primary to-blue-600",
   green: "from-green-500 to-green-600", 
-  purple: "from-purple-500 to-purple-600",
-  orange: "from-orange-500 to-orange-600"
+  purple: "from-blue-500 to-blue-600",
+  orange: "from-amber-500 to-amber-600"
 };
 
 const StatsCard = ({ title, value, change, trend, icon: Icon, color, className, style }: StatsCardProps) => {
   return (
-    <Card className={cn("hover:shadow-lg transition-all duration-300 hover:-translate-y-1", className)} style={style}>
+    <Card className={cn("hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-0", className)} style={style}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <p className="text-slate-600 text-sm font-medium">{title}</p>
-            <p className="text-2xl font-bold text-slate-800 mt-1">{value}</p>
+            <p className="text-muted-foreground text-sm font-medium mb-1">{title}</p>
+            <p className="text-3xl font-bold text-foreground">{value}</p>
           </div>
-          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorVariants[color]} flex items-center justify-center shadow-lg`}>
+          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colorVariants[color]} flex items-center justify-center shadow-sm`}>
             <Icon className="h-6 w-6 text-white" />
           </div>
         </div>
         
-        <div className="flex items-center mt-4 gap-1">
+        <div className="flex items-center mt-4 gap-2">
           {trend === "up" ? (
-            <TrendingUp className="h-4 w-4 text-green-600" />
+            <div className="flex items-center gap-1 text-green-600">
+              <TrendingUp className="h-4 w-4" />
+              <span className="text-sm font-medium">{change}</span>
+            </div>
           ) : (
-            <TrendingDown className="h-4 w-4 text-red-600" />
+            <div className="flex items-center gap-1 text-red-600">
+              <TrendingDown className="h-4 w-4" />
+              <span className="text-sm font-medium">{change}</span>
+            </div>
           )}
-          <span className={`text-sm font-medium ${trend === "up" ? "text-green-600" : "text-red-600"}`}>
-            {change}
-          </span>
-          <span className="text-slate-500 text-sm ml-1">vs mois dernier</span>
+          <span className="text-muted-foreground text-sm">vs mois dernier</span>
         </div>
       </CardContent>
     </Card>

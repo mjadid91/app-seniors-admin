@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import SharedLayout from "./components/layout/SharedLayout";
+import AppLayout from "./components/layout/AppLayout";
 import DashboardPage from "./pages/DashboardPage";
 import UsersPage from "./pages/UsersPage";
 import PrestationsPage from "./pages/PrestationsPage";
@@ -36,8 +36,8 @@ const App = () => (
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/settings" element={<Settings />} />
           
-          {/* Prestations routes with shared layout */}
-          <Route element={<SharedLayout />}>
+          {/* Protected routes with new layout */}
+          <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/users" element={<UsersPage />} />
             <Route path="/prestations" element={<PrestationsPage />} />
@@ -49,7 +49,6 @@ const App = () => (
             <Route path="/finances" element={<FinancesPage />} />
           </Route>
           
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
