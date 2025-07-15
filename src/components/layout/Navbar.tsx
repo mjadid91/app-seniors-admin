@@ -3,10 +3,10 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, Search, Bell } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
-import NavigationLinks from "./NavigationLinks";
-import ProfileDropdown from "./ProfileDropdown";
-import AppLogo from "./AppLogo";
-import MobileMenu from "./MobileMenu";
+import { NavigationLinks } from "./NavigationLinks";
+import { ProfileDropdown } from "./ProfileDropdown";
+import { AppLogo } from "./AppLogo";
+import { MobileMenu } from "./MobileMenu";
 import NotificationsModal from "./NotificationsModal";
 
 const Navbar = () => {
