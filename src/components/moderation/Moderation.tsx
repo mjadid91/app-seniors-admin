@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,7 +38,7 @@ const Moderation = () => {
   return (
     <>
       {/* Header Section */}
-      <div className="border-b border-slate-200 shadow-sm">
+      <div>
         <div className="max-w-full mx-auto px-6 lg:px-8 py-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
