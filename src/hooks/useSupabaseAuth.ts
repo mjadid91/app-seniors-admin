@@ -16,6 +16,45 @@ export const useSupabaseAuth = () => {
   const { userMapping, isLoading: mappingLoading, findOrCreateUserMapping, clearUserMapping } = useSupabaseUserMapping();
   const { authenticateUser, isLoading: dbAuthLoading } = useDatabaseAuth();
 
+  // Persist manual authentication in sessionStorage
+  const persistManualAuth = (userMapping: any, sessionData: Session) => {
+    try {
+      sessionStorage.setItem('manual_auth_mapping', JSON.stringify(userMapping));
+      sessionStorage.setItem('manual_auth_session', JSON.stringify(sessionData));
+    } catch (error) {
+      console.error('Failed to persist manual auth:', error);
+    }
+  };
+
+  const loadPersistedManualAuth = () => {
+    try {
+      const persistedMapping = sessionStorage.getItem('manual_auth_mapping');
+      const persistedSession = sessionStorage.getItem('manual_auth_session');
+      
+      if (persistedMapping && persistedSession) {
+        const mapping = JSON.parse(persistedMapping);
+        const sessionData = JSON.parse(persistedSession);
+        
+        console.log('useSupabaseAuth: Loading persisted manual auth');
+        setManualUserMapping(mapping);
+        setSession(sessionData);
+        return true;
+      }
+    } catch (error) {
+      console.error('Failed to load persisted manual auth:', error);
+    }
+    return false;
+  };
+
+  const clearPersistedManualAuth = () => {
+    try {
+      sessionStorage.removeItem('manual_auth_mapping');
+      sessionStorage.removeItem('manual_auth_session');
+    } catch (error) {
+      console.error('Failed to clear persisted manual auth:', error);
+    }
+  };
+
   useEffect(() => {
     // Éviter les initialisations multiples
     if (initializationInProgress.current) {
@@ -30,6 +69,19 @@ export const useSupabaseAuth = () => {
       try {
         console.log('useSupabaseAuth: Starting one-time initialization...');
         setIsLoading(true);
+
+        // D'abord essayer de charger l'auth manuelle persistée
+        const hasPersistedAuth = loadPersistedManualAuth();
+        
+        if (hasPersistedAuth) {
+          console.log('useSupabaseAuth: Restored persisted manual authentication');
+          if (mounted) {
+            setIsLoading(false);
+            setIsInitialized(true);
+            initializationInProgress.current = false;
+          }
+          return;
+        }
 
         // Get initial session
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -76,6 +128,7 @@ export const useSupabaseAuth = () => {
         setSession(null);
         clearUserMapping();
         setManualUserMapping(null);
+        clearPersistedManualAuth();
       }
     });
 
@@ -125,6 +178,9 @@ export const useSupabaseAuth = () => {
 
         setSession(mockSession);
         setManualUserMapping(dbResult.userMapping);
+        
+        // Persister l'authentification manuelle
+        persistManualAuth(dbResult.userMapping, mockSession);
 
         return { success: true, user: mockSession.user, source: 'database' };
       }
@@ -145,6 +201,7 @@ export const useSupabaseAuth = () => {
       setSession(null);
       clearUserMapping();
       setManualUserMapping(null);
+      clearPersistedManualAuth();
       
       // Essayer de déconnecter de Supabase (peut échouer si c'était une session manuelle)
       const { error } = await supabase.auth.signOut();

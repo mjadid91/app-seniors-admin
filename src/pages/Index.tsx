@@ -47,7 +47,7 @@ const Index = () => {
     }
   }, [user?.id, isAuthenticated, isInitialized, setUser, setAuthenticated, logout]);
 
-  // Gérer la navigation une seule fois
+  // Gérer la navigation une seule fois avec un délai pour éviter les conflits
   useEffect(() => {
     if (!isInitialized || loading || hasNavigated) {
       return;
@@ -55,15 +55,20 @@ const Index = () => {
 
     console.log('Index: Checking navigation', { isAuthenticated, user: !!user });
 
-    if (isAuthenticated && user) {
-      console.log('Index: User authenticated, redirecting to dashboard');
-      setHasNavigated(true);
-      navigate("/dashboard", { replace: true });
-    } else {
-      console.log('Index: User not authenticated, redirecting to login');
-      setHasNavigated(true);
-      navigate("/connexion", { replace: true });
-    }
+    // Ajouter un petit délai pour s'assurer que la synchronisation est terminée
+    const timer = setTimeout(() => {
+      if (isAuthenticated && user) {
+        console.log('Index: User authenticated, redirecting to dashboard');
+        setHasNavigated(true);
+        navigate("/dashboard", { replace: true });
+      } else {
+        console.log('Index: User not authenticated, redirecting to login');
+        setHasNavigated(true);
+        navigate("/connexion", { replace: true });
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [user, isAuthenticated, loading, isInitialized, navigate, hasNavigated]);
 
   // Afficher le loading tant que l'auth n'est pas initialisée ou en cours de chargement
