@@ -71,13 +71,13 @@ export const useUserActivation = () => {
     }
   };
 
-  const toggleUserActivation = async (userId: string, currentStatus: boolean): Promise<boolean> => {
-    console.log('toggleUserActivation called:', { userId, currentStatus });
+  const toggleUserActivation = async (userId: string, shouldDeactivate: boolean): Promise<boolean> => {
+    console.log('toggleUserActivation called:', { userId, shouldDeactivate });
     setIsLoading(true);
     
     try {
-      // Si on veut désactiver (currentStatus = false -> EstDesactive = true)
-      if (!currentStatus) {
+      // Si on veut désactiver l'utilisateur
+      if (shouldDeactivate) {
         console.log('Attempting to deactivate user');
         const canDisable = await checkLastActiveAdmin(userId);
         if (!canDisable) {
@@ -94,7 +94,7 @@ export const useUserActivation = () => {
       console.log('Updating user activation status');
       const { error } = await supabase
         .from('Utilisateurs')
-        .update({ EstDesactive: !currentStatus })
+        .update({ EstDesactive: shouldDeactivate })
         .eq('IDUtilisateurs', parseInt(userId));
 
       if (error) {
@@ -107,15 +107,14 @@ export const useUserActivation = () => {
         return false;
       }
 
-      const action = currentStatus ? "réactivé" : "désactivé";
+      const action = shouldDeactivate ? "désactivé" : "réactivé";
       toast({
         title: "Compte modifié",
         description: `Le compte a été ${action} avec succès.`,
       });
 
       // Si l'utilisateur se désactive lui-même, le déconnecter
-      // Comparer les IDs en tant que strings
-      if (!currentStatus && currentUser?.id === userId) {
+      if (shouldDeactivate && currentUser?.id === userId) {
         toast({
           title: "Déconnexion automatique",
           description: "Vous avez désactivé votre propre compte. Vous allez être déconnecté.",
