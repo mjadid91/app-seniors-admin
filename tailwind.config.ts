@@ -65,7 +65,25 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// AppSeniors Admin Custom Colors
+				'app-primary': 'hsl(var(--app-primary))',
+				'app-background': 'hsl(var(--app-background))',
+				'app-text': 'hsl(var(--app-text))',
+				'app-success': 'hsl(var(--app-success))',
+				'app-error': 'hsl(var(--app-error))',
+				// Additional utility colors
+				'blue-500': '#2563eb',
+				'blue-600': '#1d4ed8',
+				'green-500': '#10b981',
+				'green-600': '#059669',
+				'red-500': '#ef4444',
+				'red-600': '#dc2626',
+				'slate-100': '#f1f5f9',
+				'slate-200': '#e2e8f0',
+				'slate-300': '#cbd5e1',
+				'slate-500': '#64748b',
+				'slate-700': '#334155',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

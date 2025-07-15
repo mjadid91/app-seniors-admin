@@ -111,7 +111,7 @@ export const AddCagnotteForm = ({ onClose, onSuccess }: Props) => {
                 <select
                     value={idSeniors}
                     onChange={(e) => setIdSeniors(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-white z-50"
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                     <option value="">-- Aucun senior spécifique --</option>
                     {seniors.map((senior) => (
@@ -121,14 +121,19 @@ export const AddCagnotteForm = ({ onClose, onSuccess }: Props) => {
                     ))}
                 </select>
                 {seniors.length === 0 && (
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-slate-500 mt-1">
                         Aucun senior trouvé. Vérifiez que des seniors sont enregistrés dans le système.
                     </p>
                 )}
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Création..." : "Créer la cagnotte"}
-            </Button>
+            <div className="flex justify-end space-x-3 pt-4">
+                <Button type="button" variant="outline" onClick={onClose}>
+                    Annuler
+                </Button>
+                <Button type="submit" disabled={loading}>
+                    {loading ? "Création..." : "Créer la cagnotte"}
+                </Button>
+            </div>
         </form>
     );
 };

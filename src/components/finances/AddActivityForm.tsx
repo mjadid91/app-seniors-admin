@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,7 +58,7 @@ export const AddActivityForm = ({ onClose, onSuccess }: Props) => {
                 <select
                     value={typeActiviteRemuneree}
                     onChange={(e) => setTypeActiviteRemuneree(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     required
                 >
                     <option value="">-- Sélectionner --</option>
@@ -92,7 +93,7 @@ export const AddActivityForm = ({ onClose, onSuccess }: Props) => {
                 <select
                     value={statutActiviteRemuneree}
                     onChange={(e) => setStatutActiviteRemuneree(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
                     required
                 >
                     <option value="Disponible">Disponible</option>
@@ -100,9 +101,14 @@ export const AddActivityForm = ({ onClose, onSuccess }: Props) => {
                     <option value="En cours">En cours</option>
                 </select>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Ajout..." : "Ajouter l'activité"}
-            </Button>
+            <div className="flex justify-end space-x-3 pt-4">
+                <Button type="button" variant="outline" onClick={onClose}>
+                    Annuler
+                </Button>
+                <Button type="submit" disabled={loading}>
+                    {loading ? "Ajout..." : "Ajouter l'activité"}
+                </Button>
+            </div>
         </form>
     );
 };

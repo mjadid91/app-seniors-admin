@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,7 +48,7 @@ export const AddCommissionForm = ({ onClose, onSuccess }: Props) => {
                 <select
                     value={moyenVersement}
                     onChange={(e) => setMoyenVersement(e.target.value)}
-                    className="w-full border px-3 py-2 rounded"
+                    className="w-full border border-slate-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                     required
                 >
                     <option value="">-- Choisir --</option>
@@ -58,9 +59,14 @@ export const AddCommissionForm = ({ onClose, onSuccess }: Props) => {
                     <option value="Carte bancaire">Carte bancaire</option>
                 </select>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Ajout..." : "Ajouter commission"}
-            </Button>
+            <div className="flex justify-end space-x-3 pt-4">
+                <Button type="button" variant="outline" onClick={onClose}>
+                    Annuler
+                </Button>
+                <Button type="submit" disabled={loading}>
+                    {loading ? "Ajout..." : "Ajouter commission"}
+                </Button>
+            </div>
         </form>
     );
 };

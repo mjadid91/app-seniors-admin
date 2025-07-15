@@ -87,7 +87,7 @@ export const AddPostMortemForm = ({ onClose, onSuccess }: Props) => {
                 <select
                     value={prestataireId}
                     onChange={(e) => setPrestataireId(e.target.value)}
-                    className="w-full border px-3 py-2 rounded"
+                    className="w-full border border-slate-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                     required
                 >
                     <option value="">-- Choisir un prestataire --</option>
@@ -102,9 +102,14 @@ export const AddPostMortemForm = ({ onClose, onSuccess }: Props) => {
                 <Label>Montant</Label>
                 <Input type="number" value={montant} onChange={(e) => setMontant(e.target.value)} required />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Ajout..." : "Ajouter service"}
-            </Button>
+            <div className="flex justify-end space-x-3 pt-4">
+                <Button type="button" variant="outline" onClick={onClose}>
+                    Annuler
+                </Button>
+                <Button type="submit" disabled={loading}>
+                    {loading ? "Ajout..." : "Ajouter service"}
+                </Button>
+            </div>
         </form>
     );
 };

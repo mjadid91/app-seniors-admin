@@ -12,7 +12,7 @@ const ProfileSaveActions = ({ onSave, isSaving }: ProfileSaveActionsProps) => {
       <Button 
         onClick={onSave} 
         disabled={isSaving}
-        className="w-full md:w-auto transition-all duration-200 hover:scale-105"
+        className="w-full md:w-auto"
       >
         {isSaving ? "Enregistrement..." : "Enregistrer les modifications"}
       </Button>

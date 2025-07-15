@@ -10,12 +10,12 @@ interface TicketActionsProps {
 
 const TicketActions = ({ canResolve, onResolveClick, onClose }: TicketActionsProps) => {
   return (
-    <div className="flex justify-between gap-3 pt-4 border-t">
+    <div className="flex justify-between gap-3 pt-4 border-t border-slate-200">
       <div>
         {canResolve && (
           <Button
             onClick={onResolveClick}
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-green-500 hover:bg-green-600 text-white"
           >
             <CheckCircle className="h-4 w-4 mr-2" />
             Marquer comme résolu

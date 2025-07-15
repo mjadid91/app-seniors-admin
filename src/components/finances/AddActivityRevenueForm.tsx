@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -87,56 +88,63 @@ const AddActivityRevenueForm = ({ onClose, onSuccess }: Props) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-                <Label>Utilisateur</Label>
-                <select
-                    value={utilisateurId}
-                    onChange={(e) => setUtilisateurId(e.target.value)}
-                    required
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                >
-                    <option value="">-- Sélectionner --</option>
-                    {users.map((user) => (
-                        <option key={user.IDUtilisateurs} value={user.IDUtilisateurs}>
-                            {user.Prenom} {user.Nom} ({user.Email})
-                        </option>
-                    ))}
-                </select>
-            </div>
+        <>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                    <Label>Utilisateur</Label>
+                    <select
+                        value={utilisateurId}
+                        onChange={(e) => setUtilisateurId(e.target.value)}
+                        required
+                        className="w-full border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                        <option value="">-- Sélectionner --</option>
+                        {users.map((user) => (
+                            <option key={user.IDUtilisateurs} value={user.IDUtilisateurs}>
+                                {user.Prenom} {user.Nom} ({user.Email})
+                            </option>
+                        ))}
+                    </select>
+                </div>
 
-            <div className="space-y-2">
-                <Label>Activité</Label>
-                <select
-                    value={activiteId}
-                    onChange={(e) => handleActiviteChange(e.target.value)}
-                    required
-                    className="w-full border border-gray-300 rounded-md px-3 py-2"
-                >
-                    <option value="">-- Sélectionner --</option>
-                    {activites.map((a) => (
-                        <option key={a.IDActiviteRemuneree} value={a.IDActiviteRemuneree}>
-                            {a.DescriptionActivite}
-                        </option>
-                    ))}
-                    <option value="add_new">+ Ajouter une activité</option>
-                </select>
-            </div>
+                <div className="space-y-2">
+                    <Label>Activité</Label>
+                    <select
+                        value={activiteId}
+                        onChange={(e) => handleActiviteChange(e.target.value)}
+                        required
+                        className="w-full border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                        <option value="">-- Sélectionner --</option>
+                        {activites.map((a) => (
+                            <option key={a.IDActiviteRemuneree} value={a.IDActiviteRemuneree}>
+                                {a.DescriptionActivite}
+                            </option>
+                        ))}
+                        <option value="add_new">+ Ajouter une activité</option>
+                    </select>
+                </div>
 
-            <div className="space-y-2">
-                <Label>Montant (€)</Label>
-                <Input
-                    type="number"
-                    step="0.01"
-                    value={montant}
-                    onChange={(e) => setMontant(e.target.value)}
-                    required
-                />
-            </div>
+                <div className="space-y-2">
+                    <Label>Montant (€)</Label>
+                    <Input
+                        type="number"
+                        step="0.01"
+                        value={montant}
+                        onChange={(e) => setMontant(e.target.value)}
+                        required
+                    />
+                </div>
 
-            <Button type="submit" disabled={loading} className="w-full">
-                {loading ? "Ajout en cours..." : "Ajouter"}
-            </Button>
+                <div className="flex justify-end space-x-3 pt-4">
+                    <Button type="button" variant="outline" onClick={onClose}>
+                        Annuler
+                    </Button>
+                    <Button type="submit" disabled={loading}>
+                        {loading ? "Ajout en cours..." : "Ajouter"}
+                    </Button>
+                </div>
+            </form>
 
             <Dialog open={isAddActivityModalOpen} onOpenChange={setIsAddActivityModalOpen}>
                 <DialogContent>
@@ -149,7 +157,7 @@ const AddActivityRevenueForm = ({ onClose, onSuccess }: Props) => {
                     />
                 </DialogContent>
             </Dialog>
-        </form>
+        </>
     );
 };
 

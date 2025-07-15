@@ -88,7 +88,7 @@ export const AddCommandeForm = ({ onClose, onSuccess }: Props) => {
                 <select
                     value={utilisateurId}
                     onChange={(e) => setUtilisateurId(e.target.value)}
-                    className="w-full border px-3 py-2 rounded"
+                    className="w-full border border-slate-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                     required
                 >
                     <option value="">-- Choisir un utilisateur --</option>
@@ -104,7 +104,7 @@ export const AddCommandeForm = ({ onClose, onSuccess }: Props) => {
                 <select
                     value={typeCommande}
                     onChange={(e) => setTypeCommande(e.target.value)}
-                    className="w-full border px-3 py-2 rounded"
+                    className="w-full border border-slate-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                     required
                 >
                     <option value="">-- Choisir un type --</option>
@@ -124,9 +124,14 @@ export const AddCommandeForm = ({ onClose, onSuccess }: Props) => {
                     required
                 />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Création..." : "Créer la commande"}
-            </Button>
+            <div className="flex justify-end space-x-3 pt-4">
+                <Button type="button" variant="outline" onClick={onClose}>
+                    Annuler
+                </Button>
+                <Button type="submit" disabled={loading}>
+                    {loading ? "Création..." : "Créer la commande"}
+                </Button>
+            </div>
         </form>
     );
 };

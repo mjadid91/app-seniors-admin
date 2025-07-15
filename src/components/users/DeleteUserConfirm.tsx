@@ -41,7 +41,7 @@ const DeleteUserConfirm = ({ isOpen, onClose, user, onConfirmDelete }: DeleteUse
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Annuler</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm} className="bg-red-600 hover:bg-red-700">
+          <AlertDialogAction onClick={handleConfirm} className="bg-red-500 hover:bg-red-600 text-white">
             Supprimer définitivement
           </AlertDialogAction>
         </AlertDialogFooter>

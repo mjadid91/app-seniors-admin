@@ -40,7 +40,7 @@ const DeleteSeniorModal = ({ isOpen, onClose, senior, onConfirm }: DeleteSeniorM
             Cette action est irréversible et supprimera définitivement toutes les données associées à ce senior.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex justify-end gap-2 pt-4">
+        <div className="flex justify-end gap-3 pt-4">
           <Button variant="outline" onClick={onClose}>
             Annuler
           </Button>

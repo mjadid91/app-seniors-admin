@@ -69,7 +69,7 @@ const AddDonForm = ({ onClose, onSuccess }: Props) => {
                 <select
                     value={donateurId}
                     onChange={(e) => setDonateurId(e.target.value)}
-                    className="w-full border px-3 py-2 rounded"
+                    className="w-full border border-slate-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                     required
                 >
                     <option value="">-- Choisir un donateur --</option>
@@ -85,7 +85,7 @@ const AddDonForm = ({ onClose, onSuccess }: Props) => {
                 <select
                     value={cagnotteId}
                     onChange={(e) => setCagnotteId(e.target.value)}
-                    className="w-full border px-3 py-2 rounded"
+                    className="w-full border border-slate-300 px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                     required
                 >
                     <option value="">-- Choisir une cagnotte --</option>
@@ -115,9 +115,14 @@ const AddDonForm = ({ onClose, onSuccess }: Props) => {
                     placeholder="Message d'accompagnement du don"
                 />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Enregistrement..." : "Enregistrer le don"}
-            </Button>
+            <div className="flex justify-end space-x-3 pt-4">
+                <Button type="button" variant="outline" onClick={onClose}>
+                    Annuler
+                </Button>
+                <Button type="submit" disabled={loading}>
+                    {loading ? "Enregistrement..." : "Enregistrer le don"}
+                </Button>
+            </div>
         </form>
     );
 };
