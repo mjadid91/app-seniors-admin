@@ -1,13 +1,13 @@
 
-import { Users, UserCheck, Shield, Clock } from "lucide-react";
+import { Users, UserCheck, Shield, UserX } from "lucide-react";
 import StatsCard from "../dashboard/StatsCard";
 
 interface UserStatsProps {
   stats: {
     total: number;
     active: number;
-    admin: number;
-    pending: number;
+    inactive: number;
+    admins: number;
   };
 }
 
@@ -32,18 +32,18 @@ const UserStats = ({ stats }: UserStatsProps) => {
       />
       <StatsCard
         title="Administrateurs"
-        value={stats.admin.toString()}
+        value={stats.admins.toString()}
         change="0%"
         trend="up"
         icon={Shield}
         color="purple"
       />
       <StatsCard
-        title="En attente"
-        value={stats.pending.toString()}
+        title="Inactifs"
+        value={stats.inactive.toString()}
         change="-5%"
         trend="down"
-        icon={Clock}
+        icon={UserX}
         color="orange"
       />
     </div>
