@@ -104,7 +104,6 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
                       <p className="font-medium text-slate-800 truncate max-w-xs">
                         {message.contenu.substring(0, 100)}...
                       </p>
-                      <p className="text-sm text-slate-500">ID: {message.id}</p>
                     </td>
                     <td className="py-4 px-4 text-slate-600">{message.auteur}</td>
                     <td className="py-4 px-4 text-slate-600">{message.groupe}</td>

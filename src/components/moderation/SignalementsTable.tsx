@@ -145,7 +145,6 @@ const SignalementsTable = ({ refreshTrigger }: SignalementsTableProps) => {
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-200">
-                <th className="text-left py-3 px-4 font-medium text-slate-700">ID</th>
                 <th className="text-left py-3 px-4 font-medium text-slate-700">Type</th>
                 <th className="text-left py-3 px-4 font-medium text-slate-700">Motif</th>
                 <th className="text-left py-3 px-4 font-medium text-slate-700">Signaleur</th>
@@ -158,7 +157,6 @@ const SignalementsTable = ({ refreshTrigger }: SignalementsTableProps) => {
             <tbody>
               {signalements.map((signalement) => (
                 <tr key={signalement.IDSignalement} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                  <td className="py-4 px-4 text-slate-600">#{signalement.IDSignalement}</td>
                   <td className="py-4 px-4">
                     {getTypeBadge(signalement.TypeContenu!)}
                   </td>

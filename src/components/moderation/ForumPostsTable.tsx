@@ -87,7 +87,6 @@ const ForumPostsTable = ({ forumPosts, setForumPosts }: ForumPostsTableProps) =>
                   <tr key={post.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                     <td className="py-4 px-4">
                       <p className="font-medium text-slate-800">{post.titre}</p>
-                      <p className="text-sm text-slate-500">ID: {post.id}</p>
                     </td>
                     <td className="py-4 px-4 text-slate-600">{post.auteur}</td>
                     <td className="py-4 px-4 text-slate-600">
