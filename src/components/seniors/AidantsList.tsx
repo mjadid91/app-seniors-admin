@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { UserCheck, Phone, MapPin, Star, Calendar } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Phone, MapPin, Star, Calendar } from "lucide-react";
 import { Aidant } from "../../types/seniors";
 import AidantDetailsModal from "./AidantDetailsModal";
 
@@ -33,6 +34,10 @@ const AidantsList = ({ aidants }: AidantsListProps) => {
     }
   };
 
+  const getInitials = (prenom: string, nom: string) => {
+    return `${prenom?.[0] || ''}${nom?.[0] || ''}`;
+  };
+
   return (
     <>
       <div className="space-y-4">
@@ -41,9 +46,12 @@ const AidantsList = ({ aidants }: AidantsListProps) => {
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-500 rounded-full flex items-center justify-center">
-                    <UserCheck className="h-6 w-6 text-white" />
-                  </div>
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={aidant.photo || undefined} alt="Photo de profil" />
+                    <AvatarFallback className="bg-gradient-to-br from-blue-400 to-blue-500 text-white font-medium">
+                      {getInitials(aidant.prenom, aidant.nom)}
+                    </AvatarFallback>
+                  </Avatar>
                   
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">

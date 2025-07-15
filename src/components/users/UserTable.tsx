@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -93,6 +94,10 @@ const UserTable = ({ users, onRoleChange, onEditUser, onDeleteUser, onRefresh }:
     }
   };
 
+  const getInitials = (prenom: string, nom: string) => {
+    return `${prenom?.[0] || ''}${nom?.[0] || ''}`;
+  };
+
   const dialogContent = getDialogContent();
 
   return (
@@ -113,11 +118,12 @@ const UserTable = ({ users, onRoleChange, onEditUser, onDeleteUser, onRefresh }:
             <TableRow key={user.id} className={user.estDesactive ? "opacity-60" : ""}>
               <TableCell>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-slate-400 to-slate-500 rounded-full flex items-center justify-center">
-                    <span className="text-white font-medium text-sm">
-                      {user.prenom[0]}{user.nom[0]}
-                    </span>
-                  </div>
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={user.photo || undefined} alt="Photo de profil" />
+                    <AvatarFallback className="bg-gradient-to-br from-slate-400 to-slate-500 text-white font-medium text-sm">
+                      {getInitials(user.prenom, user.nom)}
+                    </AvatarFallback>
+                  </Avatar>
                   <div>
                     <p className="font-medium">{user.prenom} {user.nom}</p>
                   </div>

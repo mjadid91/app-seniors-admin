@@ -1,10 +1,10 @@
 
 import { useState } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Heart, User, Phone, MapPin } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Heart, Phone, MapPin } from "lucide-react";
 import { Senior } from "../../types/seniors";
 import SeniorDetailsModal from "./SeniorDetailsModal";
 
@@ -55,6 +55,10 @@ const SeniorsList = ({ seniors }: SeniorsListProps) => {
     setIsModalOpen(true);
   };
 
+  const getInitials = (prenom: string, nom: string) => {
+    return `${prenom?.[0] || ''}${nom?.[0] || ''}`;
+  };
+
   return (
     <>
       <div className="space-y-4">
@@ -63,9 +67,12 @@ const SeniorsList = ({ seniors }: SeniorsListProps) => {
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-slate-400 to-slate-500 rounded-full flex items-center justify-center">
-                    <User className="h-6 w-6 text-white" />
-                  </div>
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage src={senior.photo || undefined} alt="Photo de profil" />
+                    <AvatarFallback className="bg-gradient-to-br from-slate-400 to-slate-500 text-white font-medium">
+                      {getInitials(senior.prenom, senior.nom)}
+                    </AvatarFallback>
+                  </Avatar>
                   
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
