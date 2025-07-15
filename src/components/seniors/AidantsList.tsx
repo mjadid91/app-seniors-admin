@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Phone, MapPin, Star, Calendar } from "lucide-react";
 import { Aidant } from "../../types/seniors";
 import AidantDetailsModal from "./AidantDetailsModal";
@@ -34,10 +33,6 @@ const AidantsList = ({ aidants }: AidantsListProps) => {
     }
   };
 
-  const getInitials = (prenom: string, nom: string) => {
-    return `${prenom?.[0] || ''}${nom?.[0] || ''}`;
-  };
-
   return (
     <>
       <div className="space-y-4">
@@ -45,57 +40,48 @@ const AidantsList = ({ aidants }: AidantsListProps) => {
           <Card key={aidant.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
-                <div className="flex items-start gap-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={aidant.photo || undefined} alt="Photo de profil" />
-                    <AvatarFallback className="bg-gradient-to-br from-blue-400 to-blue-500 text-white font-medium">
-                      {getInitials(aidant.prenom, aidant.nom)}
-                    </AvatarFallback>
-                  </Avatar>
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="font-semibold text-slate-800">
+                      {aidant.prenom} {aidant.nom}
+                    </h3>
+                    <Badge className={getStatusBadgeClass(aidant.statut)}>
+                      {aidant.statut.replace('_', ' ')}
+                    </Badge>
+                  </div>
                   
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-slate-800">
-                        {aidant.prenom} {aidant.nom}
-                      </h3>
-                      <Badge className={getStatusBadgeClass(aidant.statut)}>
-                        {aidant.statut.replace('_', ' ')}
-                      </Badge>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-600 mb-3">
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      <span>{aidant.telephone}</span>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-600 mb-3">
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4" />
-                        <span>{aidant.telephone}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        <span>{aidant.ville || 'Non renseigné'}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        <span>{aidant.disponibilites?.heures || 'Non renseigné'}</span>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      <span>{aidant.ville || 'Non renseigné'}</span>
                     </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      <span>{aidant.disponibilites?.heures || 'Non renseigné'}</span>
+                    </div>
+                  </div>
 
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className="font-medium text-slate-700">
-                        {aidant.profession}
-                      </span>
-                      <span className="text-slate-500">
-                        {aidant.seniorsAssignes?.length || 0} senior(s) assigné(s)
-                      </span>
-                      {aidant.evaluations && aidant.evaluations.length > 0 && (
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                          <span className="text-yellow-600">
-                            {aidant.evaluations[0].note}/5
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                  <div className="flex items-center gap-4 text-sm">
+                    <span className="font-medium text-slate-700">
+                      {aidant.profession}
+                    </span>
+                    <span className="text-slate-500">
+                      {aidant.seniorsAssignes?.length || 0} senior(s) assigné(s)
+                    </span>
+                    {aidant.evaluations && aidant.evaluations.length > 0 && (
+                      <div className="flex items-center gap-1">
+                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                        <span className="text-yellow-600">
+                          {aidant.evaluations[0].note}/5
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 

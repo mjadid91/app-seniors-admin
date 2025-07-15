@@ -2,7 +2,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Senior } from "../../types/seniors";
 import { usePermissions, PERMISSIONS } from "../../hooks/usePermissions";
 
@@ -46,10 +45,6 @@ const SeniorsTable = ({ seniors, onEditSenior, onDeleteSenior }: SeniorsTablePro
     return genre && genre !== 'Non précisé' ? genre : 'Non renseigné';
   };
 
-  const getInitials = (prenom: string, nom: string) => {
-    return `${prenom?.[0] || ''}${nom?.[0] || ''}`;
-  };
-
   if (seniors.length === 0) {
     return (
       <div className="text-center py-8">
@@ -76,17 +71,9 @@ const SeniorsTable = ({ seniors, onEditSenior, onDeleteSenior }: SeniorsTablePro
         {seniors.map((senior) => (
           <TableRow key={senior.id}>
             <TableCell>
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={senior.photo || undefined} alt="Photo de profil" />
-                  <AvatarFallback className="bg-gradient-to-br from-blue-400 to-blue-500 text-white font-medium text-sm">
-                    {getInitials(senior.prenom, senior.nom)}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium">{senior.prenom} {senior.nom}</p>
-                  <p className="text-sm text-gray-500">{senior.ville || 'Ville non renseignée'}</p>
-                </div>
+              <div>
+                <p className="font-medium">{senior.prenom} {senior.nom}</p>
+                <p className="text-sm text-gray-500">{senior.ville || 'Ville non renseignée'}</p>
               </div>
             </TableCell>
             <TableCell>{senior.email}</TableCell>
