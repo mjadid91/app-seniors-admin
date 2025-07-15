@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
-import { AlertCircle, Users, Shield, Heart, ArrowRight } from "lucide-react";
+import { AlertCircle, ArrowRight, Shield, Users, Heart } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
+import { AppLogo } from "../layout/AppLogo";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -67,47 +68,41 @@ const LoginPage = () => {
   // Afficher le chargement si l'auth n'est pas encore initialisée
   if (!isInitialized) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-app-background p-4">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Initialisation...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Initialisation...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen grid lg:grid-cols-2">
       {/* Colonne gauche - Formulaire de connexion */}
-      <div className="flex-1 flex flex-col justify-center items-center bg-white px-4 sm:px-6 lg:px-8">
-        <div className={`w-full max-w-md transform transition-all duration-700 ${isAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+      <div className="flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className={`mx-auto w-full max-w-md transform transition-all duration-700 ${isAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
           {/* Logo */}
-          <div className="text-center mb-8">
-            <div className="mx-auto mb-6 w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-2xl">AS</span>
-            </div>
-            <h1 className="text-3xl font-bold text-app-text mb-2">
-              Bienvenue sur AppSeniors Admin
+          <div className="mb-8">
+            <AppLogo />
+          </div>
+
+          {/* En-tête */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              Connexion
             </h1>
-            <p className="text-slate-600 text-lg">
-              La gestion simplifiée pour les aidants et les partenaires
+            <p className="mt-2 text-muted-foreground">
+              Accédez à votre interface d'administration
             </p>
           </div>
 
-          {/* Formulaire de connexion */}
-          <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
-            <CardHeader className="text-center pb-4">
-              <CardTitle className="text-xl font-semibold text-app-text">
-                Connexion
-              </CardTitle>
-              <CardDescription className="text-slate-600">
-                Accédez à votre interface d'administration
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Formulaire */}
+          <Card className="shadow-none border-0">
+            <CardContent className="p-0">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-app-text font-medium">
+                  <Label htmlFor="email" className="text-sm font-medium text-foreground">
                     Adresse email
                   </Label>
                   <Input
@@ -117,12 +112,13 @@ const LoginPage = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin@appseniors.fr"
                     required
-                    className="border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 h-12"
+                    className="h-11"
                     disabled={isLoading || authLoading}
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-app-text font-medium">
+                  <Label htmlFor="password" className="text-sm font-medium text-foreground">
                     Mot de passe
                   </Label>
                   <Input
@@ -132,13 +128,13 @@ const LoginPage = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 h-12"
+                    className="h-11"
                     disabled={isLoading || authLoading}
                   />
                 </div>
                 
                 {error && (
-                  <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm animate-fade-in">
+                  <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
                     <AlertCircle className="h-4 w-4 flex-shrink-0" />
                     {error}
                   </div>
@@ -146,7 +142,7 @@ const LoginPage = () => {
                 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg transition-all duration-200 hover:shadow-xl h-12 text-base font-medium"
+                  className="w-full h-11 font-medium"
                   disabled={isLoading || authLoading}
                 >
                   {isLoading || authLoading ? (
@@ -163,10 +159,10 @@ const LoginPage = () => {
                 </Button>
               </form>
               
-              <div className="text-center pt-4">
+              <div className="mt-6 text-center">
                 <Link
                   to="/mot-de-passe-oublie"
-                  className="text-sm text-blue-600 hover:text-blue-700 transition-colors"
+                  className="text-sm text-primary hover:text-primary/80 transition-colors"
                 >
                   Mot de passe oublié ?
                 </Link>
@@ -176,66 +172,68 @@ const LoginPage = () => {
         </div>
       </div>
 
-      {/* Colonne droite - Contenu d'introduction */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-50 to-blue-100 items-center justify-center p-12">
-        <div className={`text-center max-w-lg transform transition-all duration-1000 delay-300 ${isAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-          {/* Icônes avec descriptions */}
+      {/* Colonne droite - Hero Section */}
+      <div className="hidden lg:flex lg:flex-col lg:justify-center bg-muted/30 p-12">
+        <div className={`max-w-lg mx-auto text-center transform transition-all duration-1000 delay-300 ${isAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          {/* Illustration Hero */}
           <div className="mb-12">
-            <div className="grid grid-cols-1 gap-8 mb-8">
-              <div className="group hover:scale-105 transition-transform duration-300">
-                <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-4">
-                  <Users className="h-8 w-8 text-blue-600" />
-                </div>
-                <h3 className="font-semibold text-app-text text-lg mb-2">Gestion des utilisateurs</h3>
-                <p className="text-slate-600 text-sm">Administrez facilement tous les profils et permissions</p>
+            <div className="relative">
+              {/* Cercles décoratifs */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-48 h-48 bg-primary/10 rounded-full animate-pulse"></div>
+              </div>
+              <div className="absolute inset-4 flex items-center justify-center">
+                <div className="w-32 h-32 bg-primary/20 rounded-full animate-pulse delay-300"></div>
               </div>
               
-              <div className="group hover:scale-105 transition-transform duration-300">
-                <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-4">
-                  <Shield className="h-8 w-8 text-blue-600" />
+              {/* Icône centrale */}
+              <div className="relative z-10 flex items-center justify-center h-48">
+                <div className="w-24 h-24 bg-primary rounded-2xl flex items-center justify-center shadow-lg">
+                  <Shield className="h-12 w-12 text-primary-foreground" />
                 </div>
-                <h3 className="font-semibold text-app-text text-lg mb-2">Sécurité avancée</h3>
-                <p className="text-slate-600 text-sm">Protégez les données avec des standards élevés</p>
-              </div>
-              
-              <div className="group hover:scale-105 transition-transform duration-300">
-                <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-4">
-                  <Heart className="h-8 w-8 text-blue-600" />
-                </div>
-                <h3 className="font-semibold text-app-text text-lg mb-2">Au service des seniors</h3>
-                <p className="text-slate-600 text-sm">Accompagnez avec bienveillance et professionnalisme</p>
               </div>
             </div>
           </div>
-          
-          {/* Texte principal */}
+
+          {/* Contenu Hero */}
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-app-text leading-tight">
-              Gérez votre plateforme en toute simplicité
+            <h2 className="text-3xl font-bold text-foreground leading-tight">
+              Plateforme d'administration sécurisée
             </h2>
-            <p className="text-slate-600 text-lg leading-relaxed">
-              Accédez à tous les outils nécessaires pour accompagner les seniors et coordonner les aidants dans un environnement sécurisé et intuitif.
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Gérez votre communauté de seniors et d'aidants avec des outils modernes et intuitifs
             </p>
-            
-            {/* Statistiques */}
-            <div className="mt-10 p-6 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg">
-              <div className="grid grid-cols-2 gap-6 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-blue-600 mb-1">1000+</div>
-                  <div className="text-sm text-slate-600">Utilisateurs</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-blue-600 mb-1">500+</div>
-                  <div className="text-sm text-slate-600">Aidants</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-blue-600 mb-1">24/7</div>
-                  <div className="text-sm text-slate-600">Support</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-blue-600 mb-1">99.9%</div>
-                  <div className="text-sm text-slate-600">Disponibilité</div>
-                </div>
+          </div>
+
+          {/* Features */}
+          <div className="mt-12 grid grid-cols-1 gap-6">
+            <div className="flex items-center gap-4 p-4 bg-background/50 rounded-lg backdrop-blur-sm">
+              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-sm text-foreground">Gestion des utilisateurs</h3>
+                <p className="text-xs text-muted-foreground">Interface intuitive et complète</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 p-4 bg-background/50 rounded-lg backdrop-blur-sm">
+              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Shield className="h-5 w-5 text-primary" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-sm text-foreground">Sécurité avancée</h3>
+                <p className="text-xs text-muted-foreground">Protection des données garantie</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 p-4 bg-background/50 rounded-lg backdrop-blur-sm">
+              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Heart className="h-5 w-5 text-primary" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-sm text-foreground">Accompagnement</h3>
+                <p className="text-xs text-muted-foreground">Au service des seniors</p>
               </div>
             </div>
           </div>
