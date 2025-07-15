@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 
 export interface User {
@@ -9,6 +8,7 @@ export interface User {
   role: 'administrateur' | 'moderateur' | 'support' | 'visualisateur';
   dateInscription: string;
   estDesactive?: boolean;
+  photo?: string;
 }
 
 interface AuthState {
