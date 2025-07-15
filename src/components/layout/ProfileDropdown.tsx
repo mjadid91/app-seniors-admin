@@ -2,6 +2,7 @@
 import { Settings, LogOut, ChevronDown } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
+import { useUserProfile } from "../../hooks/useUserProfile";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -15,6 +16,7 @@ import {
 export const ProfileDropdown = () => {
   const { user, logout } = useAuthStore();
   const { signOut } = useSupabaseAuth();
+  const { profile } = useUserProfile();
   const navigate = useNavigate();
 
   const handleSettings = () => {
@@ -41,18 +43,31 @@ export const ProfileDropdown = () => {
     }
   };
 
+  // Utiliser les données du profil si disponibles, sinon utiliser les données du user
+  const displayName = `${profile?.prenom || user?.prenom || ''} ${profile?.nom || user?.nom || ''}`.trim();
+  const profilePhoto = profile?.photo || user?.photo;
+  const initials = `${(profile?.prenom || user?.prenom)?.[0] || ''}${(profile?.nom || user?.nom)?.[0] || ''}`;
+
+  console.log('ProfileDropdown: Profile data:', {
+    profilePhoto,
+    userPhoto: user?.photo,
+    profileFromHook: profile?.photo,
+    initials,
+    displayName
+  });
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
         <Avatar className="h-8 w-8">
-          <AvatarImage src={user?.photo || undefined} alt="Photo de profil" />
+          <AvatarImage src={profilePhoto || undefined} alt="Photo de profil" />
           <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-medium text-xs">
-            {user?.prenom?.[0]}{user?.nom?.[0]}
+            {initials}
           </AvatarFallback>
         </Avatar>
         <div className="flex flex-col items-start">
           <span className="font-medium text-gray-900 text-sm">
-            {user?.prenom} {user?.nom}
+            {displayName}
           </span>
           <span className="text-xs text-gray-500 capitalize">{user?.role}</span>
         </div>
