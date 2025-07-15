@@ -16,6 +16,7 @@ export interface Senior {
   situationFamiliale?: string;
   handicap?: boolean;
   pathologies?: string[];
+  photo?: string;
   humeurJour?: {
     humeur: 'tres_content' | 'content' | 'neutre' | 'triste' | 'tres_triste';
     date: string;
@@ -41,6 +42,7 @@ export interface Aidant {
   statut: 'actif' | 'inactif' | 'en_attente' | 'suspendu';
   tarifHoraire: number;
   genre?: string;
+  photo?: string;
   disponibilites?: {
     jours: string[];
     heures: string;
