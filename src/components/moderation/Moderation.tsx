@@ -38,7 +38,7 @@ const Moderation = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header Section */}
-      <div className="bg-white border-b border-slate-200 shadow-sm">
+      <div className="border-b border-slate-200 shadow-sm">
         <div className="max-w-full mx-auto px-6 lg:px-8 py-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
