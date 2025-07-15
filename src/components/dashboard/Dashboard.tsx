@@ -1,179 +1,166 @@
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Users,
+  Calendar,
+  Shield,
+  FileText,
+  DollarSign,
+  MessageSquare,
+  Activity,
+} from "lucide-react";
 import StatsCard from "./StatsCard";
-import ActivityChart from "./ActivityChart";
 import RecentActivity from "./RecentActivity";
 import { useDashboardStats } from "./useDashboardStats";
-import { useRecentActivities } from "./useRecentActivities";
-import { 
-  Users, 
-  Calendar, 
-  TrendingUp, 
-  Heart,
-  ArrowRight,
-  Activity,
-  Clock
-} from "lucide-react";
 
 const Dashboard = () => {
-  const { stats, loading: statsLoading, error: statsError } = useDashboardStats();
-  const { activities, loading: activitiesLoading, error: activitiesError } = useRecentActivities();
+  const { stats, loading, error } = useDashboardStats();
+  const navigate = useNavigate();
 
-  if (statsLoading || activitiesLoading) {
-    return (
-      <div className="space-y-8 animate-fade-in">
-        <div className="space-y-2">
-          <div className="h-8 bg-muted rounded-lg w-64 animate-pulse"></div>
-          <div className="h-4 bg-muted rounded w-96 animate-pulse"></div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-32 bg-muted rounded-xl animate-pulse"></div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const statCards = [
+    {
+      title: "Utilisateurs actifs",
+      value: stats ? stats.utilisateurs.toLocaleString("fr-FR") : "-",
+      change: "",
+      trend: "up" as const,
+      icon: Users,
+      color: "blue" as const,
+    },
+    {
+      title: "Prestations ce mois",
+      value: stats ? stats.prestations.toLocaleString("fr-FR") : "-",
+      change: "",
+      trend: "up" as const,
+      icon: Calendar,
+      color: "green" as const,
+    },
+    {
+      title: "Messages actifs",
+      value: stats ? stats.messages.toLocaleString("fr-FR") : "-",
+      change: "",
+      trend: "up" as const,
+      icon: MessageSquare,
+      color: "purple" as const,
+    },
+    {
+      title: "Signalements",
+      value: stats ? stats.signalements.toLocaleString("fr-FR") : "-",
+      change: "",
+      trend: "down" as const,
+      icon: Shield,
+      color: "orange" as const,
+    },
+    {
+      title: "Revenus",
+      value: stats ? "€" + stats.revenus.toLocaleString("fr-FR") : "-",
+      change: "",
+      trend: "up" as const,
+      icon: DollarSign,
+      color: "green" as const,
+    },
+  ];
 
-  if (statsError || activitiesError) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Card className="p-8 text-center">
-          <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-destructive text-xl">⚠</span>
-          </div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">Erreur de chargement</h3>
-          <p className="text-muted-foreground mb-4">
-            {statsError || activitiesError}
-          </p>
-          <Button onClick={() => window.location.reload()}>
-            Réessayer
-          </Button>
-        </Card>
-      </div>
-    );
-  }
+  // Actions rapides : routes mises à jour
+  const quickActions = [
+    {
+      icon: Users,
+      title: "Gérer les utilisateurs",
+      desc: "Ajouter, modifier ou supprimer des comptes",
+      onClick: () => navigate("/users"),
+      iconColor: "text-blue-600",
+    },
+    {
+      icon: Calendar,
+      title: "Suivre les prestations",
+      desc: "Consulter et valider les services",
+      onClick: () => navigate("/prestations"),
+      iconColor: "text-green-600",
+    },
+    {
+      icon: Shield,
+      title: "Modération",
+      desc: "Examiner les signalements",
+      onClick: () => navigate("/moderation"),
+      iconColor: "text-orange-600",
+    },
+  ];
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-foreground">Tableau de bord</h1>
-        <p className="text-muted-foreground">
-          Vue d'ensemble de l'activité de la plateforme AppSeniors
-        </p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <h1 className="text-3xl font-bold text-slate-800">Tableau de bord</h1>
+        <div className="flex items-center gap-2 text-sm text-slate-500 mt-2 sm:mt-0">
+          <Activity className="h-4 w-4" />
+          <span>
+            Dernière mise à jour :&nbsp;
+            <span className="font-semibold text-blue-700">
+              {new Date().toLocaleString("fr-FR", {
+                dateStyle: "short",
+                timeStyle: "short",
+              })}
+            </span>
+          </span>
+        </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatsCard
-          title="Utilisateurs actifs"
-          value={stats?.utilisateurs?.toString() || "0"}
-          change="+12%"
-          trend="up"
-          icon={Users}
-          color="blue"
-        />
-        <StatsCard
-          title="Prestations"
-          value={stats?.prestations?.toString() || "0"}
-          change="+8%"
-          trend="up"
-          icon={Calendar}
-          color="green"
-        />
-        <StatsCard
-          title="Revenus"
-          value={`${stats?.revenus || 0}€`}
-          change="+15%"
-          trend="up"
-          icon={TrendingUp}
-          color="purple"
-        />
-        <StatsCard
-          title="Messages"
-          value={stats?.messages?.toString() || "0"}
-          change="+5%"
-          trend="up"
-          icon={Heart}
-          color="orange"
-        />
+      {/* Cartes statistiques */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-6">
+        {loading ? (
+          <div className="col-span-5 text-center text-slate-500 py-12">
+            <span>Chargement des statistiques…</span>
+          </div>
+        ) : error ? (
+          <div className="col-span-5 text-center text-red-500 py-12">
+            <span>{error}</span>
+          </div>
+        ) : (
+          statCards.map((stat, index) => (
+            <StatsCard
+              key={stat.title}
+              className="animate-fade-in-up"
+              style={{ animationDelay: `${index * 100}ms` }}
+              {...stat}
+            />
+          ))
+        )}
       </div>
 
-      {/* Charts and Recent Activity */}
+      {/* Grille Activité récente + Actions rapides */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Activity Chart */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-primary" />
-              Activité des 30 derniers jours
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ActivityChart />
-          </CardContent>
-        </Card>
-
-        {/* Recent Activities */}
-        <Card className="shadow-sm">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-primary" />
-                Activités récentes
-              </CardTitle>
-              <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
-                Voir tout
-                <ArrowRight className="h-4 w-4 ml-1" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <RecentActivity activities={activities} />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer group shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-              <Users className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground">Gérer les utilisateurs</h3>
-              <p className="text-sm text-muted-foreground">Ajouter, modifier ou supprimer des comptes</p>
-            </div>
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Activity className="h-5 w-5 text-blue-600" />
+            <h2 className="text-lg font-semibold text-slate-800">
+              Activité récente
+            </h2>
           </div>
-        </Card>
+          {/* Affichage activité */}
+          <RecentActivity />
+        </div>
 
-        <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer group shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-colors">
-              <Calendar className="h-6 w-6 text-green-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground">Nouvelles prestations</h3>
-              <p className="text-sm text-muted-foreground">Suivre les demandes en cours</p>
-            </div>
+        {/* Actions rapides */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <h2 className="text-lg font-semibold text-slate-800 mb-4">
+            Actions rapides
+          </h2>
+          <div className="space-y-3">
+            {quickActions.map((action, idx) => (
+              <button
+                key={action.title}
+                className="w-full text-left p-3 rounded-lg hover:bg-slate-50 transition-colors border border-slate-100 flex items-center gap-3"
+                onClick={action.onClick}
+                type="button"
+              >
+                <action.icon className={`h-5 w-5 ${action.iconColor}`} />
+                <div>
+                  <p className="font-medium text-slate-800">{action.title}</p>
+                  <p className="text-sm text-slate-500">{action.desc}</p>
+                </div>
+              </button>
+            ))}
           </div>
-        </Card>
-
-        <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer group shadow-sm">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
-              <TrendingUp className="h-6 w-6 text-amber-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-foreground">Rapports financiers</h3>
-              <p className="text-sm text-muted-foreground">Consulter les statistiques de revenus</p>
-            </div>
-          </div>
-        </Card>
+        </div>
       </div>
     </div>
   );
