@@ -61,7 +61,7 @@ const TransactionDetailsModal = ({ isOpen, onClose, transaction }: TransactionDe
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Calculator className="h-5 w-5" />
-                Calculs financiers
+                Détails financiers
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -90,16 +90,6 @@ const TransactionDetailsModal = ({ isOpen, onClose, transaction }: TransactionDe
                     <p className="text-sm font-medium text-gray-500">Montant net</p>
                     <p className="text-xl font-bold text-green-600">{montantNet.toFixed(2)} €</p>
                   </div>
-                </div>
-              </div>
-              
-              {/* Calcul détaillé */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">Détail du calcul :</h4>
-                <div className="text-sm space-y-1">
-                  <p>Montant total : {transaction.montant.toFixed(2)} €</p>
-                  <p>Commission ({pourcentage}%) : {transaction.montant.toFixed(2)} × {pourcentage}% = {(transaction.commission || 0).toFixed(2)} €</p>
-                  <p className="font-medium border-t pt-2">Montant net : {transaction.montant.toFixed(2)} - {(transaction.commission || 0).toFixed(2)} = {montantNet.toFixed(2)} €</p>
                 </div>
               </div>
             </CardContent>
