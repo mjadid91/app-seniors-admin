@@ -39,7 +39,7 @@ const Moderation = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header Section */}
       <div className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-[1400px] mx-auto px-6 lg:px-8 py-8">
+        <div className="max-w-full mx-auto px-6 lg:px-8 py-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
@@ -54,7 +54,7 @@ const Moderation = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-8 py-8">
+      <div className="max-w-full mx-auto px-6 lg:px-8 py-8">
         <div className="space-y-8">
           {/* Statistics Cards */}
           <ModerationStats />
