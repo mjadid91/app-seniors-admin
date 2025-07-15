@@ -1,9 +1,15 @@
 
-import { Facebook, Twitter, Linkedin, Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
-import { AppLogo } from "./AppLogo";
 
 const Footer = () => {
+  const servicesLinks = [
+    { name: "Tableau de bord", href: "/dashboard" },
+    { name: "Gestion des utilisateurs", href: "/users" },
+    { name: "Suivi des prestations", href: "/prestations" },
+    { name: "Support client", href: "/support" },
+  ];
+
   const legalLinks = [
     { name: "Mentions légales", href: "/mentions-legales" },
     { name: "Politique de confidentialité", href: "/politique-confidentialite" },
@@ -11,41 +17,32 @@ const Footer = () => {
     { name: "Support technique", href: "/support" },
   ];
 
-  const socialLinks = [
-    { name: "Facebook", href: "https://facebook.com/appseniors", icon: Facebook },
-    { name: "Twitter", href: "https://twitter.com/appseniors", icon: Twitter },
-    { name: "LinkedIn", href: "https://linkedin.com/company/appseniors", icon: Linkedin },
-  ];
-
   return (
-    <footer className="bg-white border-t border-slate-200 mt-auto">
+    <footer className="bg-slate-50 border-t border-slate-200 mt-auto">
       <div className="max-w-7xl mx-auto px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           
-          {/* Logo et description - Plus d'espace et hiérarchie claire */}
-          <div className="lg:col-span-2 space-y-5">
-            <div className="flex items-center gap-4">
-              <AppLogo />
-            </div>
-            <div className="space-y-2">
+          {/* Colonne 1 - Présentation */}
+          <div className="space-y-4">
+            <div>
               <h2 className="text-lg font-semibold text-slate-800">AppSeniors</h2>
-              <p className="text-sm text-slate-500 font-medium">Administration</p>
+              <p className="text-sm text-slate-600 font-medium">Administration</p>
             </div>
-            <p className="text-sm text-slate-600 leading-relaxed max-w-md">
+            <p className="text-sm text-slate-700 leading-relaxed">
               Plateforme de gestion dédiée aux aidants et partenaires des seniors. 
               Simplifiez vos démarches administratives.
             </p>
           </div>
 
-          {/* Liens utiles */}
+          {/* Colonne 2 - Nos services */}
           <div className="space-y-4">
-            <h3 className="text-base font-semibold text-slate-800">Liens utiles</h3>
+            <h3 className="font-semibold text-slate-800">Nos services</h3>
             <ul className="space-y-3">
-              {legalLinks.map((link) => (
+              {servicesLinks.map((link) => (
                 <li key={link.name}>
                   <Link
                     to={link.href}
-                    className="text-sm text-slate-600 hover:text-blue-600 hover:underline transition-colors"
+                    className="text-sm text-slate-700 hover:text-blue-600 hover:underline transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -54,63 +51,51 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Contact et réseaux sociaux - Équilibré */}
+          {/* Colonne 3 - Liens utiles */}
           <div className="space-y-4">
-            <h3 className="text-base font-semibold text-slate-800">Contact</h3>
-            
-            {/* Informations de contact */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <Mail className="h-4 w-4 text-slate-500 flex-shrink-0" />
-                <span className="text-sm text-slate-600">contact@appseniors.fr</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Phone className="h-4 w-4 text-slate-500 flex-shrink-0" />
-                <span className="text-sm text-slate-600">+33 1 23 45 67 89</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <MapPin className="h-4 w-4 text-slate-500 flex-shrink-0" />
-                <span className="text-sm text-slate-600">Paris, France</span>
-              </div>
-            </div>
-
-            {/* Réseaux sociaux */}
-            <div className="pt-2">
-              <p className="text-sm font-medium text-slate-700 mb-3">Suivez-nous</p>
-              <div className="flex items-center gap-3">
-                {socialLinks.map((social) => (
-                  <a
-                    key={social.name}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    aria-label={social.name}
+            <h3 className="font-semibold text-slate-800">Liens utiles</h3>
+            <ul className="space-y-3">
+              {legalLinks.map((link) => (
+                <li key={link.name}>
+                  <Link
+                    to={link.href}
+                    className="text-sm text-slate-700 hover:text-blue-600 hover:underline transition-colors"
                   >
-                    <social.icon className="h-4 w-4" />
-                  </a>
-                ))}
-              </div>
-            </div>
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-            {/* Lien vers la page de contact */}
-            <div className="pt-3 border-t border-slate-100">
+          {/* Colonne 4 - Nous contacter */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-slate-800">Nous contacter</h3>
+            
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-slate-500" />
+                <span className="text-sm text-slate-700">contact@appseniors.fr</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-slate-500" />
+                <span className="text-sm text-slate-700">+33 1 23 45 67 89</span>
+              </div>
               <Link
                 to="/contact"
-                className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                className="inline-block text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors mt-2"
               >
-                <Mail className="h-4 w-4" />
-                Nous contacter
+                Page de contact
               </Link>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Copyright */}
-      <div className="border-t border-slate-200 bg-slate-50 py-6">
+      {/* Footer final centré */}
+      <div className="border-t border-slate-200 bg-slate-100 py-4">
         <div className="max-w-7xl mx-auto px-8">
-          <p className="text-center text-sm text-slate-500">
+          <p className="text-center text-sm text-slate-700">
             © 2025 AppSeniors. Tous droits réservés.
           </p>
         </div>
