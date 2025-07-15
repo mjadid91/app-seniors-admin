@@ -8,7 +8,6 @@ import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
 import { AlertCircle, ArrowRight, Shield, Users, Heart } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
-import { AppLogo } from "../layout/AppLogo";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -82,18 +81,17 @@ const LoginPage = () => {
       {/* Colonne gauche - Formulaire de connexion */}
       <div className="flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className={`mx-auto w-full max-w-md transform transition-all duration-700 ${isAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-          {/* Logo */}
-          <div className="mb-8">
-            <AppLogo />
-          </div>
-
-          {/* En-tête */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              Connexion
+          
+          {/* En-tête principal */}
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold tracking-tight text-foreground mb-4">
+              AppSeniors Admin
             </h1>
-            <p className="mt-2 text-muted-foreground">
-              Accédez à votre interface d'administration
+            <h2 className="text-lg font-semibold text-muted-foreground mb-2">
+              Connexion à l'espace de gestion
+            </h2>
+            <p className="text-sm text-muted-foreground/80">
+              Accédez à votre interface d'administration sécurisée
             </p>
           </div>
 
