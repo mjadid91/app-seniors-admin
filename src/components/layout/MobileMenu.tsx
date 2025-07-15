@@ -21,9 +21,9 @@ export const MobileMenu = () => {
 
       {isOpen && (
         <div className="absolute top-full left-0 right-0 bg-white border-b border-slate-200 shadow-lg z-50">
-          <div className="px-4 py-3">
+          <div className="px-6 py-4">
             <NavigationLinks 
-              className="flex-col space-y-1 space-x-0" 
+              className="flex-col space-y-2 space-x-0" 
               onItemClick={closeMenu}
             />
             <div className="border-t border-slate-200 pt-4 mt-4">
