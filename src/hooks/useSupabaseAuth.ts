@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '../stores/authStore';
@@ -11,16 +11,24 @@ export const useSupabaseAuth = () => {
   const [manualUserMapping, setManualUserMapping] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  const initializationInProgress = useRef(false);
+  
   const { userMapping, isLoading: mappingLoading, findOrCreateUserMapping, clearUserMapping } = useSupabaseUserMapping();
   const { authenticateUser, isLoading: dbAuthLoading } = useDatabaseAuth();
 
   useEffect(() => {
+    // Éviter les initialisations multiples
+    if (initializationInProgress.current) {
+      console.log('useSupabaseAuth: Initialization already in progress, skipping...');
+      return;
+    }
+
+    initializationInProgress.current = true;
     let mounted = true;
-    let initializationTimeout: NodeJS.Timeout;
 
     const initializeAuth = async () => {
       try {
-        console.log('useSupabaseAuth: Starting initialization...');
+        console.log('useSupabaseAuth: Starting one-time initialization...');
         setIsLoading(true);
 
         // Get initial session
@@ -44,13 +52,10 @@ export const useSupabaseAuth = () => {
         console.error('useSupabaseAuth: Error during initialization:', error);
       } finally {
         if (mounted) {
-          initializationTimeout = setTimeout(() => {
-            if (mounted) {
-              setIsLoading(false);
-              setIsInitialized(true);
-              console.log('useSupabaseAuth: Initialization complete');
-            }
-          }, 100);
+          setIsLoading(false);
+          setIsInitialized(true);
+          initializationInProgress.current = false;
+          console.log('useSupabaseAuth: Initialization complete');
         }
       }
     };
@@ -74,17 +79,16 @@ export const useSupabaseAuth = () => {
       }
     });
 
-    // Initialize auth
-    initializeAuth();
+    // Initialize auth seulement si pas déjà initialisé
+    if (!isInitialized) {
+      initializeAuth();
+    }
 
     return () => {
       mounted = false;
-      if (initializationTimeout) {
-        clearTimeout(initializationTimeout);
-      }
       subscription.unsubscribe();
     };
-  }, []);
+  }, []); // Dépendances vides pour éviter les re-initialisations
 
   const signIn = async (email: string, password: string) => {
     try {
