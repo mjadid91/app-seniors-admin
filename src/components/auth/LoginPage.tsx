@@ -77,11 +77,11 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-app-background flex">
-      {/* Section gauche - Formulaire */}
-      <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-8 max-w-md lg:max-w-lg mx-auto lg:mx-0">
-        <div className={`transform transition-all duration-700 ${isAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-          {/* En-tête avec titre et sous-titre */}
+    <div className="min-h-screen flex">
+      {/* Colonne gauche - Formulaire de connexion */}
+      <div className="flex-1 flex flex-col justify-center items-center bg-white px-4 sm:px-6 lg:px-8">
+        <div className={`w-full max-w-md transform transition-all duration-700 ${isAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          {/* Logo */}
           <div className="text-center mb-8">
             <div className="mx-auto mb-6 w-20 h-20 bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl flex items-center justify-center shadow-lg">
               <span className="text-white font-bold text-2xl">AS</span>
@@ -95,7 +95,7 @@ const LoginPage = () => {
           </div>
 
           {/* Formulaire de connexion */}
-          <Card className="shadow-xl border-0 bg-white/90 backdrop-blur-sm">
+          <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm">
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-xl font-semibold text-app-text">
                 Connexion
@@ -176,57 +176,64 @@ const LoginPage = () => {
         </div>
       </div>
 
-      {/* Section droite - Zone visuelle */}
-      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-blue-50 to-blue-100 items-center justify-center p-8">
+      {/* Colonne droite - Contenu d'introduction */}
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-50 to-blue-100 items-center justify-center p-12">
         <div className={`text-center max-w-lg transform transition-all duration-1000 delay-300 ${isAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
-          {/* Illustration avec icônes */}
-          <div className="relative mb-8">
-            <div className="grid grid-cols-2 gap-8 mb-8">
+          {/* Icônes avec descriptions */}
+          <div className="mb-12">
+            <div className="grid grid-cols-1 gap-8 mb-8">
               <div className="group hover:scale-105 transition-transform duration-300">
-                <div className="w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-4">
-                  <Users className="h-10 w-10 text-blue-600" />
+                <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-4">
+                  <Users className="h-8 w-8 text-blue-600" />
                 </div>
-                <h3 className="font-semibold text-app-text">Gestion des utilisateurs</h3>
+                <h3 className="font-semibold text-app-text text-lg mb-2">Gestion des utilisateurs</h3>
+                <p className="text-slate-600 text-sm">Administrez facilement tous les profils et permissions</p>
               </div>
+              
               <div className="group hover:scale-105 transition-transform duration-300">
-                <div className="w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-4">
-                  <Shield className="h-10 w-10 text-blue-600" />
+                <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-4">
+                  <Shield className="h-8 w-8 text-blue-600" />
                 </div>
-                <h3 className="font-semibold text-app-text">Sécurité avancée</h3>
+                <h3 className="font-semibold text-app-text text-lg mb-2">Sécurité avancée</h3>
+                <p className="text-slate-600 text-sm">Protégez les données avec des standards élevés</p>
               </div>
-            </div>
-            <div className="group hover:scale-105 transition-transform duration-300">
-              <div className="w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-4">
-                <Heart className="h-10 w-10 text-blue-600" />
+              
+              <div className="group hover:scale-105 transition-transform duration-300">
+                <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-4">
+                  <Heart className="h-8 w-8 text-blue-600" />
+                </div>
+                <h3 className="font-semibold text-app-text text-lg mb-2">Au service des seniors</h3>
+                <p className="text-slate-600 text-sm">Accompagnez avec bienveillance et professionnalisme</p>
               </div>
-              <h3 className="font-semibold text-app-text">Au service des seniors</h3>
             </div>
           </div>
           
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-app-text">
+          {/* Texte principal */}
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-app-text leading-tight">
               Gérez votre plateforme en toute simplicité
             </h2>
             <p className="text-slate-600 text-lg leading-relaxed">
               Accédez à tous les outils nécessaires pour accompagner les seniors et coordonner les aidants dans un environnement sécurisé et intuitif.
             </p>
             
-            <div className="mt-8 p-6 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg">
-              <div className="grid grid-cols-4 gap-4 text-center">
+            {/* Statistiques */}
+            <div className="mt-10 p-6 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg">
+              <div className="grid grid-cols-2 gap-6 text-center">
                 <div>
-                  <div className="text-xl font-bold text-blue-600">1000+</div>
+                  <div className="text-2xl font-bold text-blue-600 mb-1">1000+</div>
                   <div className="text-sm text-slate-600">Utilisateurs</div>
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-blue-600">500+</div>
+                  <div className="text-2xl font-bold text-blue-600 mb-1">500+</div>
                   <div className="text-sm text-slate-600">Aidants</div>
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-blue-600">24/7</div>
+                  <div className="text-2xl font-bold text-blue-600 mb-1">24/7</div>
                   <div className="text-sm text-slate-600">Support</div>
                 </div>
                 <div>
-                  <div className="text-xl font-bold text-blue-600">99.9%</div>
+                  <div className="text-2xl font-bold text-blue-600 mb-1">99.9%</div>
                   <div className="text-sm text-slate-600">Disponibilité</div>
                 </div>
               </div>
