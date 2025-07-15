@@ -8,10 +8,15 @@ interface DocumentsHeaderProps {
 
 const DocumentsHeader = ({ onAddDocument }: DocumentsHeaderProps) => {
   return (
-    <div className="flex items-center justify-between">
-      <h1 className="text-3xl font-bold text-slate-800">Gestion des Documents</h1>
+    <div className="page-header">
+      <div>
+        <h1 className="page-title">Gestion des Documents</h1>
+        <p className="page-description">
+          Gérez et organisez tous les documents de la plateforme
+        </p>
+      </div>
       <Button 
-        className="bg-blue-600 hover:bg-blue-700"
+        className="bg-primary hover:bg-primary/90"
         onClick={onAddDocument}
       >
         <Plus className="h-4 w-4 mr-2" />

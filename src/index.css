@@ -7,49 +7,49 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 215 20% 25%;
+    --background: 219 13% 97%;
+    --foreground: 210 17% 23%;
 
     --card: 0 0% 100%;
-    --card-foreground: 215 20% 25%;
+    --card-foreground: 210 17% 23%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 20% 25%;
+    --popover-foreground: 210 17% 23%;
 
-    --primary: 221 83% 59%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96%;
-    --secondary-foreground: 215 20% 25%;
+    --secondary-foreground: 210 17% 23%;
 
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
 
     --accent: 210 40% 96%;
-    --accent-foreground: 215 20% 25%;
+    --accent-foreground: 210 17% 23%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 221 83% 59%;
+    --ring: 217 91% 60%;
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5% 26%;
-    --sidebar-primary: 240 6% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 5% 96%;
-    --sidebar-accent-foreground: 240 6% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 221 83% 59%;
+    --sidebar-background: 219 13% 97%;
+    --sidebar-foreground: 210 17% 23%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 210 17% 23%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 217 91% 60%;
 
     /* AppSeniors Admin Custom Colors */
-    --app-primary: 221 83% 59%;
-    --app-background: 0 0% 98%;
-    --app-text: 215 20% 25%;
+    --app-primary: 217 91% 60%;
+    --app-background: 219 13% 97%;
+    --app-text: 210 17% 23%;
     --app-success: 142 71% 45%;
     --app-error: 0 84% 60%;
   }
@@ -64,7 +64,7 @@
     --popover: 222 84% 5%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
+    --primary: 217 91% 60%;
     --primary-foreground: 222 47% 11%;
 
     --secondary: 217 33% 18%;
@@ -81,11 +81,11 @@
 
     --border: 217 33% 18%;
     --input: 217 33% 18%;
-    --ring: 212 27% 84%;
+    --ring: 217 91% 60%;
 
     --sidebar-background: 240 6% 10%;
     --sidebar-foreground: 240 5% 96%;
-    --sidebar-primary: 224 76% 48%;
+    --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 4% 16%;
     --sidebar-accent-foreground: 240 5% 96%;
@@ -100,26 +100,131 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-app-background text-app-text font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  /* Ensure all headings use Poppins */
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-sans;
+  /* Ensure all headings use proper hierarchy */
+  h1 {
+    @apply text-3xl font-bold tracking-tight text-foreground;
   }
 
-  /* Ensure all buttons use Poppins */
+  h2 {
+    @apply text-2xl font-semibold tracking-tight text-foreground;
+  }
+
+  h3 {
+    @apply text-xl font-semibold text-foreground;
+  }
+
+  h4 {
+    @apply text-lg font-medium text-foreground;
+  }
+
+  h5 {
+    @apply text-base font-medium text-foreground;
+  }
+
+  h6 {
+    @apply text-sm font-medium text-foreground;
+  }
+
+  /* Ensure all buttons use consistent styling */
   button {
-    @apply font-sans;
+    @apply font-sans font-medium transition-all duration-200;
   }
 
-  /* Ensure all inputs and form elements use Poppins */
+  /* Ensure all inputs and form elements use consistent styling */
   input, textarea, select {
     @apply font-sans;
   }
 
-  /* Ensure all text elements use Poppins */
-  p, span, div, a, label {
-    @apply font-sans;
+  /* Card improvements */
+  .card {
+    @apply bg-card border border-border rounded-lg shadow-sm;
+  }
+
+  /* Professional spacing utilities */
+  .container-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-spacing {
+    @apply space-y-6;
+  }
+
+  .content-spacing {
+    @apply space-y-4;
+  }
+}
+
+/* Custom professional components */
+@layer components {
+  .dashboard-card {
+    @apply bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+
+  .stat-card {
+    @apply dashboard-card p-6;
+  }
+
+  .data-table {
+    @apply bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden;
+  }
+
+  .form-section {
+    @apply bg-white rounded-lg border border-gray-200 shadow-sm p-6 space-y-4;
+  }
+
+  .professional-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  .professional-input {
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .page-header {
+    @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-gray-200;
+  }
+
+  .page-title {
+    @apply text-3xl font-bold tracking-tight text-gray-900;
+  }
+
+  .page-description {
+    @apply text-base text-gray-600 mt-1;
+  }
+
+  .section-header {
+    @apply flex items-center justify-between pb-4;
+  }
+
+  .section-title {
+    @apply text-xl font-semibold text-gray-900;
+  }
+
+  .badge-success {
+    @apply inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20;
+  }
+
+  .badge-error {
+    @apply inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20;
+  }
+
+  .badge-warning {
+    @apply inline-flex items-center rounded-full bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20;
+  }
+
+  .badge-info {
+    @apply inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20;
+  }
+
+  .menu-item {
+    @apply flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200;
+  }
+
+  .menu-item-active {
+    @apply bg-blue-50 text-blue-700 border-r-2 border-blue-600;
   }
 }
