@@ -5,7 +5,9 @@ import ProtectedRoute from "../components/auth/ProtectedRoute";
 const FinancesPage = () => {
   return (
     <ProtectedRoute requiredPage="finances">
-      <Finances />
+      <div className="max-w-full mx-auto px-6 lg:px-8 py-8">
+        <Finances />
+      </div>
     </ProtectedRoute>
   );
 };

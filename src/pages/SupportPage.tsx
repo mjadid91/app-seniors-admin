@@ -5,7 +5,9 @@ import ProtectedRoute from "../components/auth/ProtectedRoute";
 const SupportPage = () => {
   return (
     <ProtectedRoute requiredPage="support">
-      <Support />
+      <div className="max-w-full mx-auto px-6 lg:px-8 py-8">
+        <Support />
+      </div>
     </ProtectedRoute>
   );
 };
