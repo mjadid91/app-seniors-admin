@@ -60,7 +60,7 @@ export const useSupabaseUserMapping = () => {
           console.log('useSupabaseUserMapping: User account is disabled');
           toast({
             title: "Compte désactivé",
-            description: "Votre compte a été désactivé par l'administrateur.",
+            description: "Votre compte a été désactivé par l'administrateur. Veuillez contacter l'administrateur à l'adresse admin@appseniors.fr pour plus d'informations.",
             variant: "destructive",
           });
           return null;
