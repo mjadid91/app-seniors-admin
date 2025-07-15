@@ -105,7 +105,7 @@ const Dashboard = () => {
       {/* Charts and Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Activity Chart */}
-        <Card>
+        <Card className="shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5 text-primary" />
@@ -118,14 +118,14 @@ const Dashboard = () => {
         </Card>
 
         {/* Recent Activities */}
-        <Card>
+        <Card className="shadow-sm">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-primary" />
                 Activités récentes
               </CardTitle>
-              <Button variant="ghost" size="sm" className="text-primary">
+              <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
                 Voir tout
                 <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
@@ -139,7 +139,7 @@ const Dashboard = () => {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer group">
+        <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer group shadow-sm">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
               <Users className="h-6 w-6 text-primary" />
@@ -151,9 +151,9 @@ const Dashboard = () => {
           </div>
         </Card>
 
-        <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer group">
+        <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer group shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition-colors">
+            <div className="w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-colors">
               <Calendar className="h-6 w-6 text-green-600" />
             </div>
             <div>
@@ -163,9 +163,9 @@ const Dashboard = () => {
           </div>
         </Card>
 
-        <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer group">
+        <Card className="p-6 hover:shadow-lg transition-all duration-200 cursor-pointer group shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-lg bg-amber-100 flex items-center justify-center group-hover:bg-amber-200 transition-colors">
+            <div className="w-12 h-12 rounded-lg bg-amber-50 flex items-center justify-center group-hover:bg-amber-100 transition-colors">
               <TrendingUp className="h-6 w-6 text-amber-600" />
             </div>
             <div>

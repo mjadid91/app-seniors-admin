@@ -15,15 +15,15 @@ interface StatsCardProps {
 }
 
 const colorVariants = {
-  blue: "from-primary to-blue-600",
+  blue: "from-blue-500 to-blue-600",
   green: "from-green-500 to-green-600", 
-  purple: "from-blue-500 to-blue-600",
+  purple: "from-blue-600 to-blue-700",
   orange: "from-amber-500 to-amber-600"
 };
 
 const StatsCard = ({ title, value, change, trend, icon: Icon, color, className, style }: StatsCardProps) => {
   return (
-    <Card className={cn("hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-0", className)} style={style}>
+    <Card className={cn("hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-0 shadow-sm", className)} style={style}>
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex-1">
