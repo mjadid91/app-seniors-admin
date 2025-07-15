@@ -9,7 +9,7 @@ const ConditionsUtilisation = () => {
       <div className="flex-grow">
         {/* Header Section */}
         <div className="bg-white border-b border-gray-200">
-          <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto py-12 px-6 sm:px-8">
             <h1 className="text-3xl font-bold text-slate-800 mb-4">Conditions d'utilisation</h1>
             <p className="text-lg text-gray-600 leading-relaxed">
               Conditions générales d'utilisation de la plateforme AppSeniors Admin
@@ -18,7 +18,7 @@ const ConditionsUtilisation = () => {
         </div>
 
         {/* Content Section */}
-        <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto py-12 px-6 sm:px-8">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 space-y-8">
             
             {/* Introduction */}
