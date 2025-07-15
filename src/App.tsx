@@ -36,7 +36,7 @@ const App = () => (
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/settings" element={<Settings />} />
           
-          {/* Prestations routes with shared layout */}
+          {/* Routes with shared navbar layout */}
           <Route element={<SharedLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/users" element={<UsersPage />} />
