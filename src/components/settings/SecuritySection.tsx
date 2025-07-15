@@ -6,12 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Eye, EyeOff, Shield } from "lucide-react";
+import { Eye, EyeOff, Shield, Key, Clock, Smartphone } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const SecuritySection = () => {
   const { toast } = useToast();
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [sessionTimeout, setSessionTimeout] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   
   const [passwordData, setPasswordData] = useState({
@@ -47,17 +49,35 @@ const SecuritySection = () => {
 
     setIsLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    toast({
-      title: "Mot de passe modifié",
-      description: "Votre mot de passe a été mis à jour avec succès.",
-    });
-    
-    setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
-    setShowPasswordForm(false);
-    setIsLoading(false);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: passwordData.newPassword
+      });
+
+      if (error) {
+        toast({
+          title: "Erreur",
+          description: "Impossible de modifier le mot de passe. Veuillez réessayer.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Mot de passe modifié",
+          description: "Votre mot de passe a été mis à jour avec succès.",
+        });
+        
+        setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        setShowPasswordForm(false);
+      }
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Une erreur inattendue s'est produite.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleTwoFactorToggle = async (enabled: boolean) => {
@@ -81,7 +101,7 @@ const SecuritySection = () => {
       <Card className="animate-scale-in">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <span className="text-xl">🔒</span>
+            <Key className="h-5 w-5 text-blue-600" />
             Changer le mot de passe
           </CardTitle>
           <CardDescription>
@@ -95,30 +115,11 @@ const SecuritySection = () => {
               variant="outline"
               className="transition-all duration-200 hover:scale-105"
             >
+              <Key className="h-4 w-4 mr-2" />
               Changer le mot de passe
             </Button>
           ) : (
             <div className="space-y-4 animate-fade-in">
-              <div className="space-y-2">
-                <Label htmlFor="currentPassword">Mot de passe actuel</Label>
-                <div className="relative">
-                  <Input
-                    id="currentPassword"
-                    type={showPasswords.current ? "text" : "password"}
-                    value={passwordData.currentPassword}
-                    onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
-                    className="pr-10 transition-all duration-200 focus:scale-[1.02]"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => togglePasswordVisibility('current')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    {showPasswords.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="newPassword">Nouveau mot de passe</Label>
                 <div className="relative">
@@ -128,6 +129,7 @@ const SecuritySection = () => {
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
                     className="pr-10 transition-all duration-200 focus:scale-[1.02]"
+                    placeholder="Entrez votre nouveau mot de passe"
                   />
                   <button
                     type="button"
@@ -148,6 +150,7 @@ const SecuritySection = () => {
                     value={passwordData.confirmPassword}
                     onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
                     className="pr-10 transition-all duration-200 focus:scale-[1.02]"
+                    placeholder="Confirmez votre nouveau mot de passe"
                   />
                   <button
                     type="button"
@@ -162,7 +165,7 @@ const SecuritySection = () => {
               <div className="flex gap-2 pt-2">
                 <Button 
                   onClick={handlePasswordChange}
-                  disabled={isLoading}
+                  disabled={isLoading || !passwordData.newPassword || !passwordData.confirmPassword}
                   className="transition-all duration-200 hover:scale-105"
                 >
                   {isLoading ? "Modification..." : "Modifier le mot de passe"}
@@ -187,7 +190,7 @@ const SecuritySection = () => {
       <Card className="animate-scale-in">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Shield className="h-5 w-5" />
+            <Shield className="h-5 w-5 text-green-600" />
             Authentification à deux facteurs
           </CardTitle>
           <CardDescription>
@@ -196,7 +199,7 @@ const SecuritySection = () => {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
-            <div className="space-y-1">
+            <div className="space-y-1 flex-1">
               <p className="font-medium">Activer l'authentification à deux facteurs</p>
               <p className="text-sm text-slate-600">
                 {twoFactorEnabled 
@@ -210,6 +213,41 @@ const SecuritySection = () => {
               onCheckedChange={handleTwoFactorToggle}
               className="transition-all duration-200"
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Session Management Card */}
+      <Card className="animate-scale-in">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-orange-600" />
+            Gestion des sessions
+          </CardTitle>
+          <CardDescription>
+            Configurez les paramètres de sécurité de vos sessions
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1 flex-1">
+              <p className="font-medium">Déconnexion automatique</p>
+              <p className="text-sm text-slate-600">
+                Se déconnecter automatiquement après 30 minutes d'inactivité
+              </p>
+            </div>
+            <Switch
+              checked={sessionTimeout}
+              onCheckedChange={setSessionTimeout}
+              className="transition-all duration-200"
+            />
+          </div>
+
+          <div className="pt-2">
+            <Button variant="outline" size="sm" className="w-full">
+              <Smartphone className="h-4 w-4 mr-2" />
+              Voir les appareils connectés
+            </Button>
           </div>
         </CardContent>
       </Card>

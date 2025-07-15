@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Moon, Sun, Monitor } from "lucide-react";
+import { Moon, Sun, Monitor, Globe, Palette, Settings, Bell } from "lucide-react";
 
 const PreferencesSection = () => {
   const { toast } = useToast();
@@ -15,11 +15,21 @@ const PreferencesSection = () => {
     theme: "system",
     darkMode: false,
     language: "fr",
+    region: "FR",
+    timezone: "Europe/Paris",
+    dateFormat: "dd/MM/yyyy",
+    currency: "EUR",
     notifications: {
       desktop: true,
       sounds: false,
       preview: true,
       compact: false
+    },
+    interface: {
+      animations: true,
+      compactMode: false,
+      showAvatars: true,
+      autoSave: true
     }
   });
 
@@ -39,10 +49,25 @@ const PreferencesSection = () => {
     });
   };
 
+  const handleRegionChange = (region: string) => {
+    setPreferences(prev => ({ ...prev, region }));
+    toast({
+      title: "Région modifiée",
+      description: "Les paramètres régionaux ont été mis à jour.",
+    });
+  };
+
   const handleNotificationChange = (key: string, value: boolean) => {
     setPreferences(prev => ({
       ...prev,
       notifications: { ...prev.notifications, [key]: value }
+    }));
+  };
+
+  const handleInterfaceChange = (key: string, value: boolean) => {
+    setPreferences(prev => ({
+      ...prev,
+      interface: { ...prev.interface, [key]: value }
     }));
   };
 
@@ -58,16 +83,16 @@ const PreferencesSection = () => {
       <Card className="animate-scale-in">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <span className="text-xl">🎨</span>
-            Apparence
+            <Palette className="h-5 w-5 text-purple-600" />
+            Thème de l'interface
           </CardTitle>
           <CardDescription>
-            Personnalisez l'apparence de l'interface
+            Personnalisez l'apparence de l'interface administrateur
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
-            <Label className="text-base font-medium">Thème de l'interface</Label>
+            <Label className="text-base font-medium">Mode d'affichage</Label>
             <div className="grid grid-cols-3 gap-3">
               {themeOptions.map((option) => {
                 const Icon = option.icon;
@@ -93,7 +118,7 @@ const PreferencesSection = () => {
             <div className="space-y-1">
               <Label className="text-base font-medium">Mode sombre automatique</Label>
               <p className="text-sm text-slate-600">
-                Active automatiquement le mode sombre la nuit
+                Active automatiquement le mode sombre selon l'heure
               </p>
             </div>
             <Switch
@@ -105,29 +130,105 @@ const PreferencesSection = () => {
         </CardContent>
       </Card>
 
-      {/* Language Settings */}
+      {/* Language and Region Settings */}
       <Card className="animate-scale-in">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <span className="text-xl">🌍</span>
+            <Globe className="h-5 w-5 text-green-600" />
             Langue et région
           </CardTitle>
           <CardDescription>
-            Configurez la langue de l'interface
+            Configurez la langue et les paramètres régionaux
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Langue de l'interface</Label>
+              <Select value={preferences.language} onValueChange={handleLanguageChange}>
+                <SelectTrigger className="transition-all duration-200 hover:border-blue-300">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="fr">🇫🇷 Français</SelectItem>
+                  <SelectItem value="en">🇺🇸 English</SelectItem>
+                  <SelectItem value="es">🇪🇸 Español</SelectItem>
+                  <SelectItem value="de">🇩🇪 Deutsch</SelectItem>
+                  <SelectItem value="it">🇮🇹 Italiano</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Région</Label>
+              <Select value={preferences.region} onValueChange={handleRegionChange}>
+                <SelectTrigger className="transition-all duration-200 hover:border-blue-300">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FR">France</SelectItem>
+                  <SelectItem value="BE">Belgique</SelectItem>
+                  <SelectItem value="CH">Suisse</SelectItem>
+                  <SelectItem value="CA">Canada</SelectItem>
+                  <SelectItem value="US">États-Unis</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Fuseau horaire</Label>
+              <Select 
+                value={preferences.timezone} 
+                onValueChange={(value) => setPreferences(prev => ({ ...prev, timezone: value }))}
+              >
+                <SelectTrigger className="transition-all duration-200 hover:border-blue-300">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Europe/Paris">Paris (UTC+1)</SelectItem>
+                  <SelectItem value="Europe/Brussels">Bruxelles (UTC+1)</SelectItem>
+                  <SelectItem value="Europe/Zurich">Zurich (UTC+1)</SelectItem>
+                  <SelectItem value="America/Montreal">Montréal (UTC-5)</SelectItem>
+                  <SelectItem value="America/New_York">New York (UTC-5)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Format de date</Label>
+              <Select 
+                value={preferences.dateFormat} 
+                onValueChange={(value) => setPreferences(prev => ({ ...prev, dateFormat: value }))}
+              >
+                <SelectTrigger className="transition-all duration-200 hover:border-blue-300">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dd/MM/yyyy">DD/MM/YYYY</SelectItem>
+                  <SelectItem value="MM/dd/yyyy">MM/DD/YYYY</SelectItem>
+                  <SelectItem value="yyyy-MM-dd">YYYY-MM-DD</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <Label>Langue de l'interface</Label>
-            <Select value={preferences.language} onValueChange={handleLanguageChange}>
+            <Label>Devise</Label>
+            <Select 
+              value={preferences.currency} 
+              onValueChange={(value) => setPreferences(prev => ({ ...prev, currency: value }))}
+            >
               <SelectTrigger className="transition-all duration-200 hover:border-blue-300">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="fr">🇫🇷 Français</SelectItem>
-                <SelectItem value="en">🇺🇸 English</SelectItem>
-                <SelectItem value="es">🇪🇸 Español</SelectItem>
-                <SelectItem value="de">🇩🇪 Deutsch</SelectItem>
+                <SelectItem value="EUR">Euro (€)</SelectItem>
+                <SelectItem value="USD">Dollar US ($)</SelectItem>
+                <SelectItem value="GBP">Livre Sterling (£)</SelectItem>
+                <SelectItem value="CHF">Franc Suisse (CHF)</SelectItem>
+                <SelectItem value="CAD">Dollar Canadien (CAD)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -138,11 +239,89 @@ const PreferencesSection = () => {
       <Card className="animate-scale-in">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <span className="text-xl">⚙️</span>
+            <Settings className="h-5 w-5 text-blue-600" />
             Préférences d'interface
           </CardTitle>
           <CardDescription>
             Personnalisez le comportement de l'interface
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center space-x-3">
+            <Checkbox
+              id="animations"
+              checked={preferences.interface.animations}
+              onCheckedChange={(checked) => handleInterfaceChange('animations', checked as boolean)}
+            />
+            <div className="space-y-1">
+              <Label htmlFor="animations" className="font-medium">
+                Animations d'interface
+              </Label>
+              <p className="text-sm text-slate-600">
+                Activer les animations et transitions fluides
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <Checkbox
+              id="compact-mode"
+              checked={preferences.interface.compactMode}
+              onCheckedChange={(checked) => handleInterfaceChange('compactMode', checked as boolean)}
+            />
+            <div className="space-y-1">
+              <Label htmlFor="compact-mode" className="font-medium">
+                Mode compact
+              </Label>
+              <p className="text-sm text-slate-600">
+                Réduire l'espacement pour afficher plus d'informations
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <Checkbox
+              id="show-avatars"
+              checked={preferences.interface.showAvatars}
+              onCheckedChange={(checked) => handleInterfaceChange('showAvatars', checked as boolean)}
+            />
+            <div className="space-y-1">
+              <Label htmlFor="show-avatars" className="font-medium">
+                Afficher les avatars
+              </Label>
+              <p className="text-sm text-slate-600">
+                Afficher les photos de profil dans les listes
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <Checkbox
+              id="auto-save"
+              checked={preferences.interface.autoSave}
+              onCheckedChange={(checked) => handleInterfaceChange('autoSave', checked as boolean)}
+            />
+            <div className="space-y-1">
+              <Label htmlFor="auto-save" className="font-medium">
+                Sauvegarde automatique
+              </Label>
+              <p className="text-sm text-slate-600">
+                Sauvegarder automatiquement les modifications
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Notification Preferences */}
+      <Card className="animate-scale-in">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="h-5 w-5 text-yellow-600" />
+            Préférences de notifications
+          </CardTitle>
+          <CardDescription>
+            Configurez comment vous souhaitez recevoir les notifications
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -157,7 +336,7 @@ const PreferencesSection = () => {
                 Notifications du bureau
               </Label>
               <p className="text-sm text-slate-600">
-                Afficher les notifications sur le bureau
+                Afficher les notifications sur le bureau du système
               </p>
             </div>
           </div>
@@ -173,7 +352,7 @@ const PreferencesSection = () => {
                 Sons de notification
               </Label>
               <p className="text-sm text-slate-600">
-                Jouer un son lors des notifications
+                Jouer un son lors de la réception de notifications
               </p>
             </div>
           </div>
@@ -196,16 +375,16 @@ const PreferencesSection = () => {
 
           <div className="flex items-center space-x-3">
             <Checkbox
-              id="compact-interface"
+              id="compact-notifications"
               checked={preferences.notifications.compact}
               onCheckedChange={(checked) => handleNotificationChange('compact', checked as boolean)}
             />
             <div className="space-y-1">
-              <Label htmlFor="compact-interface" className="font-medium">
-                Interface compacte
+              <Label htmlFor="compact-notifications" className="font-medium">
+                Notifications compactes
               </Label>
               <p className="text-sm text-slate-600">
-                Réduire l'espacement pour afficher plus d'informations
+                Afficher les notifications dans un format plus compact
               </p>
             </div>
           </div>
