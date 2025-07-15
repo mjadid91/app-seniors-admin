@@ -36,98 +36,134 @@ const Moderation = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">Modération</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Header Section */}
+      <div className="bg-white border-b border-slate-200 shadow-sm">
+        <div className="max-w-[1400px] mx-auto px-6 lg:px-8 py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                Modération
+              </h1>
+              <p className="text-slate-600 mt-2">
+                Gérez les contenus et surveillez l'activité de la plateforme
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <ModerationStats />
+      {/* Main Content */}
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-8 py-8">
+        <div className="space-y-8">
+          {/* Statistics Cards */}
+          <ModerationStats />
 
-      <Tabs defaultValue="forums" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="forums" className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            Forums
-          </TabsTrigger>
-          <TabsTrigger value="groupes" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Groupes
-          </TabsTrigger>
-          <TabsTrigger value="signalements" className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            Signalements
-          </TabsTrigger>
-        </TabsList>
+          {/* Moderation Tabs */}
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <Tabs defaultValue="forums" className="w-full">
+              <div className="border-b border-slate-200 bg-slate-50/50">
+                <div className="px-6">
+                  <TabsList className="grid w-full max-w-md grid-cols-3 bg-transparent h-auto p-0">
+                    <TabsTrigger 
+                      value="forums" 
+                      className="flex items-center gap-2 py-4 px-6 data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-sm rounded-none border-b-2 border-transparent"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      <span className="hidden sm:inline">Forums</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="groupes" 
+                      className="flex items-center gap-2 py-4 px-6 data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-sm rounded-none border-b-2 border-transparent"
+                    >
+                      <Users className="h-4 w-4" />
+                      <span className="hidden sm:inline">Groupes</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="signalements" 
+                      className="flex items-center gap-2 py-4 px-6 data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-sm rounded-none border-b-2 border-transparent"
+                    >
+                      <AlertTriangle className="h-4 w-4" />
+                      <span className="hidden sm:inline">Signalements</span>
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+              </div>
 
-        <TabsContent value="forums" className="space-y-4">
-          <div className="flex gap-2 flex-wrap">
-            <Button 
-              onClick={() => setIsAddForumModalOpen(true)}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Ajouter un forum
-            </Button>
-            <Button 
-              onClick={() => setIsAddForumSubjectModalOpen(true)}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <FileText className="h-4 w-4" />
-              Ajouter un sujet
-            </Button>
+              <div className="p-6">
+                <TabsContent value="forums" className="space-y-6 mt-0">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button 
+                      onClick={() => setIsAddForumModalOpen(true)}
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter un forum
+                    </Button>
+                    <Button 
+                      onClick={() => setIsAddForumSubjectModalOpen(true)}
+                      variant="outline"
+                      className="border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
+                      Ajouter un sujet
+                    </Button>
+                  </div>
+                  <ForumPostsTable 
+                    forumPosts={forumPosts}
+                    setForumPosts={() => {}} // This will be handled by React Query refetch
+                  />
+                </TabsContent>
+
+                <TabsContent value="groupes" className="space-y-6 mt-0">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Button 
+                      onClick={() => setIsAddGroupModalOpen(true)}
+                      className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter un groupe
+                    </Button>
+                    <Button 
+                      onClick={() => setIsAddGroupMessageModalOpen(true)}
+                      variant="outline"
+                      className="border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200"
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Ajouter un message
+                    </Button>
+                    <Button 
+                      onClick={() => setIsAddGroupMembersModalOpen(true)}
+                      variant="outline"
+                      className="border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all duration-200"
+                    >
+                      <UserCheck className="h-4 w-4 mr-2" />
+                      Ajouter des membres
+                    </Button>
+                  </div>
+                  <GroupMessagesTable 
+                    groupMessages={groupMessages}
+                    setGroupMessages={() => {}} // This will be handled by React Query refetch
+                  />
+                </TabsContent>
+
+                <TabsContent value="signalements" className="space-y-6 mt-0">
+                  <div>
+                    <Button 
+                      onClick={() => setIsAddSignalementModalOpen(true)}
+                      className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Ajouter un signalement
+                    </Button>
+                  </div>
+                  <SignalementsTable refreshTrigger={refreshTrigger} />
+                </TabsContent>
+              </div>
+            </Tabs>
           </div>
-          <ForumPostsTable 
-            forumPosts={forumPosts}
-            setForumPosts={() => {}} // This will be handled by React Query refetch
-          />
-        </TabsContent>
-
-        <TabsContent value="groupes" className="space-y-4">
-          <div className="flex gap-2 flex-wrap">
-            <Button 
-              onClick={() => setIsAddGroupModalOpen(true)}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Ajouter un groupe
-            </Button>
-            <Button 
-              onClick={() => setIsAddGroupMessageModalOpen(true)}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <MessageCircle className="h-4 w-4" />
-              Ajouter un message
-            </Button>
-            <Button 
-              onClick={() => setIsAddGroupMembersModalOpen(true)}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              <UserCheck className="h-4 w-4" />
-              Ajouter des membres
-            </Button>
-          </div>
-          <GroupMessagesTable 
-            groupMessages={groupMessages}
-            setGroupMessages={() => {}} // This will be handled by React Query refetch
-          />
-        </TabsContent>
-
-        <TabsContent value="signalements" className="space-y-4">
-          <div className="flex gap-2 flex-wrap">
-            <Button 
-              onClick={() => setIsAddSignalementModalOpen(true)}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Ajouter un signalement
-            </Button>
-          </div>
-          <SignalementsTable refreshTrigger={refreshTrigger} />
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
 
       {/* Modals */}
       <AddForumModal
