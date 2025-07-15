@@ -23,6 +23,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import MentionsLegales from "./pages/MentionsLegales";
 import PolitiqueConfidentialite from "./pages/PolitiqueConfidentialite";
 import ConditionsUtilisation from "./pages/ConditionsUtilisation";
+import ContactPage from "./pages/ContactPage";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
           <Route path="/conditions-utilisation" element={<ConditionsUtilisation />} />
+          <Route path="/contact" element={<ContactPage />} />
           
           {/* Routes with shared navbar layout */}
           <Route element={<SharedLayout />}>
