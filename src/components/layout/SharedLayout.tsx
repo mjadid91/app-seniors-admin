@@ -1,6 +1,7 @@
 
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
+import Footer from "./Footer";
 import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
 
 const SharedLayout = () => {
@@ -45,11 +46,12 @@ const SharedLayout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       <Navbar />
-      <main className="pt-16">
+      <main className="pt-16 flex-grow">
         <Outlet />
       </main>
+      <Footer />
     </div>
   );
 };
