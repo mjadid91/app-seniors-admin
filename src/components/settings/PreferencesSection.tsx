@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -5,14 +6,13 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { useTheme } from "../../hooks/useTheme";
 import { Moon, Sun, Monitor, Globe, Palette, Settings, Bell } from "lucide-react";
 
 const PreferencesSection = () => {
   const { toast } = useToast();
-  const { theme, setTheme } = useTheme();
   
   const [preferences, setPreferences] = useState({
+    theme: "system",
     darkMode: false,
     language: "fr",
     region: "FR",
@@ -33,11 +33,11 @@ const PreferencesSection = () => {
     }
   });
 
-  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
-    setTheme(newTheme);
+  const handleThemeChange = (theme: string) => {
+    setPreferences(prev => ({ ...prev, theme }));
     toast({
       title: "Thème modifié",
-      description: `Thème ${newTheme === 'light' ? 'clair' : newTheme === 'dark' ? 'sombre' : 'système'} appliqué.`,
+      description: `Thème ${theme === 'light' ? 'clair' : theme === 'dark' ? 'sombre' : 'système'} appliqué.`,
     });
   };
 
@@ -99,9 +99,9 @@ const PreferencesSection = () => {
                 return (
                   <button
                     key={option.value}
-                    onClick={() => handleThemeChange(option.value as 'light' | 'dark' | 'system')}
+                    onClick={() => handleThemeChange(option.value)}
                     className={`p-4 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
-                      theme === option.value
+                      preferences.theme === option.value
                         ? "border-blue-500 bg-blue-50 text-blue-700"
                         : "border-slate-200 hover:border-slate-300"
                     }`}
