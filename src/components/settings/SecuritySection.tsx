@@ -29,10 +29,19 @@ const SecuritySection = () => {
   });
 
   const handlePasswordChange = async () => {
+    if (!passwordData.currentPassword) {
+      toast({
+        title: "Erreur",
+        description: "Le mot de passe actuel est requis.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast({
         title: "Erreur",
-        description: "Les mots de passe ne correspondent pas.",
+        description: "Les nouveaux mots de passe ne correspondent pas.",
         variant: "destructive"
       });
       return;
@@ -41,7 +50,16 @@ const SecuritySection = () => {
     if (passwordData.newPassword.length < 8) {
       toast({
         title: "Erreur",
-        description: "Le mot de passe doit contenir au moins 8 caractères.",
+        description: "Le nouveau mot de passe doit contenir au moins 8 caractères.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (passwordData.currentPassword === passwordData.newPassword) {
+      toast({
+        title: "Erreur",
+        description: "Le nouveau mot de passe doit être différent de l'actuel.",
         variant: "destructive"
       });
       return;
@@ -50,6 +68,33 @@ const SecuritySection = () => {
     setIsLoading(true);
     
     try {
+      // Vérifier d'abord le mot de passe actuel en tentant une reconnexion
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user?.email) {
+        toast({
+          title: "Erreur",
+          description: "Impossible de vérifier l'utilisateur actuel.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Tenter de se connecter avec le mot de passe actuel pour le vérifier
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: userData.user.email,
+        password: passwordData.currentPassword
+      });
+
+      if (signInError) {
+        toast({
+          title: "Erreur",
+          description: "Le mot de passe actuel est incorrect.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Si la vérification est réussie, mettre à jour le mot de passe
       const { error } = await supabase.auth.updateUser({
         password: passwordData.newPassword
       });
@@ -121,6 +166,27 @@ const SecuritySection = () => {
           ) : (
             <div className="space-y-4 animate-fade-in">
               <div className="space-y-2">
+                <Label htmlFor="currentPassword">Mot de passe actuel</Label>
+                <div className="relative">
+                  <Input
+                    id="currentPassword"
+                    type={showPasswords.current ? "text" : "password"}
+                    value={passwordData.currentPassword}
+                    onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                    className="pr-10 transition-all duration-200 focus:scale-[1.02]"
+                    placeholder="Entrez votre mot de passe actuel"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => togglePasswordVisibility('current')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPasswords.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="newPassword">Nouveau mot de passe</Label>
                 <div className="relative">
                   <Input
@@ -165,7 +231,7 @@ const SecuritySection = () => {
               <div className="flex gap-2 pt-2">
                 <Button 
                   onClick={handlePasswordChange}
-                  disabled={isLoading || !passwordData.newPassword || !passwordData.confirmPassword}
+                  disabled={isLoading || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}
                   className="transition-all duration-200 hover:scale-105"
                 >
                   {isLoading ? "Modification..." : "Modifier le mot de passe"}

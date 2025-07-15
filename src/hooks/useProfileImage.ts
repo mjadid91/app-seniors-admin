@@ -148,6 +148,20 @@ export const useProfileImage = () => {
 
     setUploading(true);
     try {
+      console.log('Removing profile image for user:', userId);
+
+      // Obtenir d'abord l'URL actuelle de la photo pour supprimer le fichier
+      const { data: userData, error: fetchError } = await supabase
+        .from('Utilisateurs')
+        .select('Photo')
+        .eq('IDUtilisateurs', userId)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching user data:', fetchError);
+        // Continuer même si on ne peut pas récupérer les données
+      }
+
       // Supprimer le champ Photo de la table Utilisateurs
       const { error: updateError } = await supabase
         .from('Utilisateurs')
@@ -162,15 +176,35 @@ export const useProfileImage = () => {
         throw updateError;
       }
 
-      // Optionnel: supprimer les fichiers du bucket (on garde pour l'historique)
-      // const { data: files } = await supabase.storage
-      //   .from('avatars')
-      //   .list(user.id);
-      // 
-      // if (files && files.length > 0) {
-      //   const filePaths = files.map(file => `${user.id}/${file.name}`);
-      //   await supabase.storage.from('avatars').remove(filePaths);
-      // }
+      console.log('Profile image removed from database successfully');
+
+      // Optionnel: essayer de supprimer les fichiers du bucket
+      // Même si ça échoue, on considère que la suppression est réussie
+      try {
+        if (userData?.Photo) {
+          // Extraire le chemin du fichier de l'URL
+          const url = userData.Photo;
+          const matches = url.match(/avatars\/(.+)$/);
+          if (matches && matches[1]) {
+            const filePath = matches[1];
+            console.log('Attempting to remove file:', filePath);
+            
+            const { error: deleteError } = await supabase.storage
+              .from('avatars')
+              .remove([filePath]);
+            
+            if (deleteError) {
+              console.warn('Could not delete file from storage:', deleteError);
+              // Ne pas faire échouer l'opération pour ça
+            } else {
+              console.log('File deleted from storage successfully');
+            }
+          }
+        }
+      } catch (storageError) {
+        console.warn('Storage deletion failed, but continuing:', storageError);
+        // Ne pas faire échouer l'opération principale
+      }
 
       toast({
         title: "Photo supprimée",
