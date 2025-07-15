@@ -3,7 +3,7 @@ import { Settings, LogOut, ChevronDown } from "lucide-react";
 import { useAuthStore } from "../../stores/authStore";
 import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
 import { useNavigate } from "react-router-dom";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,7 +45,8 @@ export const ProfileDropdown = () => {
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
         <Avatar className="h-8 w-8">
-          <AvatarFallback className="bg-primary text-primary-foreground font-medium text-xs">
+          <AvatarImage src={user?.photo || undefined} alt="Photo de profil" />
+          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-medium text-xs">
             {user?.prenom?.[0]}{user?.nom?.[0]}
           </AvatarFallback>
         </Avatar>
