@@ -4,7 +4,6 @@ import DocumentsHeader from "./DocumentsHeader";
 import DocumentsFilters from "./DocumentsFilters";
 import DocumentsTable from "./DocumentsTable";
 import DocumentsStats from "./DocumentsStats";
-import DocumentsQuickActions from "./DocumentsQuickActions";
 import PatrimonialDocuments from "./PatrimonialDocuments";
 import AddDocumentModal from "./AddDocumentModal";
 import EditDocumentModal from "./EditDocumentModal";
@@ -86,10 +85,6 @@ const Documents = () => {
           onDownload={handleDownloadDocument}
           onDelete={handleDeleteDocument}
         />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <DocumentsQuickActions />
       </div>
 
       <AddDocumentModal 
