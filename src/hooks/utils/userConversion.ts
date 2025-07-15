@@ -1,28 +1,52 @@
 
 import { User } from '../../stores/authStore';
-import { SupabaseUser } from '../types/userTypes';
+
+// Interface pour les données utilisateur Supabase
+interface SupabaseUserData {
+  IDUtilisateurs: number;
+  Nom: string;
+  Prenom: string;
+  Email: string;
+  DateInscription: string;
+  EstDesactive?: boolean;
+  CatUtilisateurs?: {
+    IDCatUtilisateurs: number;
+    EstAdministrateur: boolean;
+    EstModerateur: boolean;
+    EstSupport: boolean;
+    EstSenior: boolean;
+    EstAidant: boolean;
+  };
+}
 
 export const convertSupabaseUserToAppUser = (
-  supabaseUser: SupabaseUser,
+  userData: SupabaseUserData,
   getRoleFromCategory: (categoryId: number) => User['role']
 ): User => {
+  const categoryId = userData.CatUtilisateurs?.IDCatUtilisateurs || 7; // Défaut: visualisateur
+  const role = getRoleFromCategory(categoryId);
+
   return {
-    id: supabaseUser.IDUtilisateurs.toString(),
-    nom: supabaseUser.Nom,
-    prenom: supabaseUser.Prenom,
-    email: supabaseUser.Email,
-    role: getRoleFromCategory(supabaseUser.IDCatUtilisateurs),
-    dateInscription: supabaseUser.DateInscription
+    id: userData.IDUtilisateurs.toString(),
+    nom: userData.Nom || '',
+    prenom: userData.Prenom || '',
+    email: userData.Email || '',
+    role,
+    dateInscription: userData.DateInscription || new Date().toISOString(),
+    estDesactive: userData.EstDesactive || false,
   };
 };
 
 export const getCategoryFromRole = (role: User['role']): number => {
-  // Correspondance corrigée avec les vraies valeurs IDCatUtilisateurs
   switch (role) {
-    case 'administrateur': return 5;
-    case 'moderateur': return 6;
-    case 'visualisateur': return 7;
-    case 'support': return 8;
-    default: return 7; // Visualisateur par défaut
+    case 'administrateur':
+      return 5;
+    case 'moderateur':
+      return 6;
+    case 'support':
+      return 8;
+    case 'visualisateur':
+    default:
+      return 7;
   }
 };

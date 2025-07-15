@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '../../stores/authStore';
 import { convertSupabaseUserToAppUser, getCategoryFromRole } from '../utils/userConversion';
@@ -49,7 +50,7 @@ export const useUserCrud = (
         DateModification: currentDate,
         LangueSite: 'fr',
         Photo: '',
-        EstDesactive: false,
+        EstDesactive: false, // Par défaut, un nouveau compte est actif
         EstRGPD: false
       };
 
@@ -124,6 +125,7 @@ export const useUserCrud = (
       if (updates.nom) supabaseUpdates.Nom = updates.nom;
       if (updates.prenom) supabaseUpdates.Prenom = updates.prenom;
       if (updates.email) supabaseUpdates.Email = updates.email;
+      if (updates.estDesactive !== undefined) supabaseUpdates.EstDesactive = updates.estDesactive;
       
       // Pour la mise à jour du rôle, on trouve la catégorie correspondante
       if (updates.role) {
@@ -134,7 +136,22 @@ export const useUserCrud = (
         .from('Utilisateurs')
         .update(supabaseUpdates)
         .eq('IDUtilisateurs', parseInt(userId))
-        .select()
+        .select(`
+          IDUtilisateurs,
+          Nom,
+          Prenom,
+          Email,
+          DateInscription,
+          EstDesactive,
+          CatUtilisateurs:IDCatUtilisateurs (
+            IDCatUtilisateurs,
+            EstAdministrateur,
+            EstModerateur,
+            EstSupport,
+            EstSenior,
+            EstAidant
+          )
+        `)
         .single();
 
       if (updateError) {

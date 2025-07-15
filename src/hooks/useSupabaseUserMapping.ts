@@ -35,6 +35,7 @@ export const useSupabaseUserMapping = () => {
           Nom,
           Prenom,
           Email,
+          EstDesactive,
           CatUtilisateurs:IDCatUtilisateurs (
             EstAdministrateur,
             EstModerateur,
@@ -54,6 +55,17 @@ export const useSupabaseUserMapping = () => {
       if (existingUser) {
         console.log('useSupabaseUserMapping: Found existing user:', existingUser);
         
+        // Vérifier si le compte est désactivé
+        if (existingUser.EstDesactive) {
+          console.log('useSupabaseUserMapping: User account is disabled');
+          toast({
+            title: "Compte désactivé",
+            description: "Votre compte a été désactivé par l'administrateur.",
+            variant: "destructive",
+          });
+          return null;
+        }
+
         // Déterminer le rôle basé sur la catégorie avec logique améliorée
         let role = 'visualisateur'; // rôle par défaut
         if (existingUser.CatUtilisateurs) {
