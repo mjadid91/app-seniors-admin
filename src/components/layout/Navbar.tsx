@@ -5,31 +5,22 @@ import { useAuthStore } from "../../stores/authStore";
 import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
 import { usePermissions } from "../../hooks/usePermissions";
 import {
-  LayoutDashboard,
-  Users,
-  Calendar,
-  Shield,
-  Headphones,
   LogOut,
-  FileText,
-  Building2,
-  ShieldCheck,
-  DollarSign,
   Menu,
   X
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const menuItems = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-  { id: "users", label: "Utilisateurs", icon: Users, path: "/users" },
-  { id: "prestations", label: "Prestations", icon: Calendar, path: "/prestations" },
-  { id: "moderation", label: "Modération", icon: Shield, path: "/moderation" },
-  { id: "support", label: "Support", icon: Headphones, path: "/support" },
-  { id: "documents", label: "Documents", icon: FileText, path: "/documents" },
-  { id: "partners", label: "Partenaires", icon: Building2, path: "/partners" },
-  { id: "rgpd", label: "RGPD", icon: ShieldCheck, path: "/rgpd" },
-  { id: "finances", label: "Finances", icon: DollarSign, path: "/finances" },
+  { id: "dashboard", label: "Dashboard", path: "/dashboard" },
+  { id: "users", label: "Utilisateurs", path: "/users" },
+  { id: "prestations", label: "Prestations", path: "/prestations" },
+  { id: "moderation", label: "Modération", path: "/moderation" },
+  { id: "support", label: "Support", path: "/support" },
+  { id: "documents", label: "Documents", path: "/documents" },
+  { id: "partners", label: "Partenaires", path: "/partners" },
+  { id: "rgpd", label: "RGPD", path: "/rgpd" },
+  { id: "finances", label: "Finances", path: "/finances" },
 ];
 
 const Navbar = () => {
@@ -74,8 +65,8 @@ const Navbar = () => {
 
     const isActive = location.pathname === item.path;
     return isActive
-      ? "text-blue-600 bg-blue-50 border-blue-200"
-      : "text-slate-700 hover:text-blue-600 hover:bg-slate-50";
+      ? "text-primary font-semibold"
+      : "text-slate-700 hover:text-primary hover:bg-slate-100 font-medium";
   };
 
   const getRoleIcon = (role: string) => {
@@ -99,22 +90,21 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <div className="flex-shrink-0 flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">AS</span>
+            <div className="flex-shrink-0 flex items-center gap-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-lg">AS</span>
               </div>
               <div className="hidden sm:block">
-                <h1 className="font-bold text-slate-800 text-lg">AppSeniors</h1>
-                <p className="text-xs text-slate-500 -mt-1">Administration</p>
+                <h1 className="font-bold text-slate-800 text-xl">AppSeniors</h1>
+                <p className="text-sm text-slate-500 -mt-1">Administration</p>
               </div>
             </div>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-4">
+            <div className="ml-10 flex items-center space-x-8">
               {menuItems.map((item) => {
-                const Icon = item.icon;
                 const isAccessible = canAccessPage(item.id);
 
                 return (
@@ -123,12 +113,11 @@ const Navbar = () => {
                     onClick={() => handleNavigation(item)}
                     disabled={!isAccessible}
                     className={cn(
-                      "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200",
+                      "px-3 py-2 rounded-md text-sm transition-colors duration-200",
                       getItemStyle(item)
                     )}
                   >
-                    <Icon className="h-4 w-4" />
-                    <span className="hidden lg:inline">{item.label}</span>
+                    {item.label}
                   </button>
                 );
               })}
@@ -158,7 +147,7 @@ const Navbar = () => {
               className="flex items-center gap-2 px-3 py-2 text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
             >
               <LogOut className="h-4 w-4" />
-              <span className="text-sm">Déconnexion</span>
+              <span className="text-sm font-medium">Déconnexion</span>
             </button>
           </div>
 
@@ -166,7 +155,7 @@ const Navbar = () => {
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-slate-600 hover:text-slate-800 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              className="inline-flex items-center justify-center p-2 rounded-md text-slate-600 hover:text-slate-800 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary/50"
             >
               {isMobileMenuOpen ? (
                 <X className="block h-6 w-6" />
@@ -183,7 +172,6 @@ const Navbar = () => {
         <div className="md:hidden">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-slate-200">
             {menuItems.map((item) => {
-              const Icon = item.icon;
               const isAccessible = canAccessPage(item.id);
 
               return (
@@ -192,12 +180,11 @@ const Navbar = () => {
                   onClick={() => handleNavigation(item)}
                   disabled={!isAccessible}
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2 rounded-md text-left text-base font-medium transition-colors duration-200",
+                    "w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors duration-200",
                     getItemStyle(item)
                   )}
                 >
-                  <Icon className="h-5 w-5" />
-                  <span>{item.label}</span>
+                  {item.label}
                 </button>
               );
             })}
