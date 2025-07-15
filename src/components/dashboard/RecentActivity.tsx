@@ -1,6 +1,6 @@
 
 import { Users, Calendar, Shield, Clock, AlertCircle } from "lucide-react";
-import { useRecentActivities } from "./useRecentActivities";
+import { RecentActivity as RecentActivityType } from "./useRecentActivities";
 
 // Associe les types d'activités à des icônes et des couleurs
 const ICON_MAP: Record<
@@ -19,27 +19,11 @@ const colorVariants = {
   gray: "bg-slate-200 text-slate-500",
 };
 
-const RecentActivity = () => {
-  const { activities, loading, error } = useRecentActivities();
+interface RecentActivityProps {
+  activities: RecentActivityType[];
+}
 
-  if (loading) {
-    return (
-      <div className="py-8 text-center text-slate-500 animate-pulse">
-        <Clock className="h-7 w-7 mx-auto mb-2" />
-        Chargement des activités récentes…
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="py-8 text-center text-red-500">
-        <AlertCircle className="h-7 w-7 mx-auto mb-2" />
-        {error}
-      </div>
-    );
-  }
-
+const RecentActivity = ({ activities }: RecentActivityProps) => {
   if (!activities.length) {
     return (
       <div className="py-8 text-center text-slate-400">

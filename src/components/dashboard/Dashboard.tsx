@@ -5,8 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import StatsCard from "./StatsCard";
 import ActivityChart from "./ActivityChart";
 import RecentActivity from "./RecentActivity";
-import { useDashboardStats } from "../../hooks/useDashboardStats";
-import { useRecentActivities } from "../../hooks/useRecentActivities";
+import { useDashboardStats } from "./useDashboardStats";
+import { useRecentActivities } from "./useRecentActivities";
 import { 
   Users, 
   Calendar, 
@@ -70,7 +70,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
           title="Utilisateurs actifs"
-          value={stats?.activeUsers?.toString() || "0"}
+          value={stats?.utilisateurs?.toString() || "0"}
           change="+12%"
           trend="up"
           icon={Users}
@@ -78,7 +78,7 @@ const Dashboard = () => {
         />
         <StatsCard
           title="Prestations"
-          value={stats?.totalPrestations?.toString() || "0"}
+          value={stats?.prestations?.toString() || "0"}
           change="+8%"
           trend="up"
           icon={Calendar}
@@ -86,15 +86,15 @@ const Dashboard = () => {
         />
         <StatsCard
           title="Revenus"
-          value={`${stats?.revenue || 0}€`}
+          value={`${stats?.revenus || 0}€`}
           change="+15%"
           trend="up"
           icon={TrendingUp}
           color="purple"
         />
         <StatsCard
-          title="Satisfaction"
-          value={`${stats?.satisfaction || 0}%`}
+          title="Messages"
+          value={stats?.messages?.toString() || "0"}
           change="+5%"
           trend="up"
           icon={Heart}
