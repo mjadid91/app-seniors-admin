@@ -188,6 +188,7 @@ const UserManagement = () => {
                   onRoleChange={handleRoleChange}
                   onEditUser={handleEditUser}
                   onDeleteUser={handleDeleteUser}
+                  onRefresh={fetchUsers}
                 />
               </CardContent>
             </Card>

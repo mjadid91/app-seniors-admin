@@ -13,11 +13,13 @@ export const useUserActivation = () => {
 
   const checkLastActiveAdmin = async (userId: string): Promise<boolean> => {
     try {
+      console.log('Checking if user can be deactivated:', userId);
+      
       // Vérifier si l'utilisateur à désactiver est administrateur
       const { data: userToDisable, error: userError } = await supabase
         .from('Utilisateurs')
         .select(`
-          IDCatUtilisateurs,
+          IDUtilisateurs,
           CatUtilisateurs:IDCatUtilisateurs (
             EstAdministrateur
           )
@@ -25,8 +27,16 @@ export const useUserActivation = () => {
         .eq('IDUtilisateurs', parseInt(userId))
         .single();
 
-      if (userError || !userToDisable?.CatUtilisateurs?.EstAdministrateur) {
+      if (userError) {
+        console.error('Error fetching user to disable:', userError);
+        return false;
+      }
+
+      console.log('User to disable:', userToDisable);
+
+      if (!userToDisable?.CatUtilisateurs?.EstAdministrateur) {
         // Si ce n'est pas un admin, on peut le désactiver
+        console.log('User is not admin, can be deactivated');
         return true;
       }
 
@@ -39,16 +49,22 @@ export const useUserActivation = () => {
             EstAdministrateur
           )
         `)
-        .eq('EstDesactive', false)
-        .eq('CatUtilisateurs.EstAdministrateur', true);
+        .eq('EstDesactive', false);
 
       if (adminError) {
         console.error('Error checking active admins:', adminError);
         return false;
       }
 
+      // Filtrer les vrais administrateurs
+      const realActiveAdmins = activeAdmins?.filter(admin => 
+        admin.CatUtilisateurs?.EstAdministrateur === true
+      ) || [];
+
+      console.log('Active admins found:', realActiveAdmins.length);
+
       // Si il y a plus d'un admin actif, on peut désactiver
-      return activeAdmins && activeAdmins.length > 1;
+      return realActiveAdmins.length > 1;
     } catch (error) {
       console.error('Error in checkLastActiveAdmin:', error);
       return false;
@@ -56,10 +72,13 @@ export const useUserActivation = () => {
   };
 
   const toggleUserActivation = async (userId: string, currentStatus: boolean): Promise<boolean> => {
+    console.log('toggleUserActivation called:', { userId, currentStatus });
     setIsLoading(true);
+    
     try {
       // Si on veut désactiver (currentStatus = false -> EstDesactive = true)
       if (!currentStatus) {
+        console.log('Attempting to deactivate user');
         const canDisable = await checkLastActiveAdmin(userId);
         if (!canDisable) {
           toast({
@@ -72,6 +91,7 @@ export const useUserActivation = () => {
       }
 
       // Mettre à jour le statut de désactivation
+      console.log('Updating user activation status');
       const { error } = await supabase
         .from('Utilisateurs')
         .update({ EstDesactive: !currentStatus })
@@ -94,6 +114,7 @@ export const useUserActivation = () => {
       });
 
       // Si l'utilisateur se désactive lui-même, le déconnecter
+      // Comparer les IDs en tant que strings
       if (!currentStatus && currentUser?.id === userId) {
         toast({
           title: "Déconnexion automatique",

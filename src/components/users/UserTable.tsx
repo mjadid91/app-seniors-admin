@@ -12,18 +12,20 @@ interface UserTableProps {
   onRoleChange: (userId: string, newRole: User['role']) => void;
   onEditUser: (user: User) => void;
   onDeleteUser: (user: User) => void;
+  onRefresh?: () => void; // Nouvelle prop pour recharger les données
 }
 
-const UserTable = ({ users, onRoleChange, onEditUser, onDeleteUser }: UserTableProps) => {
+const UserTable = ({ users, onRoleChange, onEditUser, onDeleteUser, onRefresh }: UserTableProps) => {
   const { hasPermission, isViewer } = usePermissions();
   const canManageUsers = hasPermission(PERMISSIONS.MANAGE_USERS);
   const { toggleUserActivation, isLoading } = useUserActivation();
 
   const handleToggleActivation = async (user: User) => {
+    console.log('handleToggleActivation called for user:', user);
     const success = await toggleUserActivation(user.id, !user.estDesactive);
-    if (success) {
+    if (success && onRefresh) {
       // Recharger la liste des utilisateurs
-      window.location.reload();
+      onRefresh();
     }
   };
 
