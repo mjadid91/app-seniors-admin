@@ -3,10 +3,10 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
-import { AlertCircle, Users, Shield, Heart, BarChart3, Headphones, Wifi } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { AlertCircle, ArrowRight, Shield, Users, Heart } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
 import { AppLogo } from "../layout/AppLogo";
 
@@ -15,6 +15,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isAnimated, setIsAnimated] = useState(false);
   const { signIn, user, isAuthenticated, loading: authLoading, isInitialized } = useSupabaseAuth();
   const { logout } = useAuthStore();
   const navigate = useNavigate();
@@ -23,6 +24,8 @@ const LoginPage = () => {
   useEffect(() => {
     console.log('LoginPage: Ensuring clean state on load');
     logout();
+    // Déclencher l'animation après un court délai
+    setTimeout(() => setIsAnimated(true), 100);
   }, [logout]);
 
   // Rediriger vers dashboard si déjà authentifié
@@ -65,37 +68,41 @@ const LoginPage = () => {
   // Afficher le chargement si l'auth n'est pas encore initialisée
   if (!isInitialized) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Initialisation...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Initialisation...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex">
-      {/* Partie gauche - Formulaire */}
-      <div className="w-full lg:w-1/2 bg-gray-50 flex items-center justify-center p-8">
-        <div className="w-full max-w-md animate-fade-in">
-          {/* Logo et titre */}
-          <div className="text-center mb-8">
+    <div className="min-h-screen grid lg:grid-cols-2">
+      {/* Colonne gauche - Formulaire de connexion */}
+      <div className="flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className={`mx-auto w-full max-w-md transform transition-all duration-700 ${isAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          {/* Logo */}
+          <div className="mb-8">
             <AppLogo />
-            <h1 className="text-3xl font-bold text-gray-900 mt-6 mb-2">
-              Connexion à l'interface
+          </div>
+
+          {/* En-tête */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              Connexion
             </h1>
-            <p className="text-gray-600">
-              Gérez les utilisateurs, les prestations et plus encore.
+            <p className="mt-2 text-muted-foreground">
+              Accédez à votre interface d'administration
             </p>
           </div>
 
           {/* Formulaire */}
-          <Card className="shadow-md border-0 bg-white">
-            <CardContent className="p-6">
+          <Card className="shadow-none border-0">
+            <CardContent className="p-0">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-gray-700 font-medium">
+                  <Label htmlFor="email" className="text-sm font-medium text-foreground">
                     Adresse email
                   </Label>
                   <Input
@@ -105,13 +112,13 @@ const LoginPage = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin@appseniors.fr"
                     required
-                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500/20"
+                    className="h-11"
                     disabled={isLoading || authLoading}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-gray-700 font-medium">
+                  <Label htmlFor="password" className="text-sm font-medium text-foreground">
                     Mot de passe
                   </Label>
                   <Input
@@ -121,21 +128,21 @@ const LoginPage = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500/20"
+                    className="h-11"
                     disabled={isLoading || authLoading}
                   />
                 </div>
-
+                
                 {error && (
-                  <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
                     <AlertCircle className="h-4 w-4 flex-shrink-0" />
                     {error}
                   </div>
                 )}
-
+                
                 <Button
                   type="submit"
-                  className="w-full bg-primary text-white hover:bg-primary/90 shadow-lg transition-all duration-200 hover:shadow-xl"
+                  className="w-full h-11 font-medium"
                   disabled={isLoading || authLoading}
                 >
                   {isLoading || authLoading ? (
@@ -144,104 +151,90 @@ const LoginPage = () => {
                       Connexion...
                     </div>
                   ) : (
-                    "Se connecter"
+                    <div className="flex items-center gap-2">
+                      Se connecter
+                      <ArrowRight className="h-4 w-4" />
+                    </div>
                   )}
                 </Button>
               </form>
-
+              
               <div className="mt-6 text-center">
-                <a
-                  href="#"
-                  className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
+                <Link
+                  to="/mot-de-passe-oublie"
+                  className="text-sm text-primary hover:text-primary/80 transition-colors"
                 >
                   Mot de passe oublié ?
-                </a>
+                </Link>
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      {/* Partie droite - Message visuel */}
-      <div className="hidden lg:flex w-1/2 bg-blue-50 items-center justify-center p-8">
-        <div className="max-w-md text-center">
-          {/* Icônes et fonctionnalités */}
-          <div className="grid grid-cols-1 gap-6 mb-8">
-            <div className="flex items-center gap-3 text-left">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Users className="h-5 w-5 text-blue-600" />
+      {/* Colonne droite - Hero Section */}
+      <div className="hidden lg:flex lg:flex-col lg:justify-center bg-muted/30 p-12">
+        <div className={`max-w-lg mx-auto text-center transform transition-all duration-1000 delay-300 ${isAnimated ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+          {/* Illustration Hero */}
+          <div className="mb-12">
+            <div className="relative">
+              {/* Cercles décoratifs */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-48 h-48 bg-primary/10 rounded-full animate-pulse"></div>
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Gestion des utilisateurs</h3>
-                <p className="text-sm text-gray-600">Administration complète</p>
+              <div className="absolute inset-4 flex items-center justify-center">
+                <div className="w-32 h-32 bg-primary/20 rounded-full animate-pulse delay-300"></div>
               </div>
-            </div>
-
-            <div className="flex items-center gap-3 text-left">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Shield className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Sécurité avancée</h3>
-                <p className="text-sm text-gray-600">Protection des données</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 text-left">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Heart className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">Au service des seniors</h3>
-                <p className="text-sm text-gray-600">Accompagnement personnalisé</p>
+              
+              {/* Icône centrale */}
+              <div className="relative z-10 flex items-center justify-center h-48">
+                <div className="w-24 h-24 bg-primary rounded-2xl flex items-center justify-center shadow-lg">
+                  <Shield className="h-12 w-12 text-primary-foreground" />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Message principal */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Gérez votre plateforme en toute simplicité
+          {/* Contenu Hero */}
+          <div className="space-y-6">
+            <h2 className="text-3xl font-bold text-foreground leading-tight">
+              Plateforme d'administration sécurisée
             </h2>
-            <p className="text-gray-600 leading-relaxed">
-              Interface d'administration intuitive pour superviser et optimiser 
-              votre écosystème AppSeniors. Contrôlez les utilisateurs, les prestations 
-              et assurez un service de qualité.
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              Gérez votre communauté de seniors et d'aidants avec des outils modernes et intuitifs
             </p>
           </div>
 
-          {/* Statistiques */}
-          <div className="grid grid-cols-2 gap-4 text-center">
-            <div className="bg-white/70 rounded-lg p-4">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Users className="h-4 w-4 text-blue-600" />
-                <span className="font-bold text-gray-900">1000+</span>
+          {/* Features */}
+          <div className="mt-12 grid grid-cols-1 gap-6">
+            <div className="flex items-center gap-4 p-4 bg-background/50 rounded-lg backdrop-blur-sm">
+              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Users className="h-5 w-5 text-primary" />
               </div>
-              <p className="text-sm text-gray-600">Utilisateurs</p>
+              <div className="text-left">
+                <h3 className="font-semibold text-sm text-foreground">Gestion des utilisateurs</h3>
+                <p className="text-xs text-muted-foreground">Interface intuitive et complète</p>
+              </div>
             </div>
 
-            <div className="bg-white/70 rounded-lg p-4">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Heart className="h-4 w-4 text-green-600" />
-                <span className="font-bold text-gray-900">500+</span>
+            <div className="flex items-center gap-4 p-4 bg-background/50 rounded-lg backdrop-blur-sm">
+              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Shield className="h-5 w-5 text-primary" />
               </div>
-              <p className="text-sm text-gray-600">Aidants</p>
+              <div className="text-left">
+                <h3 className="font-semibold text-sm text-foreground">Sécurité avancée</h3>
+                <p className="text-xs text-muted-foreground">Protection des données garantie</p>
+              </div>
             </div>
 
-            <div className="bg-white/70 rounded-lg p-4">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Headphones className="h-4 w-4 text-purple-600" />
-                <span className="font-bold text-gray-900">24/7</span>
+            <div className="flex items-center gap-4 p-4 bg-background/50 rounded-lg backdrop-blur-sm">
+              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Heart className="h-5 w-5 text-primary" />
               </div>
-              <p className="text-sm text-gray-600">Support</p>
-            </div>
-
-            <div className="bg-white/70 rounded-lg p-4">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Wifi className="h-4 w-4 text-emerald-600" />
-                <span className="font-bold text-gray-900">99.9%</span>
+              <div className="text-left">
+                <h3 className="font-semibold text-sm text-foreground">Accompagnement</h3>
+                <p className="text-xs text-muted-foreground">Au service des seniors</p>
               </div>
-              <p className="text-sm text-gray-600">Disponibilité</p>
             </div>
           </div>
         </div>
