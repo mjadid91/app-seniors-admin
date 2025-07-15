@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Heart, Phone, MapPin } from "lucide-react";
 import { Senior } from "../../types/seniors";
 import SeniorDetailsModal from "./SeniorDetailsModal";
@@ -49,6 +50,10 @@ const SeniorsList = ({ seniors }: SeniorsListProps) => {
     }
   };
 
+  const getInitials = (prenom: string, nom: string) => {
+    return `${prenom?.[0] || ''}${nom?.[0] || ''}`;
+  };
+
   const handleViewDetails = (senior: Senior) => {
     setSelectedSenior(senior);
     setIsModalOpen(true);
@@ -61,32 +66,40 @@ const SeniorsList = ({ seniors }: SeniorsListProps) => {
           <Card key={senior.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-4">
               <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="font-semibold text-slate-800">
-                      {senior.prenom} {senior.nom}
-                    </h3>
-                    <Badge variant={senior.statut === 'actif' ? 'default' : 'secondary'}>
-                      {senior.statut}
-                    </Badge>
-                  </div>
+                <div className="flex items-start gap-3 flex-1">
+                  <Avatar className="h-12 w-12 flex-shrink-0">
+                    <AvatarFallback className="bg-gradient-to-br from-slate-400 to-slate-500 text-white font-medium">
+                      {getInitials(senior.prenom, senior.nom)}
+                    </AvatarFallback>
+                  </Avatar>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-600">
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      <span>{senior.telephone || 'Non renseigné'}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      <span>{senior.ville || 'Non renseigné'}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs">Autonomie:</span>
-                      <Badge variant="outline" className="text-xs">
-                        {senior.niveauAutonomie}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="font-semibold text-slate-800">
+                        {senior.prenom} {senior.nom}
+                      </h3>
+                      <Badge variant={senior.statut === 'actif' ? 'default' : 'secondary'}>
+                        {senior.statut}
                       </Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-600">
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        <span>{senior.telephone || 'Non renseigné'}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4" />
+                        <span>{senior.ville || 'Non renseigné'}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs">Autonomie:</span>
+                        <Badge variant="outline" className="text-xs">
+                          {senior.niveauAutonomie}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
                 </div>

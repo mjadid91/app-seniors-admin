@@ -2,6 +2,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Aidant } from "../../types/seniors";
 import { usePermissions, PERMISSIONS } from "../../hooks/usePermissions";
 
@@ -35,6 +36,10 @@ const AidantsTable = ({ aidants, onEditAidant, onDeleteAidant }: AidantsTablePro
     return genre && genre !== 'Non précisé' ? genre : 'Non renseigné';
   };
 
+  const getInitials = (prenom: string, nom: string) => {
+    return `${prenom?.[0] || ''}${nom?.[0] || ''}`;
+  };
+
   if (aidants.length === 0) {
     return (
       <div className="text-center py-8">
@@ -62,8 +67,15 @@ const AidantsTable = ({ aidants, onEditAidant, onDeleteAidant }: AidantsTablePro
         {aidants.map((aidant) => (
           <TableRow key={aidant.id}>
             <TableCell>
-              <div>
-                <p className="font-medium">{aidant.prenom} {aidant.nom}</p>
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-medium text-sm">
+                    {getInitials(aidant.prenom, aidant.nom)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{aidant.prenom} {aidant.nom}</p>
+                </div>
               </div>
             </TableCell>
             <TableCell>{aidant.email}</TableCell>
