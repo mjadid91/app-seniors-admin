@@ -21,7 +21,6 @@ const LoginPage = () => {
 
   // S'assurer que l'état de connexion est nettoyé au chargement de la page
   useEffect(() => {
-    console.log('LoginPage: Ensuring clean state on load');
     logout();
     // Déclencher l'animation après un court délai
     setTimeout(() => setIsAnimated(true), 100);
@@ -30,8 +29,7 @@ const LoginPage = () => {
   // Rediriger vers dashboard si déjà authentifié
   useEffect(() => {
     if (isInitialized && !authLoading && isAuthenticated && user) {
-      console.log('LoginPage: User already authenticated, redirecting to dashboard');
-      navigate("/dashboard", { replace: true });
+      navigate("/", { replace: true });
     }
   }, [isAuthenticated, user, authLoading, isInitialized, navigate]);
 
@@ -159,7 +157,7 @@ const LoginPage = () => {
               
               <div className="mt-6 text-center">
                 <Link
-                  to="/mot-de-passe-oublie"
+                  to="/ForgotPassword"
                   className="text-sm text-primary hover:text-primary/80 transition-colors"
                 >
                   Mot de passe oublié ?
