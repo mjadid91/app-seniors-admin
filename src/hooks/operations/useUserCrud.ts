@@ -11,23 +11,72 @@ export const useUserCrud = (
 ) => {
 
   const getRoleFlags = (idCat: number) => {
-    return {
-      EstAdministrateur: idCat === 5,
-      EstModerateur: idCat === 6,
-      EstSupport: idCat === 8,
-      EstSenior: false,
-      EstAidant: false,
-      EstTuteur: false,
-      EstOrganisme: false
-    };
+    // Définir les flags selon l'ID de catégorie
+    switch (idCat) {
+      case 5: // Administrateur
+        return {
+          EstAdministrateur: true,
+          EstModerateur: false,
+          EstSupport: false,
+          EstSenior: false,
+          EstAidant: false,
+          EstTuteur: false,
+          EstOrganisme: false
+        };
+      case 6: // Modérateur
+        return {
+          EstAdministrateur: false,
+          EstModerateur: true,
+          EstSupport: false,
+          EstSenior: false,
+          EstAidant: false,
+          EstTuteur: false,
+          EstOrganisme: false
+        };
+      case 7: // Visualisateur
+        return {
+          EstAdministrateur: false,
+          EstModerateur: false,
+          EstSupport: false,
+          EstSenior: false,
+          EstAidant: false,
+          EstTuteur: false,
+          EstOrganisme: false
+        };
+      case 8: // Support
+        return {
+          EstAdministrateur: false,
+          EstModerateur: false,
+          EstSupport: true,
+          EstSenior: false,
+          EstAidant: false,
+          EstTuteur: false,
+          EstOrganisme: false
+        };
+      default:
+        // Visualisateur par défaut
+        return {
+          EstAdministrateur: false,
+          EstModerateur: false,
+          EstSupport: false,
+          EstSenior: false,
+          EstAidant: false,
+          EstTuteur: false,
+          EstOrganisme: false
+        };
+    }
   };
 
   // Fonction pour ajouter un utilisateur avec le mot de passe fourni
   const addUser = async (userData: CreateUserData, userPassword: string): Promise<User> => {
     try {
+      console.log('Création utilisateur avec catégorie:', userData.categoryId);
       const currentDate = new Date().toISOString();
 
       const roleFlags = getRoleFlags(userData.categoryId);
+      console.log('Flags de rôle générés:', roleFlags);
+      
+      // S'assurer que la catégorie existe avec les bons flags
       await supabase
           .from("CatUtilisateurs")
           .upsert([{
@@ -50,9 +99,11 @@ export const useUserCrud = (
         DateModification: currentDate,
         LangueSite: 'fr',
         Photo: '',
-        EstDesactive: false, // Par défaut, un nouveau compte est actif
+        EstDesactive: false,
         EstRGPD: false
       };
+
+      console.log('Données utilisateur à insérer:', supabaseUserData);
 
       const { data, error: insertError } = await supabase
           .from('Utilisateurs')
@@ -64,6 +115,8 @@ export const useUserCrud = (
 
       const userId = data?.IDUtilisateurs;
       if (!userId) throw new Error('IDUtilisateurs introuvable');
+
+      console.log('Utilisateur créé avec succès, ID:', userId);
 
       // Ajout langue
       if (userData.languePreferee) {
@@ -105,7 +158,41 @@ export const useUserCrud = (
         }
       }
 
-      const newUser = convertSupabaseUserToAppUser(data, getRoleFromCategory);
+      // Récupérer l'utilisateur avec ses données de catégorie pour vérification
+      const { data: newUserData, error: fetchError } = await supabase
+        .from('Utilisateurs')
+        .select(`
+          IDUtilisateurs,
+          Nom,
+          Prenom,
+          Email,
+          DateInscription,
+          EstDesactive,
+          IDCatUtilisateurs,
+          CatUtilisateurs:IDCatUtilisateurs (
+            IDCatUtilisateurs,
+            EstAdministrateur,
+            EstModerateur,
+            EstSupport,
+            EstSenior,
+            EstAidant
+          )
+        `)
+        .eq('IDUtilisateurs', userId)
+        .single();
+
+      if (fetchError) {
+        console.error('Erreur lors de la récupération de l\'utilisateur créé:', fetchError);
+        // Utiliser les données déjà disponibles si la récupération échoue
+        const newUser = convertSupabaseUserToAppUser(data, getRoleFromCategory);
+        setUsers([...users, newUser]);
+        return newUser;
+      }
+
+      console.log('Données utilisateur récupérées après création:', newUserData);
+      const newUser = convertSupabaseUserToAppUser(newUserData, getRoleFromCategory);
+      console.log('Utilisateur converti:', newUser);
+      
       setUsers([...users, newUser]);
       return newUser;
 
