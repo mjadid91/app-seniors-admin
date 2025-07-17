@@ -38,9 +38,9 @@ export const useUserFetch = (
       setLoading(true);
       setError(null);
       
-      console.log('useUserFetch: Starting to fetch users...');
+      console.log('useUserFetch: Starting to fetch administrative users...');
 
-      // Récupérer les utilisateurs administratifs (pas les seniors ni les aidants)
+      // Récupérer UNIQUEMENT les utilisateurs administratifs avec les catégories 5, 6, 7, 8
       const { data: usersData, error } = await supabase
         .from('Utilisateurs')
         .select(`
@@ -50,6 +50,7 @@ export const useUserFetch = (
           Email,
           DateInscription,
           EstDesactive,
+          IDCatUtilisateurs,
           CatUtilisateurs:IDCatUtilisateurs (
             IDCatUtilisateurs,
             EstAdministrateur,
@@ -59,22 +60,28 @@ export const useUserFetch = (
             EstAidant
           )
         `)
-        .eq('CatUtilisateurs.EstSenior', false)
-        .eq('CatUtilisateurs.EstAidant', false);
+        .in('IDCatUtilisateurs', [5, 6, 7, 8]); // Filtrer SEULEMENT les catégories administratives
 
       if (error) {
         console.error('useUserFetch: Error fetching users:', error);
         throw error;
       }
 
-      console.log('useUserFetch: Raw users data:', usersData);
+      console.log('useUserFetch: Raw administrative users data:', usersData);
 
       if (usersData) {
-        const convertedUsers = usersData
-          .filter(user => user.CatUtilisateurs)
-          .map(user => convertSupabaseUserToAppUser(user, getRoleFromCategory));
+        // Double vérification pour s'assurer qu'on n'affiche que les catégories administratives
+        const filteredUsers = usersData.filter(user => {
+          const isValidCategory = [5, 6, 7, 8].includes(user.IDCatUtilisateurs);
+          if (!isValidCategory) {
+            console.warn('useUserFetch: Filtering out user with invalid category:', user.IDCatUtilisateurs);
+          }
+          return isValidCategory && user.CatUtilisateurs;
+        });
+
+        const convertedUsers = filteredUsers.map(user => convertSupabaseUserToAppUser(user, getRoleFromCategory));
         
-        console.log('useUserFetch: Converted users:', convertedUsers);
+        console.log('useUserFetch: Final administrative users list:', convertedUsers);
         setUsers(convertedUsers);
       } else {
         setUsers([]);
