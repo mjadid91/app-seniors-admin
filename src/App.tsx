@@ -39,9 +39,6 @@ const App = () => (
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/mentions-legales" element={<MentionsLegales />} />
-          <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
-          <Route path="/conditions-utilisation" element={<ConditionsUtilisation />} />
           <Route path="/contact" element={<ContactPage />} />
           
           {/* Routes with shared navbar layout */}
@@ -55,6 +52,9 @@ const App = () => (
             <Route path="/partners" element={<PartnersPage />} />
             <Route path="/rgpd" element={<RGPDPage />} />
             <Route path="/finances" element={<FinancesPage />} />
+            <Route path="/mentions-legales" element={<MentionsLegales />} />
+            <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
+            <Route path="/conditions-utilisation" element={<ConditionsUtilisation />} />
           </Route>
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
