@@ -39,7 +39,7 @@ const FinanceHeader = ({
       </div>
 
       {/* Statistiques rapides */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="bg-white rounded-lg border border-slate-200 p-6">
           <div className="flex items-center">
             <div className="p-2 bg-blue-100 rounded-lg">
@@ -58,20 +58,8 @@ const FinanceHeader = ({
               <DollarSign className="h-6 w-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-slate-600">Montant Total</p>
+              <p className="text-sm font-medium text-slate-600">Montant Total des transactions</p>
               <p className="text-2xl font-bold text-slate-900">{totalAmount.toFixed(2)} €</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-lg border border-slate-200 p-6">
-          <div className="flex items-center">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <DollarSign className="h-6 w-6 text-orange-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-slate-600">Commissions</p>
-              <p className="text-2xl font-bold text-slate-900">{totalCommissions.toFixed(2)} €</p>
             </div>
           </div>
         </div>

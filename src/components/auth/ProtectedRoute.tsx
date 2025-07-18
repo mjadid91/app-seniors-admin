@@ -56,7 +56,8 @@ const ProtectedRoute = ({
     );
   }
 
-  const hasAccess = () => { // Vérifie si l'utilisateur a accès à la page ou à la permission requise
+  const hasAccess = () => { // Vérifie si l'utilisateur a accès à la page
+    // ou à la permission requise
     if (requiredPage && !canAccessPage(requiredPage)) {
       return false;
     }
@@ -67,10 +68,7 @@ const ProtectedRoute = ({
   };
 
   if (!hasAccess()) {
-    if (fallback) {
-      return <>{fallback}</>;
-    }
-
+    if (fallback) {return <>{fallback}</>;}
     return (
       <div className="min-h-[400px] flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -81,8 +79,8 @@ const ProtectedRoute = ({
           </div>
           <div className="space-y-2">
             <h3 className="text-lg font-semibold text-slate-800">Accès restreint</h3>
-            <p className="text-slate-600 max-w-md">
-              Votre rôle ({user.role}) ne permet pas d'accéder à cette section.
+            <p className="text-slate-600 max-w-md">Votre rôle ({user.role})
+              ne permet pas d'accéder à cette section.
             </p>
           </div>
           <div className="flex items-center justify-center gap-2 text-sm text-amber-600 bg-amber-50 px-4 py-2 rounded-lg">
@@ -91,8 +89,13 @@ const ProtectedRoute = ({
           </div>
         </div>
       </div>
-    );
-  }
+    );}
+
+
+
+
+
+
 
   return <>{children}</>;
 };

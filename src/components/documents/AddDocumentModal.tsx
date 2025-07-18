@@ -32,36 +32,23 @@ const AddDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddDocumentModal
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
-      return;
-    }
-
-    if (!file) {
-      toast({
+    if (!validateForm()) { return;}
+    if (!file) {toast({
         title: "Erreur",
         description: "Veuillez sélectionner un fichier à uploader.",
         variant: "destructive"
-      });
-      return;
-    }
+      }); return;}
 
     const categoryId = catNameToId[formData.category];
-    if (!categoryId) {
-      toast({
+    if (!categoryId) { toast({
         title: "Erreur",
         description: "Catégorie non trouvée.",
         variant: "destructive"
-      });
-      return;
+      }); return;
     }
-
     setIsLoading(true);
-
     try {
-      await uploadFile(file, categoryId, () => {
-        onUploadSuccess();
-        resetForm();
-        onClose();
+      await uploadFile(file, categoryId, () => { onUploadSuccess();resetForm();onClose();
       });
     } catch (error) {
       console.error('Erreur lors de l\'upload du document:', error);
