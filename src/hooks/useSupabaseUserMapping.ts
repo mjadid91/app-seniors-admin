@@ -22,11 +22,8 @@ export const useSupabaseUserMapping = () => {
       console.warn('useSupabaseUserMapping: Invalid supabase user data', supabaseUser);
       return null;
     }
-
     setIsLoading(true);
     try {
-      console.log('useSupabaseUserMapping: Searching for user with email:', supabaseUser.email);
-      
       // Chercher l'utilisateur par email dans notre base de données
       const { data: existingUser, error: searchError } = await supabase
         .from('Utilisateurs')
@@ -53,11 +50,8 @@ export const useSupabaseUserMapping = () => {
       }
 
       if (existingUser) {
-        console.log('useSupabaseUserMapping: Found existing user:', existingUser);
-        
         // Vérifier si le compte est désactivé
         if (existingUser.EstDesactive) {
-          console.log('useSupabaseUserMapping: User account is disabled');
           toast({
             title: "Compte désactivé",
             description: "Votre compte a été désactivé par l'administrateur. Veuillez contacter l'administrateur à l'adresse admin@appseniors.fr pour plus d'informations.",
@@ -65,35 +59,23 @@ export const useSupabaseUserMapping = () => {
           });
           return null;
         }
-
         // Déterminer le rôle basé sur la catégorie avec logique améliorée
         let role = 'visualisateur'; // rôle par défaut
         if (existingUser.CatUtilisateurs) {
           const cat = existingUser.CatUtilisateurs;
-          if (cat.EstAdministrateur) {
-            role = 'administrateur';
-          } else if (cat.EstModerateur) {
-            role = 'moderateur';
-          } else if (cat.EstSupport) {
-            role = 'support';
-          } else {
-            role = 'visualisateur';
-          }
+          if (cat.EstAdministrateur) { role = 'administrateur';
+          } else if (cat.EstModerateur) { role = 'moderateur';
+          } else if (cat.EstSupport) { role = 'support';
+          } else { role = 'visualisateur'; }
         }
 
-        console.log('useSupabaseUserMapping: Determined role:', role);
-
         const mapping: UserMapping = {
-          supabaseUserId: supabaseUser.id,
-          dbUserId: existingUser.IDUtilisateurs,
-          nom: existingUser.Nom || '',
-          prenom: existingUser.Prenom || '',
-          email: existingUser.Email || '',
-          role
+          supabaseUserId: supabaseUser.id,  dbUserId: existingUser.IDUtilisateurs,
+          nom: existingUser.Nom || '', prenom: existingUser.Prenom || '',
+          email: existingUser.Email || '', role
         };
 
         setUserMapping(mapping);
-        console.log('useSupabaseUserMapping: User mapping created:', mapping);
         return mapping;
       } else {
         console.log('useSupabaseUserMapping: User not found in database');

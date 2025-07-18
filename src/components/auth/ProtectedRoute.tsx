@@ -22,15 +22,6 @@ const ProtectedRoute = ({
   const { isAuthenticated, loading, isInitialized, user } = useSupabaseAuth();
   const { canAccessPage, hasPermission } = usePermissions();
 
-  console.log('ProtectedRoute: Checking access', {
-    isAuthenticated,
-    loading,
-    isInitialized,
-    user: user ? { id: user.id, role: user.role } : null,
-    requiredPage,
-    requiredPermission
-  });
-
   // Afficher le chargement si l'auth n'est pas encore initialisée ou en cours
   if (!isInitialized || loading) {
     return (
@@ -65,16 +56,13 @@ const ProtectedRoute = ({
     );
   }
 
-  const hasAccess = () => {
+  const hasAccess = () => { // Vérifie si l'utilisateur a accès à la page ou à la permission requise
     if (requiredPage && !canAccessPage(requiredPage)) {
-      console.log('ProtectedRoute: Access denied for page:', requiredPage);
       return false;
     }
     if (requiredPermission && !hasPermission(requiredPermission)) {
-      console.log('ProtectedRoute: Access denied for permission:', requiredPermission);
       return false;
     }
-    console.log('ProtectedRoute: Access granted');
     return true;
   };
 

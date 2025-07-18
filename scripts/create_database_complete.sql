@@ -721,107 +721,114 @@ CREATE TRIGGER trigger_set_initial_cagnotte_status
 -- ===========================================
 
 -- Vue pour le dashboard des prestations
-CREATE OR REPLACE VIEW prestations_dashboard_view AS
-SELECT
-  "Prestation"."IDPrestation" as id,
-  "Prestation"."Titre" as type_prestation,
-  "Prestation"."DateCreation" as date_creation,
-  "MiseEnRelation"."TarifPreste" as tarif,
-  "MiseEnRelation"."Statut" as statut,
-  "Seniors"."IDSeniors",
-  CONCAT("SeniorUser"."Prenom", ' ', "SeniorUser"."Nom") as senior_nom,
-  "Aidant"."IDAidant",
-  CONCAT("AidantUser"."Prenom", ' ', "AidantUser"."Nom") as aidant_nom,
-  "Evaluation"."Note" as evaluation,
-  "Evaluation"."Commentaire" as evaluation_commentaire,
-  "Domaine"."IDDomaine",
-  "Domaine"."DomaineTitre" as domaine_titre
-FROM
-  "MiseEnRelation"
-  JOIN "Prestation" ON "MiseEnRelation"."IDPrestation" = "Prestation"."IDPrestation"
-  JOIN "Seniors" ON "MiseEnRelation"."IDSeniors" = "Seniors"."IDSeniors"
-  JOIN "Utilisateurs" "SeniorUser" ON "Seniors"."IDUtilisateurSenior" = "SeniorUser"."IDUtilisateurs"
-  JOIN "Aidant" ON "MiseEnRelation"."IDAidant" = "Aidant"."IDAidant"
-  JOIN "Utilisateurs" "AidantUser" ON "Aidant"."IDUtilisateurs" = "AidantUser"."IDUtilisateurs"
-  LEFT JOIN "Evaluation" ON "Evaluation"."IDMiseEnRelation" = "MiseEnRelation"."IDMiseEnRelation"
-  LEFT JOIN "Domaine" ON "Prestation"."IDDomaine" = "Domaine"."IDDomaine";
+create view public.prestations_dashboard_view as
+select
+    "Prestation"."IDPrestation" as id,
+    "Prestation"."Titre" as type_prestation,
+    "Prestation"."DateCreation" as date_creation,
+    "MiseEnRelation"."TarifPreste" as tarif,
+    "MiseEnRelation"."Statut" as statut,
+    "Seniors"."IDSeniors",
+    concat("SeniorUser"."Prenom", ' ', "SeniorUser"."Nom") as senior_nom,
+    "Aidant"."IDAidant",
+    concat("AidantUser"."Prenom", ' ', "AidantUser"."Nom") as aidant_nom,
+    "Evaluation"."Note" as evaluation,
+    "Evaluation"."Commentaire" as evaluation_commentaire,
+    "Domaine"."IDDomaine",
+    "Domaine"."DomaineTitre" as domaine_titre
+from
+    "MiseEnRelation"
+        join "Prestation" on "MiseEnRelation"."IDPrestation" = "Prestation"."IDPrestation"
+        join "Seniors" on "MiseEnRelation"."IDSeniors" = "Seniors"."IDSeniors"
+        join "Utilisateurs" "SeniorUser" on "Seniors"."IDUtilisateurSenior" = "SeniorUser"."IDUtilisateurs"
+        join "Aidant" on "MiseEnRelation"."IDAidant" = "Aidant"."IDAidant"
+        join "Utilisateurs" "AidantUser" on "Aidant"."IDUtilisateurs" = "AidantUser"."IDUtilisateurs"
+        left join "Evaluation" on "Evaluation"."IDMiseEnRelation" = "MiseEnRelation"."IDMiseEnRelation"
+        left join "Domaine" on "Prestation"."IDDomaine" = "Domaine"."IDDomaine";
 
--- Vue pour le dashboard du support
-CREATE OR REPLACE VIEW support_dashboard_view AS
-SELECT 
-    tc."IDTicketClient" as id,
-    tc."Sujet" as sujet,
-    tc."Message" as message,
-    tc."DateCreation" as date_creation,
-    tc."Statut" as statut,
-    tc."Priorite" as priorite,
-    tc."IDUtilisateurs" as id_utilisateur,
+create view public.support_dashboard_view as
+select
+    sc."IDTicketClient" as id,
+    sc."Sujet" as sujet,
+    sc."DescriptionDemande" as message,
+    sc."DateEnvoi" as date_creation,
+    sc."StatutDemande" as statut,
+    sc."Priorite" as priorite,
+    sc."IDUtilisateursClient" as id_utilisateur,
     u."Nom" as utilisateur_nom,
     u."Prenom" as utilisateur_prenom,
     u."Email" as utilisateur_email,
     ps."IDPrestationSupport" as id_prestation_support,
     ps."IDIntervenant" as id_intervenant,
-    ui."Nom" as assigne_nom,
-    ui."Prenom" as assigne_prenom,
-    ui."Email" as assigne_email,
-    tc."DateResolution" as date_resolution
-FROM "TicketClient" tc
-LEFT JOIN "Utilisateurs" u ON tc."IDUtilisateurs" = u."IDUtilisateurs"
-LEFT JOIN "PrestationSupport" ps ON tc."IDTicketClient" = ps."IDTicketClient"
-LEFT JOIN "Utilisateurs" ui ON ps."IDIntervenant" = ui."IDUtilisateurs";
+    assignee."Nom" as assigne_nom,
+    assignee."Prenom" as assigne_prenom,
+    assignee."Email" as assigne_email
+from
+    "SupportClient" sc
+        left join "Utilisateurs" u on u."IDUtilisateurs" = sc."IDUtilisateursClient"
+        left join "PrestationSupport" ps on ps."IDTicketClient" = sc."IDTicketClient"
+        left join "Utilisateurs" assignee on assignee."IDUtilisateurs" = ps."IDIntervenant";
 
--- Vue des activités récentes
-CREATE OR REPLACE VIEW v_activitesrecentes AS
--- Nouvelles prestations
-SELECT 
-    ROW_NUMBER() OVER (ORDER BY mer."DatePrestation" DESC) as id,
-    'Prestation' as type,
-    CONCAT('Nouvelle prestation: ', p."Titre") as title,
-    CONCAT(us."Prenom", ' ', us."Nom", ' - ', ua."Prenom", ' ', ua."Nom") as subtitle,
-    mer."DatePrestation" as datetime
-FROM "MiseEnRelation" mer
-JOIN "Prestation" p ON mer."IDPrestation" = p."IDPrestation"
-JOIN "Seniors" s ON mer."IDSeniors" = s."IDSeniors"
-JOIN "Utilisateurs" us ON s."IDUtilisateurSenior" = us."IDUtilisateurs"
-JOIN "Aidant" a ON mer."IDAidant" = a."IDAidant"
-JOIN "Utilisateurs" ua ON a."IDUtilisateurs" = ua."IDUtilisateurs"
+create view public.v_activitesrecentes as
+select
+    u."IDUtilisateurs" as id,
+    'user'::text as type,
+        (u."Nom"::text || ' '::text) || u."Prenom"::text as title,
+        'Nouvel utilisateur inscrit'::text as subtitle,
+        u."DateInscription" as datetime
+from
+    "Utilisateurs" u
+union all
+select
+    sf."IDSujetForum" as id,
+    'forum'::text as type,
+        sf."TitreSujet" as title,
+    'Nouveau sujet publié'::text as subtitle,
+        sf."DateCreationSujet" as datetime
+from
+    "SujetForum" sf
+union all
+select
+    mg."IDMessageGroupe" as id,
+    'group'::text as type,
+        mg."Contenu" as title,
+    'Message de groupe publié'::text as subtitle,
+        mg."DateEnvoi" as datetime
+from
+    "MessageGroupe" mg
+union all
+select
+    sc."IDSignalement"::bigint as id,
+        'signalement'::text as type,
+        'Message de groupe signalé'::text as title,
+        'Un message a été signalé'::text as subtitle,
+        sc."DateSignalement" as datetime
+from
+    "SignalementContenu" sc
+where
+    sc."IDMessageGroupe" is not null
+union all
+select
+    sc."IDSignalement"::bigint as id,
+        'signalement'::text as type,
+        'Réponse de forum signalée'::text as title,
+        'Une réponse a été signalée'::text as subtitle,
+        sc."DateSignalement" as datetime
+from
+    "SignalementContenu" sc
+where
+    sc."IDReponseForum" is not null
+order by
+    5 desc;
 
-UNION ALL
-
--- Nouveaux tickets support
-SELECT 
-    ROW_NUMBER() OVER (ORDER BY tc."DateCreation" DESC) + 1000 as id,
-    'Support' as type,
-    CONCAT('Nouveau ticket: ', tc."Sujet") as title,
-    CONCAT(u."Prenom", ' ', u."Nom") as subtitle,
-    tc."DateCreation" as datetime
-FROM "TicketClient" tc
-JOIN "Utilisateurs" u ON tc."IDUtilisateurs" = u."IDUtilisateurs"
-
-UNION ALL
-
--- Nouvelles commandes
-SELECT 
-    ROW_NUMBER() OVER (ORDER BY c."DateCommande" DESC) + 2000 as id,
-    'Commande' as type,
-    CONCAT('Nouvelle commande: ', c."MontantTotal", '€') as title,
-    CONCAT(u."Prenom", ' ', u."Nom") as subtitle,
-    c."DateCommande"::timestamp as datetime
-FROM "Commande" c
-JOIN "Utilisateurs" u ON c."IDUtilisateurPayeur" = u."IDUtilisateurs"
-
-ORDER BY datetime DESC
-LIMIT 50;
-
--- Vue des transactions financières
-CREATE OR REPLACE VIEW v_financestransactions AS
-SELECT
-  aru."IDActiviteRemuneree" as id,
-  'Activité rémunérée'::text as type,
-  (u."Prenom"::text || ' '::text) || u."Nom"::text as utilisateur,
-  aru."MontantRevenu" as montant,
-  COALESCE(vc."MontantCommission", 0::numeric) as commission,
-  aru."DateTransaction" as date,
+create view public.v_financestransactions as
+select
+    aru."IDActiviteRemuneree" as id,
+    'Activité rémunérée'::text as type,
+        (u."Prenom"::text || ' '::text) || u."Nom"::text as utilisateur,
+        aru."MontantRevenu" as montant,
+    COALESCE(vc."MontantCommission", 0::numeric) as commission,
+    aru."DateTransaction" as date,
   aru."StatutPaiement" as statut,
   'activite'::text as categorie_type,
   aru."IDActiviteRemuneree" as original_id,
@@ -830,20 +837,18 @@ SELECT
   aru."IDActiviteRemuneree" as id_activite_remuneree,
   null::bigint as id_service_post_mortem,
   null::bigint as id_don_cagnotte
-FROM
+from
   "ActiviteRemuneree_Utilisateurs" aru
-  JOIN "Utilisateurs" u ON aru."IDUtilisateurs" = u."IDUtilisateurs"
-  LEFT JOIN "VersementCommissions" vc ON vc."IDActiviteRemuneree" = aru."IDActiviteRemuneree"
-
-UNION
-
-SELECT
-  dc."IDDonCagnotte" as id,
-  'Don'::text as type,
-  (u."Prenom"::text || ' '::text) || u."Nom"::text as utilisateur,
-  dc."Montant"::numeric as montant,
-  COALESCE(vc."MontantCommission", 0::numeric) as commission,
-  dc."DateDon" as date,
+  join "Utilisateurs" u on aru."IDUtilisateurs" = u."IDUtilisateurs"
+  left join "VersementCommissions" vc on vc."IDActiviteRemuneree" = aru."IDActiviteRemuneree"
+union
+select
+    dc."IDDonCagnotte" as id,
+    'Don'::text as type,
+        (u."Prenom"::text || ' '::text) || u."Nom"::text as utilisateur,
+        dc."Montant"::numeric as montant,
+        COALESCE(vc."MontantCommission", 0::numeric) as commission,
+    dc."DateDon" as date,
   'Validé'::character varying as statut,
   'don'::text as categorie_type,
   dc."IDDonCagnotte" as original_id,
@@ -852,20 +857,18 @@ SELECT
   null::bigint as id_activite_remuneree,
   null::bigint as id_service_post_mortem,
   dc."IDDonCagnotte" as id_don_cagnotte
-FROM
-  "DonCagnotte" dc
-  JOIN "Utilisateurs" u ON dc."IDDonateur" = u."IDUtilisateurs"
-  LEFT JOIN "VersementCommissions" vc ON vc."IDDonCagnotte" = dc."IDDonCagnotte"
-
-UNION
-
-SELECT
-  c."IDCommande" as id,
-  'Commande'::text as type,
-  (u."Prenom"::text || ' '::text) || u."Nom"::text as utilisateur,
-  c."MontantTotal" as montant,
-  COALESCE(vc."MontantCommission", 0::numeric) as commission,
-  c."DateCommande" as date,
+from
+    "DonCagnotte" dc
+    join "Utilisateurs" u on dc."IDDonateur" = u."IDUtilisateurs"
+    left join "VersementCommissions" vc on vc."IDDonCagnotte" = dc."IDDonCagnotte"
+union
+select
+    c."IDCommande" as id,
+    'Commande'::text as type,
+        (u."Prenom"::text || ' '::text) || u."Nom"::text as utilisateur,
+        c."MontantTotal" as montant,
+    COALESCE(vc."MontantCommission", 0::numeric) as commission,
+    c."DateCommande" as date,
   c."StatutCommande" as statut,
   'commande'::text as categorie_type,
   c."IDCommande" as original_id,
@@ -874,20 +877,18 @@ SELECT
   null::bigint as id_activite_remuneree,
   null::bigint as id_service_post_mortem,
   null::bigint as id_don_cagnotte
-FROM
-  "Commande" c
-  JOIN "Utilisateurs" u ON c."IDUtilisateurPayeur" = u."IDUtilisateurs"
-  LEFT JOIN "VersementCommissions" vc ON vc."IDCommande" = c."IDCommande"
-
-UNION
-
-SELECT
-  spm."IDServicePostMortem" as id,
-  'Service post-mortem'::text as type,
-  spm."Prestataire" as utilisateur,
-  spm."MontantPrestation"::numeric as montant,
-  COALESCE(vc."MontantCommission", 0::numeric) as commission,
-  spm."DateService"::date as date,
+from
+    "Commande" c
+    join "Utilisateurs" u on c."IDUtilisateurPayeur" = u."IDUtilisateurs"
+    left join "VersementCommissions" vc on vc."IDCommande" = c."IDCommande"
+union
+select
+    spm."IDServicePostMortem" as id,
+    'Service post-mortem'::text as type,
+        spm."Prestataire" as utilisateur,
+    spm."MontantPrestation" as montant,
+    COALESCE(vc."MontantCommission", 0::numeric) as commission,
+    spm."DateService" as date,
   spm."StatutService" as statut,
   'postmortem'::text as categorie_type,
   spm."IDServicePostMortem" as original_id,
@@ -896,19 +897,17 @@ SELECT
   null::bigint as id_activite_remuneree,
   spm."IDServicePostMortem" as id_service_post_mortem,
   null::bigint as id_don_cagnotte
-FROM
-  "ServicePostMortem" spm
-  LEFT JOIN "VersementCommissions" vc ON vc."IDServicePostMortem" = spm."IDServicePostMortem"
-
-UNION
-
-SELECT
-  vc."IDVersementCommissions" + 100000 as id,
-  'Commission versée'::text as type,
-  'AppSeniors Platform'::text as utilisateur,
-  vc."MontantCommission" as montant,
-  vc."MontantCommission" as commission,
-  vc."DateVersement" as date,
+from
+    "ServicePostMortem" spm
+    left join "VersementCommissions" vc on vc."IDServicePostMortem" = spm."IDServicePostMortem"
+union
+select
+    vc."IDVersementCommissions" + 100000 as id,
+    'Commission versée'::text as type,
+        'AppSeniors Platform'::text as utilisateur,
+        vc."MontantCommission" as montant,
+    vc."MontantCommission" as commission,
+    vc."DateVersement" as date,
   'Validé'::character varying as statut,
   'commission'::text as categorie_type,
   vc."IDVersementCommissions" as original_id,
@@ -917,10 +916,58 @@ SELECT
   vc."IDActiviteRemuneree" as id_activite_remuneree,
   vc."IDServicePostMortem" as id_service_post_mortem,
   vc."IDDonCagnotte" as id_don_cagnotte
-FROM
-  "VersementCommissions" vc
+from
+    "VersementCommissions" vc
+order by
+    6 desc;
 
-ORDER BY date DESC;
+create view public.v_forum_posts_moderation as
+select
+    s."IDSujetForum",
+    s."TitreSujet",
+    s."DateCreationSujet",
+    s."IDUtilisateurs",
+    u."Prenom" as "PrenomAuteur",
+    u."Nom" as "NomAuteur",
+    f."TitreForum" as "NomForum",
+    count(distinct r."IDReponseForum") as nbreponses,
+    count(distinct sc."IDSignalement") as signalements
+from
+    "SujetForum" s
+        left join "Utilisateurs" u on s."IDUtilisateurs" = u."IDUtilisateurs"
+        left join "Forum" f on f."IDForum" = s."IDForum"
+        left join "ReponseForum" r on r."IDSujetForum" = s."IDSujetForum"
+        left join "SignalementContenu" sc on sc."IDReponseForum" = r."IDReponseForum"
+group by
+    s."IDSujetForum",
+    s."TitreSujet",
+    s."DateCreationSujet",
+    s."IDUtilisateurs",
+    u."Prenom",
+    u."Nom",
+    f."TitreForum";
+
+create view public.v_group_messages_moderation as
+select
+    m."IDMessageGroupe",
+    m."Contenu",
+    m."DateEnvoi",
+    m."IDUtilisateurs",
+    u."Prenom" as "PrenomAuteur",
+    u."Nom" as "NomAuteur",
+    m."IDGroupe",
+    g."Titre" as "NomGroupe",
+    count(s."IDSignalement") as signalements
+from
+    "MessageGroupe" m
+        left join "Utilisateurs" u on u."IDUtilisateurs" = m."IDUtilisateurs"
+        left join "Groupe" g on g."IDGroupe" = m."IDGroupe"
+        left join "SignalementContenu" s on s."IDMessageGroupe" = m."IDMessageGroupe"
+group by
+    m."IDMessageGroupe",
+    u."Prenom",
+    u."Nom",
+    g."Titre";
 
 -- 12. ACTIVATION DES POLITIQUES RLS
 -- ===========================================
