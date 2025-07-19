@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, MessageSquare, FileText, AlertTriangle, UserPlus, MessageCircle, Plus, UserCheck } from "lucide-react";
@@ -28,6 +28,19 @@ const Moderation = () => {
   // Fetch forum posts and group messages
   const { data: forumPosts = [], refetch: refetchForumPosts } = useForumPosts();
   const { data: groupMessages = [], refetch: refetchGroupMessages } = useGroupMessages();
+
+  // Local state for immediate UI updates
+  const [localForumPosts, setLocalForumPosts] = useState(forumPosts);
+  const [localGroupMessages, setLocalGroupMessages] = useState(groupMessages);
+
+  // Update local state when React Query data changes
+  useEffect(() => {
+    setLocalForumPosts(forumPosts);
+  }, [forumPosts]);
+
+  useEffect(() => {
+    setLocalGroupMessages(groupMessages);
+  }, [groupMessages]);
 
   const handleSuccess = () => {
     setRefreshTrigger(prev => prev + 1);
@@ -110,8 +123,8 @@ const Moderation = () => {
                     </Button>
                   </div>
                   <ForumPostsTable 
-                    forumPosts={forumPosts}
-                    setForumPosts={() => {}} // This will be handled by React Query refetch
+                    forumPosts={localForumPosts}
+                    setForumPosts={setLocalForumPosts}
                   />
                 </TabsContent>
 
@@ -142,8 +155,8 @@ const Moderation = () => {
                     </Button>
                   </div>
                   <GroupMessagesTable 
-                    groupMessages={groupMessages}
-                    setGroupMessages={() => {}} // This will be handled by React Query refetch
+                    groupMessages={localGroupMessages}
+                    setGroupMessages={setLocalGroupMessages}
                   />
                 </TabsContent>
 
