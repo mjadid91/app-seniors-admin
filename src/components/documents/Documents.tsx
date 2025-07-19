@@ -41,10 +41,10 @@ const Documents = () => {
 
   const handleDownloadDocument = async (doc: Document) => {
     try {
-      await downloadFile({
-        URLFichier: doc.type, // L'URL est stockée dans le champ type
-        Titre: doc.name
-      });
+      // Il faut récupérer l'URL réelle du document depuis la base de données
+      // car le champ type contient maintenant le type de fichier, pas l'URL
+      console.log('Téléchargement du document:', doc);
+      // TODO: Implémenter la récupération de l'URL réelle
     } catch (error) {
       console.error('Erreur lors du téléchargement:', error);
     }
@@ -60,6 +60,15 @@ const Documents = () => {
       fetchDocuments();
     }
   };
+
+  // Logique de filtrage des documents
+  const filteredDocuments = documents.filter(doc => {
+    const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         doc.category.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = filterType === "all" || doc.category === filterType;
+    
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="space-y-6">
@@ -83,7 +92,7 @@ const Documents = () => {
         />
 
         <DocumentsTable
-          documents={documents}
+          documents={filteredDocuments}
           onView={handleViewClick}
           onEdit={handleEditClick}
           onDownload={handleDownloadDocument}
