@@ -7,90 +7,123 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 215 20% 25%;
+    /* Core neutral colors - Sophisticated grays with warm undertones */
+    --background: 240 10% 98%;
+    --foreground: 230 15% 15%;
 
+    /* Card and surface colors */
     --card: 0 0% 100%;
-    --card-foreground: 215 20% 25%;
+    --card-foreground: 230 15% 15%;
 
+    /* Popover colors */
     --popover: 0 0% 100%;
-    --popover-foreground: 215 20% 25%;
+    --popover-foreground: 230 15% 15%;
 
-    --primary: 221 83% 59%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary brand colors - Deep professional blue with purple undertones */
+    --primary: 235 85% 65%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 215 20% 25%;
+    /* Secondary accent colors */
+    --secondary: 240 8% 96%;
+    --secondary-foreground: 230 15% 15%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    /* Muted colors for subtle elements */
+    --muted: 240 8% 96%;
+    --muted-foreground: 240 6% 46%;
 
-    --accent: 210 40% 96%;
-    --accent-foreground: 215 20% 25%;
+    /* Accent colors for highlights */
+    --accent: 240 8% 96%;
+    --accent-foreground: 230 15% 15%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    /* Destructive colors */
+    --destructive: 358 75% 59%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 221 83% 59%;
+    /* Border and input colors */
+    --border: 240 6% 90%;
+    --input: 240 6% 92%;
+    --ring: 235 85% 65%;
 
-    --radius: 0.5rem;
+    /* Border radius for modern look */
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5% 26%;
-    --sidebar-primary: 240 6% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 5% 96%;
-    --sidebar-accent-foreground: 240 6% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 221 83% 59%;
+    /* Sidebar specific colors */
+    --sidebar-background: 240 10% 98%;
+    --sidebar-foreground: 230 15% 15%;
+    --sidebar-primary: 235 85% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 8% 96%;
+    --sidebar-accent-foreground: 230 15% 15%;
+    --sidebar-border: 240 6% 90%;
+    --sidebar-ring: 235 85% 65%;
 
-    /* AppSeniors Admin Custom Colors */
-    --app-primary: 221 83% 59%;
-    --app-background: 0 0% 98%;
-    --app-text: 215 20% 25%;
-    --app-success: 142 71% 45%;
-    --app-error: 0 84% 60%;
+    /* AppSeniors Admin Custom Brand Colors */
+    --app-primary: 235 85% 65%;
+    --app-secondary: 280 60% 70%;
+    --app-background: 240 10% 98%;
+    --app-surface: 0 0% 100%;
+    --app-text: 230 15% 15%;
+    --app-text-light: 240 6% 46%;
+    --app-success: 145 63% 49%;
+    --app-warning: 48 96% 53%;
+    --app-error: 358 75% 59%;
+    --app-info: 210 98% 78%;
+    
+    /* Gradient variables for modern effects */
+    --app-gradient-primary: linear-gradient(135deg, hsl(235 85% 65%) 0%, hsl(280 60% 70%) 100%);
+    --app-gradient-surface: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(240 8% 98%) 100%);
+    --app-gradient-subtle: linear-gradient(135deg, hsl(240 10% 98%) 0%, hsl(240 8% 96%) 100%);
   }
 
   .dark {
-    --background: 222 84% 5%;
-    --foreground: 210 40% 98%;
+    --background: 230 15% 9%;
+    --foreground: 240 10% 95%;
 
-    --card: 222 84% 5%;
-    --card-foreground: 210 40% 98%;
+    --card: 230 15% 9%;
+    --card-foreground: 240 10% 95%;
 
-    --popover: 222 84% 5%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 230 15% 9%;
+    --popover-foreground: 240 10% 95%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222 47% 11%;
+    --primary: 235 85% 65%;
+    --primary-foreground: 230 15% 9%;
 
-    --secondary: 217 33% 18%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 6% 16%;
+    --secondary-foreground: 240 10% 95%;
 
-    --muted: 217 33% 18%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 240 6% 16%;
+    --muted-foreground: 240 6% 65%;
 
-    --accent: 217 33% 18%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 240 6% 16%;
+    --accent-foreground: 240 10% 95%;
 
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 358 75% 59%;
+    --destructive-foreground: 240 10% 95%;
 
-    --border: 217 33% 18%;
-    --input: 217 33% 18%;
-    --ring: 212 27% 84%;
+    --border: 240 6% 16%;
+    --input: 240 6% 16%;
+    --ring: 235 85% 65%;
 
-    --sidebar-background: 240 6% 10%;
-    --sidebar-foreground: 240 5% 96%;
-    --sidebar-primary: 224 76% 48%;
+    --sidebar-background: 230 15% 9%;
+    --sidebar-foreground: 240 10% 95%;
+    --sidebar-primary: 235 85% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 4% 16%;
-    --sidebar-accent-foreground: 240 5% 96%;
-    --sidebar-border: 240 4% 16%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-accent: 240 6% 16%;
+    --sidebar-accent-foreground: 240 10% 95%;
+    --sidebar-border: 240 6% 16%;
+    --sidebar-ring: 235 85% 65%;
+
+    /* Dark mode brand colors */
+    --app-primary: 235 85% 65%;
+    --app-secondary: 280 60% 70%;
+    --app-background: 230 15% 9%;
+    --app-surface: 240 6% 12%;
+    --app-text: 240 10% 95%;
+    --app-text-light: 240 6% 65%;
+    --app-success: 145 63% 49%;
+    --app-warning: 48 96% 53%;
+    --app-error: 358 75% 59%;
+    --app-info: 210 98% 78%;
   }
 }
 
@@ -100,26 +133,240 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans antialiased;
+    background: hsl(var(--app-background));
   }
 
-  /* Ensure all headings use Poppins */
+  /* Ensure all headings use current font with enhanced styling */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-sans;
+    @apply font-sans tracking-tight;
   }
 
-  /* Ensure all buttons use Poppins */
+  h1 {
+    @apply text-3xl font-bold;
+  }
+
+  h2 {
+    @apply text-2xl font-semibold;
+  }
+
+  h3 {
+    @apply text-xl font-semibold;
+  }
+
+  /* Enhanced button styling */
   button {
-    @apply font-sans;
+    @apply font-sans transition-all duration-200;
   }
 
-  /* Ensure all inputs and form elements use Poppins */
+  /* Enhanced form elements */
   input, textarea, select {
-    @apply font-sans;
+    @apply font-sans transition-all duration-200;
   }
 
-  /* Ensure all text elements use Poppins */
+  /* Enhanced text elements */
   p, span, div, a, label {
     @apply font-sans;
+  }
+
+  /* Custom scrollbar styling for modern look */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.3);
+  }
+}
+
+@layer components {
+  /* Modern glass effect utility */
+  .glass-effect {
+    @apply backdrop-blur-sm bg-white/80 border border-white/20;
+  }
+
+  .glass-effect-dark {
+    @apply backdrop-blur-sm bg-black/10 border border-white/10;
+  }
+
+  /* Enhanced shadow system */
+  .shadow-elegant {
+    box-shadow: 
+      0 1px 3px 0 rgb(0 0 0 / 0.1),
+      0 1px 2px -1px rgb(0 0 0 / 0.1),
+      0 0 0 1px rgb(0 0 0 / 0.02);
+  }
+
+  .shadow-elegant-lg {
+    box-shadow: 
+      0 10px 15px -3px rgb(0 0 0 / 0.1),
+      0 4px 6px -4px rgb(0 0 0 / 0.1),
+      0 0 0 1px rgb(0 0 0 / 0.02);
+  }
+
+  .shadow-elegant-xl {
+    box-shadow: 
+      0 20px 25px -5px rgb(0 0 0 / 0.1),
+      0 8px 10px -6px rgb(0 0 0 / 0.1),
+      0 0 0 1px rgb(0 0 0 / 0.02);
+  }
+
+  /* Interactive hover effects */
+  .hover-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .hover-lift:hover {
+    @apply -translate-y-1 shadow-elegant-lg;
+  }
+
+  /* Premium gradient backgrounds */
+  .gradient-primary {
+    background: var(--app-gradient-primary);
+  }
+
+  .gradient-surface {
+    background: var(--app-gradient-surface);
+  }
+
+  .gradient-subtle {
+    background: var(--app-gradient-subtle);
+  }
+
+  /* Modern border styles */
+  .border-elegant {
+    @apply border border-border/50;
+  }
+
+  .border-elegant-hover {
+    @apply border-elegant hover:border-border transition-colors duration-200;
+  }
+
+  /* Focus ring improvements */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background;
+  }
+
+  /* Loading state styling */
+  .loading-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted) / 0.8) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite linear;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* Status indicator styles */
+  .status-indicator {
+    @apply inline-flex items-center justify-center w-2 h-2 rounded-full;
+  }
+
+  .status-active {
+    @apply bg-app-success shadow-[0_0_6px_hsl(var(--app-success)/0.4)];
+  }
+
+  .status-inactive {
+    @apply bg-muted-foreground;
+  }
+
+  .status-warning {
+    @apply bg-app-warning shadow-[0_0_6px_hsl(var(--app-warning)/0.4)];
+  }
+
+  .status-error {
+    @apply bg-app-error shadow-[0_0_6px_hsl(var(--app-error)/0.4)];
+  }
+}
+
+@layer utilities {
+  /* Text color utilities using brand colors */
+  .text-app-primary {
+    color: hsl(var(--app-primary));
+  }
+
+  .text-app-secondary {
+    color: hsl(var(--app-secondary));
+  }
+
+  .text-app-muted {
+    color: hsl(var(--app-text-light));
+  }
+
+  /* Background utilities */
+  .bg-app-surface {
+    background-color: hsl(var(--app-surface));
+  }
+
+  .bg-app-gradient {
+    background: var(--app-gradient-primary);
+  }
+
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-slide-in {
+    animation: slideIn 0.4s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 }

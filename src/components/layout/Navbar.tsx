@@ -14,7 +14,7 @@ const Navbar = () => {
   }
 
   return (
-    <nav className="bg-white border-b border-slate-200 fixed top-0 left-0 right-0 z-50">
+    <nav className="bg-app-surface/80 backdrop-blur-md border-b border-border/50 fixed top-0 left-0 right-0 z-50 shadow-elegant">
       <div className="max-w-full mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
