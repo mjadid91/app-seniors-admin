@@ -48,10 +48,46 @@ export const useDocuments = () => {
         return;
       }
 
+      // Fonction pour extraire le type de fichier à partir de l'URL
+      const getFileTypeFromUrl = (url: string): string => {
+        if (!url) return "Inconnu";
+        
+        // Extraire l'extension du fichier
+        const extension = url.split('.').pop()?.toLowerCase();
+        
+        switch (extension) {
+          case 'pdf':
+            return 'PDF';
+          case 'doc':
+          case 'docx':
+            return 'Word';
+          case 'xls':
+          case 'xlsx':
+            return 'Excel';
+          case 'ppt':
+          case 'pptx':
+            return 'PowerPoint';
+          case 'jpg':
+          case 'jpeg':
+            return 'JPEG';
+          case 'png':
+            return 'PNG';
+          case 'gif':
+            return 'GIF';
+          case 'txt':
+            return 'Texte';
+          case 'zip':
+          case 'rar':
+            return 'Archive';
+          default:
+            return extension?.toUpperCase() || 'Fichier';
+        }
+      };
+
       const transformedDocuments: Document[] = data.map((doc: any) => ({
         id: doc.IDDocument,
         name: doc.Titre,
-        type: doc.URLFichier,
+        type: getFileTypeFromUrl(doc.URLFichier),
         category: doc.CategorieDocument.NomCategorie,
         status: doc.Statut,
         uploadDate: doc.DateUpload,
