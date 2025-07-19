@@ -102,6 +102,17 @@ export const useDocumentForm = (isOpen: boolean) => {
     return true;
   };
 
+  // Nouvelle fonction pour initialiser le formulaire avec les données d'un document existant
+  const initializeWithDocument = (document: any) => {
+    setFormData({
+      name: document.name || "",
+      category: document.category || "",
+      status: document.status || "Brouillon",
+      description: document.description || "",
+      utilisateurId: document.utilisateurId ? document.utilisateurId.toString() : ""
+    });
+  };
+
   return {
     formData,
     setFormData,
@@ -114,6 +125,7 @@ export const useDocumentForm = (isOpen: boolean) => {
     catNameToId,
     resetForm,
     validateForm,
+    initializeWithDocument,
     toast
   };
 };

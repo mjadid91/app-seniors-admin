@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -7,142 +7,175 @@ export interface Document {
   id: number;
   name: string;
   type: string;
-  size: string;
-  uploadDate: string;
   category: string;
   status: string;
-  supabaseId?: number;
+  uploadDate: string;
+  size?: number;
+  description?: string;
   utilisateurId?: number;
-}
-
-interface SupabaseDocument {
-  IDDocument: number;
-  Titre: string;
-  TypeFichier: string;
-  TailleFichier: number | null;
-  DateUpload: string;
-  Statut: string;
-  IDCategorieDocument: number | null;
-  IDUtilisateurs: number | null;
-  URLFichier: string;
-}
-
-interface SupabaseCategorie {
-  IDCategorieDocument: number;
-  NomCategorie: string;
+  utilisateurNom?: string;
 }
 
 export const useDocuments = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const { toast } = useToast();
-  const [catIdToName, setCatIdToName] = useState<Record<number, string>>({});
-  const [catNameToId, setCatNameToId] = useState<Record<string, number>>({});
 
-  // Fetch categories from Supabase
-  const fetchCategories = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("CategorieDocument")
-      .select("IDCategorieDocument,NomCategorie");
-    if (error) {
-      toast({ title: "Erreur", description: "Impossible de charger les catégories.", variant: "destructive" });
-      return;
-    }
-    setCategories(data.map((cat: SupabaseCategorie) => cat.NomCategorie));
-    // Build mappings
-    const idToName: Record<number, string> = {};
-    const nameToId: Record<string, number> = {};
-    data.forEach((cat: SupabaseCategorie) => {
-      idToName[cat.IDCategorieDocument] = cat.NomCategorie;
-      nameToId[cat.NomCategorie] = cat.IDCategorieDocument;
-    });
-    setCatIdToName(idToName);
-    setCatNameToId(nameToId);
-  }, [toast]);
+  const fetchDocuments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("Document")
+        .select(`
+          IDDocument,
+          Titre,
+          TypeFichier,
+          URLFichier,
+          DateUpload,
+          TailleFichier,
+          Statut,
+          IDUtilisateurs,
+          CategorieDocument!inner(NomCategorie),
+          Utilisateurs(Nom, Prenom)
+        `);
 
-  // Fetch documents from Supabase avec RLS
-  const fetchDocuments = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("Document")
-      .select("*");
-    if (error) {
-      console.error('Error fetching documents:', error);
-      toast({ title: "Erreur", description: "Impossible de charger les documents.", variant: "destructive" });
-      return;
-    }
+      if (error) {
+        console.error("Error fetching documents:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les documents",
+          variant: "destructive"
+        });
+        return;
+      }
 
-    setDocuments(
-      (data as SupabaseDocument[]).map((doc) => ({
+      const transformedDocuments: Document[] = data.map((doc: any) => ({
         id: doc.IDDocument,
         name: doc.Titre,
-        type: doc.URLFichier, // Stocker l'URL dans le champ type pour compatibilité
-        size: doc.TailleFichier != null ? `${(doc.TailleFichier / (1024 * 1024)).toFixed(1)} MB` : "0.0 MB",
-        uploadDate: doc.DateUpload,
-        category: doc.IDCategorieDocument && catIdToName[doc.IDCategorieDocument]
-          ? catIdToName[doc.IDCategorieDocument]
-          : "",
+        type: doc.URLFichier,
+        category: doc.CategorieDocument.NomCategorie,
         status: doc.Statut,
-        supabaseId: doc.IDDocument,
-        utilisateurId: doc.IDUtilisateurs || undefined,
-      }))
-    );
-  }, [catIdToName, toast]);
+        uploadDate: doc.DateUpload,
+        size: doc.TailleFichier,
+        utilisateurId: doc.IDUtilisateurs,
+        utilisateurNom: doc.Utilisateurs ? `${doc.Utilisateurs.Prenom} ${doc.Utilisateurs.Nom}` : "Non assigné"
+      }));
 
-  // Fetch on mount
-  useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
-
-  useEffect(() => {
-    if (Object.keys(catIdToName).length > 0) {
-      fetchDocuments();
+      setDocuments(transformedDocuments);
+    } catch (error) {
+      console.error("Error in fetchDocuments:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur s'est produite lors du chargement des documents",
+        variant: "destructive"
+      });
     }
-  }, [catIdToName, fetchDocuments]);
+  };
 
-  // Edit document
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("CategorieDocument")
+        .select("NomCategorie");
+
+      if (error) {
+        console.error("Error fetching categories:", error);
+        return;
+      }
+
+      setCategories(data.map(cat => cat.NomCategorie));
+    } catch (error) {
+      console.error("Error in fetchCategories:", error);
+    }
+  };
+
   const handleEditDocument = async (id: number, updatedDoc: Partial<Document>) => {
-    // Find catId if category is being updated
-    let values: any = {};
-    if (updatedDoc.name) values.Titre = updatedDoc.name;
-    if (updatedDoc.status) values.Statut = updatedDoc.status;
-    if (updatedDoc.category) values.IDCategorieDocument = catNameToId[updatedDoc.category];
-    const { error } = await supabase
-      .from("Document")
-      .update(values)
-      .eq("IDDocument", id);
+    try {
+      // Récupérer l'ID de la catégorie à partir du nom
+      let categoryId = null;
+      if (updatedDoc.category) {
+        const { data: categoryData, error: categoryError } = await supabase
+          .from("CategorieDocument")
+          .select("IDCategorieDocument")
+          .eq("NomCategorie", updatedDoc.category)
+          .single();
 
-    if (error) {
-      toast({ title: "Erreur", description: "Mise à jour du document impossible.", variant: "destructive" });
-      return;
+        if (categoryError) {
+          throw categoryError;
+        }
+        categoryId = categoryData.IDCategorieDocument;
+      }
+
+      // Préparer les données pour la mise à jour
+      const updateData: any = {};
+      if (updatedDoc.name) updateData.Titre = updatedDoc.name;
+      if (updatedDoc.status) updateData.Statut = updatedDoc.status;
+      if (categoryId) updateData.IDCategorieDocument = categoryId;
+      if (updatedDoc.utilisateurId) updateData.IDUtilisateurs = updatedDoc.utilisateurId;
+
+      const { error } = await supabase
+        .from("Document")
+        .update(updateData)
+        .eq("IDDocument", id);
+
+      if (error) {
+        throw error;
+      }
+
+      // Recharger les documents après la modification
+      await fetchDocuments();
+
+      toast({
+        title: "Document modifié",
+        description: "Le document a été modifié avec succès"
+      });
+    } catch (error) {
+      console.error("Error updating document:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier le document",
+        variant: "destructive"
+      });
     }
-    toast({ title: "Document mis à jour", description: "Document édité avec succès." });
-    fetchDocuments();
   };
 
-  const handleViewDocument = (doc: Document) => {
-    toast({
-      title: "Aperçu du document",
-      description: `Ouverture de ${doc.name} (non implémenté)`,
-    });
-    window.open(doc.supabaseId ? "#" : "#", "_blank");
-  };
+  const handleDeleteDocument = async (id: number) => {
+    try {
+      const { error } = await supabase
+        .from("Document")
+        .delete()
+        .eq("IDDocument", id);
 
-  const handleDeleteDocument = async (docId: number) => {
-    const { error } = await supabase.from("Document").delete().eq("IDDocument", docId);
-    if (error) {
-      toast({ title: "Erreur", description: "Impossible de supprimer le document.", variant: "destructive" });
-      return;
+      if (error) {
+        throw error;
+      }
+
+      // Recharger les documents après la suppression
+      await fetchDocuments();
+
+      toast({
+        title: "Document supprimé",
+        description: "Le document a été supprimé avec succès"
+      });
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le document",
+        variant: "destructive"
+      });
     }
-    toast({ title: "Document supprimé", description: "Suppression réussie." });
-    fetchDocuments();
   };
+
+  useEffect(() => {
+    fetchDocuments();
+    fetchCategories();
+  }, []);
 
   return {
     documents,
     categories,
-    handleViewDocument,
     handleEditDocument,
     handleDeleteDocument,
-    fetchDocuments // Exposer la fonction pour rafraîchir les documents
+    fetchDocuments
   };
 };
