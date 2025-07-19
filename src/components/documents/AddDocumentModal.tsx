@@ -48,8 +48,12 @@ const AddDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddDocumentModal
     }
     setIsLoading(true);
     try {
-      await uploadFile(file, categoryId, () => { onUploadSuccess();resetForm();onClose();
-      });
+      // Passer l'utilisateur sélectionné à la fonction uploadFile
+      await uploadFile(file, categoryId, () => { 
+        onUploadSuccess();
+        resetForm();
+        onClose();
+      }, formData.utilisateurId); // Passer l'utilisateur sélectionné
     } catch (error) {
       console.error('Erreur lors de l\'upload du document:', error);
     } finally {

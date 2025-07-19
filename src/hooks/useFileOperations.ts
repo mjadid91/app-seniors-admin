@@ -82,7 +82,8 @@ export const useFileOperations = () => {
   const uploadFile = async (
     file: File,
     categoryId: number,
-    onSuccess?: () => void
+    onSuccess?: () => void,
+    utilisateurId?: string // Nouveau paramètre optionnel
   ) => {
     // Vérifier que l'utilisateur est authentifié avec notre système
     if (!isAuthenticated || !user) {
@@ -97,6 +98,7 @@ export const useFileOperations = () => {
     setUploading(true);
     try {
       console.log('Début de l\'upload pour l\'utilisateur:', user.id);
+      console.log('Utilisateur concerné par le document:', utilisateurId || user.id);
       
       // S'assurer que l'utilisateur est connecté à Supabase Auth
       const supabaseUserId = await ensureSupabaseAuth();
@@ -131,6 +133,9 @@ export const useFileOperations = () => {
 
       console.log('File URL:', urlData.publicUrl);
 
+      // Utiliser l'utilisateur sélectionné ou l'utilisateur connecté par défaut
+      const targetUserId = utilisateurId ? parseInt(utilisateurId) : parseInt(user.id);
+
       // Insérer l'entrée dans la table Document
       const { data: documentData, error: insertError } = await supabase
         .from('Document')
@@ -140,7 +145,7 @@ export const useFileOperations = () => {
           TailleFichier: file.size,
           URLFichier: urlData.publicUrl,
           IDCategorieDocument: categoryId,
-          IDUtilisateurs: parseInt(user.id),
+          IDUtilisateurs: targetUserId, // Utiliser l'utilisateur sélectionné
           Statut: 'Publié'
         })
         .select()
