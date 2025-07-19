@@ -83,7 +83,8 @@ const ProtectedRoute = ({
               ne permet pas d'accéder à cette section.
             </p>
           </div>
-          <div className="flex items-center justify-center gap-2 text-sm text-amber-600 bg-amber-50 px-4 py-2 rounded-lg">
+          <div className="flex items-center justify-center gap-2 text-sm text-amber-600
+          g-amber-50 px-4 py-2 rounded-lg">
             <AlertTriangle className="h-4 w-4" />
             <span>Contactez votre administrateur si vous pensez qu'il s'agit d'une erreur</span>
           </div>
