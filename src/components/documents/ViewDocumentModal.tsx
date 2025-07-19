@@ -26,7 +26,7 @@ const ViewDocumentModal = ({ isOpen, onClose, document }: ViewDocumentModalProps
 
     useEffect(() => {
         const fetchUserInfo = async () => {
-            if (!document?.supabaseId) return;
+            if (!document?.id) return;
             
             setLoadingUser(true);
             try {
@@ -34,7 +34,7 @@ const ViewDocumentModal = ({ isOpen, onClose, document }: ViewDocumentModalProps
                 const { data: docData, error: docError } = await supabase
                     .from("Document")
                     .select("IDUtilisateurs")
-                    .eq("IDDocument", document.supabaseId)
+                    .eq("IDDocument", document.id)
                     .single();
 
                 if (docError || !docData?.IDUtilisateurs) {

@@ -22,9 +22,7 @@ const EditDocumentModal = ({ isOpen, onClose, document, onEditDocument, categori
   const {
     formData,
     setFormData,
-    users,
-    loadCategories,
-    loadUsers
+    users
   } = useDocumentForm(isOpen);
 
   // Initialiser le formulaire quand le document change

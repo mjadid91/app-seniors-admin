@@ -50,6 +50,10 @@ const Documents = () => {
     }
   };
 
+  const handleDeleteClick = (doc: Document) => {
+    handleDeleteDocument(doc.id);
+  };
+
   const handleUploadSuccess = () => {
     // Recharger la liste des documents après un upload réussi
     if (fetchDocuments) {
@@ -83,7 +87,7 @@ const Documents = () => {
           onView={handleViewClick}
           onEdit={handleEditClick}
           onDownload={handleDownloadDocument}
-          onDelete={handleDeleteDocument}
+          onDelete={handleDeleteClick}
         />
       </div>
 
