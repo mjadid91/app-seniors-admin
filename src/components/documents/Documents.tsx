@@ -41,10 +41,15 @@ const Documents = () => {
 
   const handleDownloadDocument = async (doc: Document) => {
     try {
-      // Il faut récupérer l'URL réelle du document depuis la base de données
-      // car le champ type contient maintenant le type de fichier, pas l'URL
-      console.log('Téléchargement du document:', doc);
-      // TODO: Implémenter la récupération de l'URL réelle
+      if (!doc.url) {
+        console.error('URL du document non disponible');
+        return;
+      }
+      
+      await downloadFile({
+        URLFichier: doc.url,
+        Titre: doc.name
+      });
     } catch (error) {
       console.error('Erreur lors du téléchargement:', error);
     }

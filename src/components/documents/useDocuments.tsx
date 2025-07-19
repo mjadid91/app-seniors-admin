@@ -14,6 +14,7 @@ export interface Document {
   description?: string;
   utilisateurId?: number;
   utilisateurNom?: string;
+  url?: string; // Ajout de l'URL pour le téléchargement
 }
 
 export const useDocuments = () => {
@@ -93,7 +94,8 @@ export const useDocuments = () => {
         uploadDate: doc.DateUpload,
         size: doc.TailleFichier,
         utilisateurId: doc.IDUtilisateurs,
-        utilisateurNom: doc.Utilisateurs ? `${doc.Utilisateurs.Prenom} ${doc.Utilisateurs.Nom}` : "Non assigné"
+        utilisateurNom: doc.Utilisateurs ? `${doc.Utilisateurs.Prenom} ${doc.Utilisateurs.Nom}` : "Non assigné",
+        url: doc.URLFichier // Conserver l'URL pour le téléchargement
       }));
 
       setDocuments(transformedDocuments);
