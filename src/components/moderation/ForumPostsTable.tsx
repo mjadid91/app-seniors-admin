@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { ForumPost } from './types';
 import { getStatutBadgeColor } from './utils';
 import ViewForumPostModal from './ViewForumPostModal';
@@ -53,13 +54,29 @@ const ForumPostsTable = ({ forumPosts, setForumPosts }: ForumPostsTableProps) =>
     }
   };
 
-  const handleSupprimerPost = (post: ForumPost) => {
-    setForumPosts(prev => prev.filter(p => p.id !== post.id));
-    toast({
-      title: "Sujet supprimé",
-      description: `Le sujet "${post.titre}" a été supprimé définitivement`,
-      variant: "destructive"
-    });
+  const handleSupprimerPost = async (post: ForumPost) => {
+    try {
+      const { error } = await supabase
+        .from('SujetForum')
+        .delete()
+        .eq('IDSujetForum', parseInt(post.id));
+
+      if (error) throw error;
+
+      setForumPosts(prev => prev.filter(p => p.id !== post.id));
+      toast({
+        title: "Sujet supprimé",
+        description: `Le sujet "${post.titre}" a été supprimé définitivement`,
+        variant: "destructive"
+      });
+    } catch (error: any) {
+      console.error('Erreur lors de la suppression:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le sujet",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

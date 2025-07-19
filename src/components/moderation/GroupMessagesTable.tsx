@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Trash2, Archive } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { GroupMessage } from './types';
 import { getStatutBadgeColor } from './utils';
 import ViewGroupMessageModal from './ViewGroupMessageModal';
@@ -68,13 +69,29 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
     });
   };
 
-  const handleSupprimerMessage = (message: GroupMessage) => {
-    setGroupMessages(prev => prev.filter(m => m.id !== message.id));
-    toast({
-      title: "Message supprimé",
-      description: "Le message a été supprimé définitivement",
-      variant: "destructive"
-    });
+  const handleSupprimerMessage = async (message: GroupMessage) => {
+    try {
+      const { error } = await supabase
+        .from('MessageGroupe')
+        .delete()
+        .eq('IDMessageGroupe', parseInt(message.id));
+
+      if (error) throw error;
+
+      setGroupMessages(prev => prev.filter(m => m.id !== message.id));
+      toast({
+        title: "Message supprimé",
+        description: "Le message a été supprimé définitivement",
+        variant: "destructive"
+      });
+    } catch (error: any) {
+      console.error('Erreur lors de la suppression:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le message",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
