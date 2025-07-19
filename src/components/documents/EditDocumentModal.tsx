@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle } from "@/components/ui/responsive-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useDocumentForm } from "./useDocumentForm";
 import { Document } from "./useDocuments";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface EditDocumentModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ interface EditDocumentModalProps {
 
 const EditDocumentModal = ({ isOpen, onClose, document, onEditDocument, categories }: EditDocumentModalProps) => {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const {
     formData,
     setFormData,
@@ -75,14 +77,14 @@ const EditDocumentModal = ({ isOpen, onClose, document, onEditDocument, categori
   if (!document) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Modifier le document</DialogTitle>
-        </DialogHeader>
+    <ResponsiveDialog open={isOpen} onOpenChange={onClose}>
+      <ResponsiveDialogContent className={isMobile ? "max-w-[95vw]" : "max-w-md"}>
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>Modifier le document</ResponsiveDialogTitle>
+        </ResponsiveDialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="edit-name">Nom du document *</Label>
             <Input
               id="edit-name"
@@ -90,13 +92,14 @@ const EditDocumentModal = ({ isOpen, onClose, document, onEditDocument, categori
               onChange={(e) => handleFieldChange('name', e.target.value)}
               placeholder="Nom du document"
               required
+              className="w-full"
             />
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="edit-utilisateur">Utilisateur concerné *</Label>
             <Select value={formData.utilisateurId} onValueChange={(value) => handleFieldChange('utilisateurId', value)}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Choisir un utilisateur" />
               </SelectTrigger>
               <SelectContent>
@@ -109,10 +112,10 @@ const EditDocumentModal = ({ isOpen, onClose, document, onEditDocument, categori
             </Select>
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="edit-category">Catégorie *</Label>
             <Select value={formData.category} onValueChange={(value) => handleFieldChange('category', value)}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Sélectionner une catégorie" />
               </SelectTrigger>
               <SelectContent>
@@ -125,10 +128,10 @@ const EditDocumentModal = ({ isOpen, onClose, document, onEditDocument, categori
             </Select>
           </div>
 
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="edit-status">Statut</Label>
             <Select value={formData.status} onValueChange={(value) => handleFieldChange('status', value)}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Sélectionner un statut" />
               </SelectTrigger>
               <SelectContent>
@@ -138,17 +141,17 @@ const EditDocumentModal = ({ isOpen, onClose, document, onEditDocument, categori
             </Select>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div className={`flex gap-3 pt-4 ${isMobile ? 'flex-col-reverse' : 'justify-end'}`}>
+            <Button type="button" variant="outline" onClick={onClose} className={isMobile ? 'w-full' : ''}>
               Annuler
             </Button>
-            <Button type="submit">
+            <Button type="submit" className={isMobile ? 'w-full' : ''}>
               Modifier
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 };
 

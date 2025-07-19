@@ -1,12 +1,13 @@
 
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ResponsiveDialog, ResponsiveDialogContent, ResponsiveDialogHeader, ResponsiveDialogTitle } from "@/components/ui/responsive-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText, User, Calendar, Mail, FolderOpen, FileCheck } from "lucide-react";
 import { Document } from "./useDocuments";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ViewDocumentModalProps {
     isOpen: boolean;
@@ -23,6 +24,7 @@ interface UserInfo {
 const ViewDocumentModal = ({ isOpen, onClose, document }: ViewDocumentModalProps) => {
     const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
     const [loadingUser, setLoadingUser] = useState(false);
+    const isMobile = useIsMobile();
 
     useEffect(() => {
         const fetchUserInfo = async () => {
@@ -74,51 +76,53 @@ const ViewDocumentModal = ({ isOpen, onClose, document }: ViewDocumentModalProps
     if (!document) return null;
 
     return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-blue-600" />
-                        Détail du document : {document.name}
-                    </DialogTitle>
-                </DialogHeader>
+        <ResponsiveDialog open={isOpen} onOpenChange={onClose}>
+            <ResponsiveDialogContent className={isMobile ? "max-w-[95vw] max-h-[90vh]" : "max-w-3xl max-h-[90vh]"}>
+                <ResponsiveDialogHeader>
+                    <ResponsiveDialogTitle className="flex items-center gap-2 text-left">
+                        <FileText className="h-5 w-5 text-blue-600 flex-shrink-0" />
+                        <span className="truncate">
+                            Détail du document : {document.name}
+                        </span>
+                    </ResponsiveDialogTitle>
+                </ResponsiveDialogHeader>
 
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6 overflow-y-auto">
                     {/* Info principale */}
                     <Card>
                         <CardContent className="p-4 space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
                                 <div className="flex items-center gap-3">
-                                    <FolderOpen className="h-5 w-5 text-slate-500" />
-                                    <div>
+                                    <FolderOpen className="h-5 w-5 text-slate-500 flex-shrink-0" />
+                                    <div className="min-w-0">
                                         <p className="text-sm text-slate-600">Catégorie</p>
-                                        <p className="font-medium text-slate-800">{document.category}</p>
+                                        <p className="font-medium text-slate-800 truncate">{document.category}</p>
                                     </div>
                                 </div>
 
                                 <div className="flex items-center gap-3">
-                                    <Calendar className="h-5 w-5 text-slate-500" />
-                                    <div>
+                                    <Calendar className="h-5 w-5 text-slate-500 flex-shrink-0" />
+                                    <div className="min-w-0">
                                         <p className="text-sm text-slate-600">Date d'upload</p>
                                         <p className="font-medium text-slate-800">{new Date(document.uploadDate).toLocaleDateString("fr-FR")}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className={`grid gap-4 ${isMobile ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
                                 <div className="flex items-center gap-3">
-                                    <FileCheck className="h-5 w-5 text-slate-500" />
-                                    <div>
+                                    <FileCheck className="h-5 w-5 text-slate-500 flex-shrink-0" />
+                                    <div className="min-w-0">
                                         <p className="text-sm text-slate-600">Taille</p>
                                         <p className="font-medium text-slate-800">{document.size}</p>
                                     </div>
                                 </div>
 
                                 <div className="flex items-center gap-3">
-                                    <FileText className="h-5 w-5 text-slate-500" />
-                                    <div>
+                                    <FileText className="h-5 w-5 text-slate-500 flex-shrink-0" />
+                                    <div className="min-w-0">
                                         <p className="text-sm text-slate-600">Type</p>
-                                        <p className="font-medium text-slate-800">{document.type}</p>
+                                        <p className="font-medium text-slate-800 truncate">{document.type}</p>
                                     </div>
                                 </div>
                             </div>
@@ -144,25 +148,25 @@ const ViewDocumentModal = ({ isOpen, onClose, document }: ViewDocumentModalProps
                             {loadingUser ? (
                                 <p className="text-slate-500">Chargement des informations utilisateur...</p>
                             ) : userInfo ? (
-                                <>
+                                <div className="space-y-3">
                                     <div className="flex items-center gap-3">
-                                        <User className="h-5 w-5 text-slate-500" />
-                                        <div>
+                                        <User className="h-5 w-5 text-slate-500 flex-shrink-0" />
+                                        <div className="min-w-0">
                                             <p className="text-sm text-slate-600">Nom et prénom</p>
                                             <p className="font-medium text-slate-800">{userInfo.prenom} {userInfo.nom}</p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-3">
-                                        <Mail className="h-5 w-5 text-slate-500" />
-                                        <div>
+                                        <Mail className="h-5 w-5 text-slate-500 flex-shrink-0" />
+                                        <div className="min-w-0">
                                             <p className="text-sm text-slate-600">Email</p>
-                                            <a href={`mailto:${userInfo.email}`} className="text-blue-600 hover:underline">
+                                            <a href={`mailto:${userInfo.email}`} className="text-blue-600 hover:underline truncate block">
                                                 {userInfo.email}
                                             </a>
                                         </div>
                                     </div>
-                                </>
+                                </div>
                             ) : (
                                 <p className="text-slate-500">Informations utilisateur non disponibles</p>
                             )}
@@ -171,13 +175,13 @@ const ViewDocumentModal = ({ isOpen, onClose, document }: ViewDocumentModalProps
 
                     {/* Bouton de fermeture */}
                     <div className="flex justify-end pt-4 border-t">
-                        <Button variant="outline" onClick={onClose}>
+                        <Button variant="outline" onClick={onClose} className={isMobile ? 'w-full' : ''}>
                             Fermer
                         </Button>
                     </div>
                 </div>
-            </DialogContent>
-        </Dialog>
+            </ResponsiveDialogContent>
+        </ResponsiveDialog>
     );
 };
 
