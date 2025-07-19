@@ -50,12 +50,22 @@ export const useFileOperations = () => {
             email: user.email,
             password: 'temp-password-' + user.id
           });
+          
+          if (signInError) {
+            console.log('Impossible de se connecter avec le mot de passe temporaire');
+          }
         } else {
           // Mettre à jour la table Utilisateurs avec l'IDAuth
           const { error: updateError } = await supabase
             .from('Utilisateurs')
             .update({ IDAuth: authData.user?.id })
             .eq('IDUtilisateurs', parseInt(user.id));
+
+          if (updateError) {
+            console.error('Erreur lors de la mise à jour de l\'IDAuth:', updateError);
+          }
+
+          console.log('Utilisateur Supabase créé et lié avec succès');
         }
       } catch (error) {
         console.error('Erreur lors de la création/connexion Supabase:', error);

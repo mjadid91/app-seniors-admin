@@ -62,18 +62,18 @@ const Documents = () => {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-6">
       <DocumentsHeader onAddDocument={() => setIsAddDocumentModalOpen(true)} />
 
       {/* Section statistiques uniquement */}
-      <div className="grid grid-cols-1 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <DocumentsStats documents={documents} />
       </div>
 
       {/* Section Documents Patrimoniaux - Hautement sécurisée */}
       <PatrimonialDocuments />
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sm:p-6 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
         <DocumentsFilters
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -82,17 +82,13 @@ const Documents = () => {
           categories={categories}
         />
 
-        <div className="overflow-x-auto -mx-4 sm:mx-0">
-          <div className="min-w-full inline-block align-middle">
-            <DocumentsTable
-              documents={documents}
-              onView={handleViewClick}
-              onEdit={handleEditClick}
-              onDownload={handleDownloadDocument}
-              onDelete={handleDeleteClick}
-            />
-          </div>
-        </div>
+        <DocumentsTable
+          documents={documents}
+          onView={handleViewClick}
+          onEdit={handleEditClick}
+          onDownload={handleDownloadDocument}
+          onDelete={handleDeleteClick}
+        />
       </div>
 
       <AddDocumentModal 
