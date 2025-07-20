@@ -84,7 +84,7 @@ const AddCagnotteModal = ({ isOpen, onClose, onSuccess }: AddCagnotteModalProps)
           Description: description.trim(),
           DateOuverture: dateOuverture,
           DateCloture: dateCloture,
-          IDSeniors: seniorId ? parseInt(seniorId) : null,
+          IDSeniors: seniorId && seniorId !== "none" ? parseInt(seniorId) : null,
           MontantTotal: 0,
           Statut: "ouverte"
         });
@@ -176,7 +176,7 @@ const AddCagnotteModal = ({ isOpen, onClose, onSuccess }: AddCagnotteModalProps)
                 <SelectValue placeholder="Sélectionner un senior (optionnel)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Aucun senior spécifique</SelectItem>
+                <SelectItem value="none">Aucun senior spécifique</SelectItem>
                 {seniors.map((senior) => (
                   <SelectItem 
                     key={senior.IDSeniors} 
