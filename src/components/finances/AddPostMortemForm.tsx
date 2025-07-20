@@ -53,7 +53,7 @@ export const AddPostMortemForm = ({ onClose, onSuccess }: Props) => {
             const { data: cagnottesData } = await supabase
                 .from("CagnotteDeces")
                 .select("IDCagnotteDeces, Titre")
-                .in("Statut", ["ouverte", "en cours"]);
+                .in("Statut", ["Ouverte", "En cours"]);
             
             if (cagnottesData) {
                 setCagnottes(cagnottesData);
