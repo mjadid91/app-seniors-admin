@@ -3262,7 +3262,6 @@ export type Database = {
           DateVersement: string
           IDActiviteRemuneree: number | null
           IDCommande: number | null
-          IDDonCagnotte: number | null
           IDPrestation: number | null
           IDServicePostMortem: number | null
           IDVersementCommissions: number
@@ -3275,7 +3274,6 @@ export type Database = {
           DateVersement: string
           IDActiviteRemuneree?: number | null
           IDCommande?: number | null
-          IDDonCagnotte?: number | null
           IDPrestation?: number | null
           IDServicePostMortem?: number | null
           IDVersementCommissions?: number
@@ -3288,7 +3286,6 @@ export type Database = {
           DateVersement?: string
           IDActiviteRemuneree?: number | null
           IDCommande?: number | null
-          IDDonCagnotte?: number | null
           IDPrestation?: number | null
           IDServicePostMortem?: number | null
           IDVersementCommissions?: number
@@ -3395,20 +3392,14 @@ export type Database = {
       }
       v_financestransactions: {
         Row: {
-          categorie_type: string | null
           commission: number | null
           date: string | null
           id: number | null
-          id_activite_remuneree: number | null
-          id_commande: number | null
-          id_don_cagnotte: number | null
-          id_service_post_mortem: number | null
-          id_utilisateurs: number | null
           montant: number | null
-          original_id: number | null
+          pourcentage_commission: number | null
           statut: string | null
           type: string | null
-          utilisateur: string | null
+          utilisateur_nom: string | null
         }
         Relationships: []
       }
