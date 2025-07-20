@@ -2801,6 +2801,7 @@ export type Database = {
           DateService: string
           Description: string
           IDCagnotteDeces: number | null
+          IDCreateur: number
           IDServicePostMortem: number
           MontantPrestation: number
           NomService: string
@@ -2811,6 +2812,7 @@ export type Database = {
           DateService: string
           Description: string
           IDCagnotteDeces?: number | null
+          IDCreateur: number
           IDServicePostMortem?: number
           MontantPrestation: number
           NomService: string
@@ -2821,6 +2823,7 @@ export type Database = {
           DateService?: string
           Description?: string
           IDCagnotteDeces?: number | null
+          IDCreateur?: number
           IDServicePostMortem?: number
           MontantPrestation?: number
           NomService?: string
@@ -2834,6 +2837,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "CagnotteDeces"
             referencedColumns: ["IDCagnotteDeces"]
+          },
+          {
+            foreignKeyName: "servicepostmortem_idcreateur_fkey"
+            columns: ["IDCreateur"]
+            isOneToOne: false
+            referencedRelation: "Utilisateurs"
+            referencedColumns: ["IDUtilisateurs"]
           },
         ]
       }
