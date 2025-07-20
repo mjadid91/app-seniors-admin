@@ -1,10 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Props {
     onClose: () => void;
@@ -17,11 +18,33 @@ export const AddActivityForm = ({ onClose, onSuccess }: Props) => {
     const [tarifHoraire, setTarifHoraire] = useState("");
     const [disponibilite, setDisponibilite] = useState("");
     const [statutActiviteRemuneree, setStatutActiviteRemuneree] = useState("Disponible");
+    const [idSeniors, setIdSeniors] = useState("");
+    const [seniors, setSeniors] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchSeniors = async () => {
+            const { data, error } = await supabase
+                .from("Seniors")
+                .select(`
+                    IDSeniors,
+                    IDUtilisateurSenior,
+                    Utilisateurs:IDUtilisateurSenior(Nom, Prenom)
+                `);
+            
+            if (error) {
+                console.error("Erreur lors du chargement des seniors:", error);
+            } else {
+                setSeniors(data || []);
+            }
+        };
+        
+        fetchSeniors();
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!descriptionActivite || !typeActiviteRemuneree || !tarifHoraire || !disponibilite) return;
+        if (!descriptionActivite || !typeActiviteRemuneree || !tarifHoraire || !disponibilite || !idSeniors) return;
 
         setLoading(true);
         const { data, error } = await supabase.from("ActiviteRemuneree").insert({
@@ -31,6 +54,7 @@ export const AddActivityForm = ({ onClose, onSuccess }: Props) => {
             Disponibilite: disponibilite,
             StatutActiviteRemuneree: statutActiviteRemuneree,
             DateCreationActivite: new Date().toISOString().split("T")[0],
+            IDSeniors: parseInt(idSeniors),
         }).select();
 
         setLoading(false);
@@ -45,6 +69,21 @@ export const AddActivityForm = ({ onClose, onSuccess }: Props) => {
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+                <Label>Senior concerné</Label>
+                <Select value={idSeniors} onValueChange={setIdSeniors} required>
+                    <SelectTrigger>
+                        <SelectValue placeholder="-- Sélectionner un senior --" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {seniors.map((senior) => (
+                            <SelectItem key={senior.IDSeniors} value={senior.IDSeniors.toString()}>
+                                {senior.Utilisateurs?.Nom} {senior.Utilisateurs?.Prenom}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
             <div>
                 <Label>Description de l'activité</Label>
                 <Input 
