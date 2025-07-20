@@ -61,7 +61,8 @@ export const AddPostMortemForm = ({ onClose, onSuccess }: Props) => {
                 MontantPrestation: parseFloat(montant),
                 DateService: new Date().toISOString().split("T")[0],
                 Prestataire: selectedPrestataire?.nom || "",
-                StatutService: "En attente"
+                StatutService: "En attente",
+                IDCreateur: 1 // Using admin user ID as creator
             });
 
             if (error) {
