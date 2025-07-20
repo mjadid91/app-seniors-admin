@@ -37,16 +37,21 @@ const AddDonForm = ({ onClose, onSuccess }: Props) => {
             }
 
             // Récupérer les cagnottes ouvertes
+            console.log("Récupération des cagnottes...");
             const { data: cagnottesData, error: cagnottesError } = await supabase
                 .from("CagnotteDeces")
                 .select("IDCagnotteDeces, Titre, Statut, DateOuverture, DateCloture")
-                .in("Statut", ["ouverte", "en cours"])
+                .in("Statut", ["ouverte", "en cours", "Ouverte", "En cours"])
                 .order("DateOuverture", { ascending: false });
+            
+            console.log("Données cagnottes récupérées:", cagnottesData);
+            console.log("Erreur cagnottes:", cagnottesError);
             
             if (cagnottesError) {
                 console.error("Erreur lors du chargement des cagnottes:", cagnottesError);
             } else {
                 setCagnottes(cagnottesData || []);
+                console.log("Cagnottes définies:", cagnottesData);
             }
         } catch (error) {
             console.error("Erreur générale:", error);
