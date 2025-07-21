@@ -54,11 +54,18 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
     queryKey: ["seniors"],
     queryFn: async () => {
       const { data, error } = await supabase
-          .from("Utilisateurs")
-          .select("IDUtilisateurs, Nom, Prenom")
-          .eq("IDCatUtilisateurs", 1);
+          .from("Seniors")
+          .select(`
+            IDSeniors,
+            Utilisateurs!IDUtilisateurSenior(Nom, Prenom)
+          `)
+          .order("IDSeniors");
       if (error) throw error;
-      return data;
+      return data.map(senior => ({
+        IDSeniors: senior.IDSeniors,
+        Nom: senior.Utilisateurs?.Nom || '',
+        Prenom: senior.Utilisateurs?.Prenom || ''
+      }));
     },
   });
 
@@ -66,11 +73,18 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
     queryKey: ["aidants"],
     queryFn: async () => {
       const { data, error } = await supabase
-          .from("Utilisateurs")
-          .select("IDUtilisateurs, Nom, Prenom")
-          .eq("IDCatUtilisateurs", 4);
+          .from("Aidant")
+          .select(`
+            IDAidant,
+            Utilisateurs!IDUtilisateurs(Nom, Prenom)
+          `)
+          .order("IDAidant");
       if (error) throw error;
-      return data;
+      return data.map(aidant => ({
+        IDAidant: aidant.IDAidant,
+        Nom: aidant.Utilisateurs?.Nom || '',
+        Prenom: aidant.Utilisateurs?.Prenom || ''
+      }));
     },
   });
 
@@ -105,55 +119,61 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
       const idPrestation = prestationData.IDPrestation;
       console.log("Prestation créée avec ID:", idPrestation);
 
-      // Étape 2: Créer la mise en relation
-      console.log("Création de la mise en relation...");
-      const { data: relationData, error: relationError } = await supabase
-          .from("MiseEnRelation")
-          .insert({
-            IDSeniors: parseInt(formData.seniorId),
-            IDAidant: parseInt(formData.aidantId),
-            IDPrestation: idPrestation,
-            DatePrestation: new Date().toISOString(),
-            DatePaiement: new Date().toISOString(),
-            DateRefusPaiement: new Date().toISOString(),
-            DurePrestation: 1,
-            TarifPreste: parseFloat(formData.tarifIndicatif),
-            Statut: "en_attente",
-          })
-          .select()
-          .single();
+      // Étape 2: Créer la mise en relation (optionnelle)
+      if (formData.seniorId && formData.aidantId) {
+        console.log("Création de la mise en relation...");
+        const { data: relationData, error: relationError } = await supabase
+            .from("MiseEnRelation")
+            .insert({
+              IDSeniors: parseInt(formData.seniorId),
+              IDAidant: parseInt(formData.aidantId),
+              IDPrestation: idPrestation,
+              DatePrestation: new Date().toISOString(),
+              DatePaiement: new Date().toISOString(),
+              DateRefusPaiement: new Date().toISOString(),
+              DurePrestation: 1,
+              TarifPreste: parseFloat(formData.tarifIndicatif),
+              Statut: "en_attente",
+            })
+            .select()
+            .single();
 
-      if (relationError) {
-        console.error("Erreur création mise en relation:", relationError);
-        throw new Error(`Erreur lors de la création de la mise en relation: ${relationError.message}`);
+        if (relationError) {
+          console.error("Erreur création mise en relation:", relationError);
+          throw new Error(`Erreur lors de la création de la mise en relation: ${relationError.message}`);
+        }
+
+        if (!relationData) {
+          throw new Error("Aucune donnée retournée lors de la création de la mise en relation");
+        }
+
+        const idMiseEnRelation = relationData.IDMiseEnRelation;
+        console.log("Mise en relation créée avec ID:", idMiseEnRelation);
+
+        // Étape 3: Créer la liaison prestation-mise en relation
+        console.log("Création de la liaison...");
+        const { error: liaisonError } = await supabase
+            .from("MiseEnRelation_Prestation")
+            .insert({
+              IDPrestation: idPrestation,
+              IDMiseEnRelation: idMiseEnRelation,
+            });
+
+        if (liaisonError) {
+          console.error("Erreur création liaison:", liaisonError);
+          throw new Error(`Erreur lors de la création de la liaison: ${liaisonError.message}`);
+        }
+
+        console.log("Prestation avec mise en relation créée avec succès!");
+      } else {
+        console.log("Prestation disponible créée avec succès (sans assignation)!");
       }
-
-      if (!relationData) {
-        throw new Error("Aucune donnée retournée lors de la création de la mise en relation");
-      }
-
-      const idMiseEnRelation = relationData.IDMiseEnRelation;
-      console.log("Mise en relation créée avec ID:", idMiseEnRelation);
-
-      // Étape 3: Créer la liaison prestation-mise en relation
-      console.log("Création de la liaison...");
-      const { error: liaisonError } = await supabase
-          .from("MiseEnRelation_Prestation")
-          .insert({
-            IDPrestation: idPrestation,
-            IDMiseEnRelation: idMiseEnRelation,
-          });
-
-      if (liaisonError) {
-        console.error("Erreur création liaison:", liaisonError);
-        throw new Error(`Erreur lors de la création de la liaison: ${liaisonError.message}`);
-      }
-
-      console.log("Prestation complète créée avec succès!");
 
       toast({
         title: "Prestation créée",
-        description: "La prestation et la mise en relation ont été créées avec succès",
+        description: formData.seniorId && formData.aidantId 
+          ? "La prestation et la mise en relation ont été créées avec succès"
+          : "La prestation disponible a été créée avec succès",
       });
 
       onSuccess();
@@ -234,14 +254,15 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
             </div>
 
             <div>
-              <Label>Senior concerné</Label>
+              <Label>Senior concerné (optionnel)</Label>
               <Select value={formData.seniorId} onValueChange={(v) => setFormData((p) => ({ ...p, seniorId: v }))}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un senior" />
+                  <SelectValue placeholder="Sélectionner un senior (ou laisser vide)" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="">Aucun (prestation disponible)</SelectItem>
                   {seniors.map((s) => (
-                      <SelectItem key={s.IDUtilisateurs} value={s.IDUtilisateurs.toString()}>
+                      <SelectItem key={s.IDSeniors} value={s.IDSeniors.toString()}>
                         {s.Prenom} {s.Nom}
                       </SelectItem>
                   ))}
@@ -250,14 +271,15 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
             </div>
 
             <div>
-              <Label>Aidant concerné</Label>
+              <Label>Aidant concerné (optionnel)</Label>
               <Select value={formData.aidantId} onValueChange={(v) => setFormData((p) => ({ ...p, aidantId: v }))}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un aidant" />
+                  <SelectValue placeholder="Sélectionner un aidant (ou laisser vide)" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="">Aucun (prestation disponible)</SelectItem>
                   {aidants.map((a) => (
-                      <SelectItem key={a.IDUtilisateurs} value={a.IDUtilisateurs.toString()}>
+                      <SelectItem key={a.IDAidant} value={a.IDAidant.toString()}>
                         {a.Prenom} {a.Nom}
                       </SelectItem>
                   ))}
