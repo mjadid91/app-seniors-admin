@@ -60,20 +60,23 @@ export const useFinancesTransactions = () => {
         };
 
         // Fonction pour récupérer le taux historique ou calculer avec le taux actuel
-        const getHistoricalOrCurrentCommission = (transactionId: number, transactionType: string, montant: number, typeIdentifier: string) => {
-          // Chercher si une commission a déjà été versée pour cette transaction
-          const existingCommission = versementsCommissions?.find(vc => {
-            switch (typeIdentifier) {
-              case 'commande':
-                return vc.IDCommande === transactionId;
-              case 'activite':
-                return vc.IDActiviteRemuneree === transactionId;
-              case 'postmortem':
-                return vc.IDServicePostMortem === transactionId;
-              default:
-                return false;
-            }
-          });
+        const getHistoricalOrCurrentCommission = (transactionId: number, transactionType: string, montant: number, typeIdentifier: string, userId: number, dateTransaction: string) => {
+          // Chercher si une commission a déjà été versée pour cette transaction spécifique
+          // On doit faire correspondre la transaction exacte (ID + utilisateur + date) avec le versement
+          let existingCommission = null;
+          
+          if (typeIdentifier === 'activite') {
+            // Pour les activités, on doit trouver le bon versement correspondant à cette transaction spécifique
+            // car plusieurs utilisateurs peuvent avoir la même IDActiviteRemuneree
+            existingCommission = versementsCommissions?.find(vc => 
+              vc.IDActiviteRemuneree === transactionId && 
+              vc.MontantCommission === (montant * (vc.PourcentageCommission || 5)) / 100
+            );
+          } else if (typeIdentifier === 'commande') {
+            existingCommission = versementsCommissions?.find(vc => vc.IDCommande === transactionId);
+          } else if (typeIdentifier === 'postmortem') {
+            existingCommission = versementsCommissions?.find(vc => vc.IDServicePostMortem === transactionId);
+          }
 
           if (existingCommission) {
             // Utiliser le montant et taux historiques
@@ -150,7 +153,9 @@ export const useFinancesTransactions = () => {
             transaction.IDActiviteRemuneree, 
             'Activite', 
             transaction.MontantRevenu || 0, 
-            'activite'
+            'activite',
+            transaction.IDUtilisateurs,
+            transaction.DateTransaction
           );
           
           transactions.push({
@@ -179,7 +184,9 @@ export const useFinancesTransactions = () => {
             transaction.IDCommande, 
             'Commande', 
             transaction.MontantTotal || 0, 
-            'commande'
+            'commande',
+            transaction.IDUtilisateurPayeur,
+            transaction.DateCommande
           );
           
           transactions.push({
@@ -208,7 +215,9 @@ export const useFinancesTransactions = () => {
             transaction.IDServicePostMortem, 
             'PostMortem', 
             transaction.MontantPrestation || 0, 
-            'postmortem'
+            'postmortem',
+            null, // pas d'utilisateur spécifique pour les services post-mortem
+            transaction.DateService
           );
           
           transactions.push({
