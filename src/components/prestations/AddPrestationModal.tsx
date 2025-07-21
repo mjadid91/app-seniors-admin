@@ -169,16 +169,16 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
           throw new Error(`Erreur lors de la création de la liaison: ${liaisonError.message}`);
         }
 
-         // Étape 4: Créer l'évaluation si fournie
-         if (formData.evaluationNote && formData.evaluationCommentaire) {
+         // Étape 4: Créer l'évaluation si une note est fournie
+         if (formData.evaluationNote) {
            console.log("Création de l'évaluation...");
            const { error: evaluationError } = await supabase
                .from("Evaluation")
                .insert({
                  IDMiseEnRelation: idMiseEnRelation,
                  Note: parseInt(formData.evaluationNote),
-                 Commentaire: formData.evaluationCommentaire,
-                 DateEvaluation: new Date().toISOString(),
+                 Commentaire: formData.evaluationCommentaire || "Aucun commentaire",
+                 DateEvaluation: new Date().toISOString().replace('T', ' ').replace('Z', ''),
                  IDUtilisateurs: parseInt(formData.seniorId), // Le senior qui évalue
                });
 
