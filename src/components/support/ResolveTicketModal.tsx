@@ -1,7 +1,6 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 
@@ -13,15 +12,13 @@ interface ResolveTicketModalProps {
 }
 
 const ResolveTicketModal = ({ isOpen, onClose, ticketId, onResolve }: ResolveTicketModalProps) => {
-  const [resolutionNote, setResolutionNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleResolve = async () => {
     setIsSubmitting(true);
     try {
-      await onResolve(ticketId, resolutionNote.trim() || undefined);
+      await onResolve(ticketId);
       onClose();
-      setResolutionNote("");
     } catch (error) {
       console.error("Erreur lors de la résolution:", error);
     } finally {
@@ -31,7 +28,6 @@ const ResolveTicketModal = ({ isOpen, onClose, ticketId, onResolve }: ResolveTic
 
   const handleClose = () => {
     onClose();
-    setResolutionNote("");
   };
 
   return (
@@ -53,18 +49,6 @@ const ResolveTicketModal = ({ isOpen, onClose, ticketId, onResolve }: ResolveTic
                 Êtes-vous sûr de vouloir marquer ce ticket comme résolu ? Cette action ne peut pas être annulée.
               </p>
             </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Note de résolution (optionnelle)
-            </label>
-            <Textarea
-              value={resolutionNote}
-              onChange={(e) => setResolutionNote(e.target.value)}
-              placeholder="Ajoutez une note sur la résolution du problème..."
-              className="min-h-[80px]"
-            />
           </div>
 
           <div className="flex justify-end gap-3">
