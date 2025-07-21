@@ -28,6 +28,10 @@ export interface FinanceTransaction {
 export const useFinancesTransactions = () => {
   return useQuery<FinanceTransaction[]>({
     queryKey: ["finances-transactions"],
+    // Refetch automatiquement toutes les 2 minutes pour les données financières
+    refetchInterval: 2 * 60 * 1000,
+    // Garder les données fraîches pendant 1 minute seulement
+    staleTime: 1 * 60 * 1000,
     queryFn: async () => {
       console.log("Récupération des transactions...");
       

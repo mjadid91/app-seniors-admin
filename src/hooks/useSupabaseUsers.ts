@@ -60,6 +60,18 @@ export const useSupabaseUsers = (): UserHookReturn => {
     }
   }, [categoriesLoading, categoriesError, getRoleFromCategory, fetchUsers, ensureSpecializedEntries]);
 
+  // Rafraîchissement automatique toutes les 5 minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!loading && !categoriesLoading && !categoriesError) {
+        console.log('Rafraîchissement automatique des utilisateurs...');
+        refetchUsers();
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, [loading, categoriesLoading, categoriesError, refetchUsers]);
+
   return {
     users,
     loading: loading || categoriesLoading,

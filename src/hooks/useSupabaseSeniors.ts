@@ -578,6 +578,18 @@ export const useSupabaseSeniors = () => {
     fetchData();
   }, []);
 
+  // Rafraîchissement automatique toutes les 3 minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!loading) {
+        console.log('Rafraîchissement automatique des seniors et aidants...');
+        fetchData();
+      }
+    }, 3 * 60 * 1000); // 3 minutes
+
+    return () => clearInterval(interval);
+  }, [loading]);
+
   return {
     seniors,
     aidants,

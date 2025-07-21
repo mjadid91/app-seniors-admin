@@ -25,6 +25,10 @@ export interface SupportTicketDB {
 export const useSupabaseSupportTickets = () => {
   return useQuery({
     queryKey: ["support-tickets"],
+    // Refetch automatiquement toutes les minutes pour le support
+    refetchInterval: 1 * 60 * 1000,
+    // Garder les données fraîches pendant 30 secondes seulement
+    staleTime: 30 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("support_dashboard_view")

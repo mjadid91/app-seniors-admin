@@ -18,6 +18,9 @@ const mapGroupMessage = (row: any): GroupMessage => ({
 export const useGroupMessages = () => {
   return useQuery({
     queryKey: ["moderation-groupMessages"],
+    // Refetch automatiquement toutes les 2 minutes pour la modération
+    refetchInterval: 2 * 60 * 1000,
+    staleTime: 1 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
           .from("v_group_messages_moderation")

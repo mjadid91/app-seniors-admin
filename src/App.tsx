@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useRealtimeInvalidation } from "@/hooks/useRealtimeInvalidation";
 import Index from "./pages/Index";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -25,14 +26,26 @@ import PolitiqueConfidentialite from "./pages/PolitiqueConfidentialite";
 import ConditionsUtilisation from "./pages/ConditionsUtilisation";
 import ContactPage from "./pages/ContactPage";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Refetch automatiquement toutes les 5 minutes en arrière-plan
+      refetchInterval: 5 * 60 * 1000,
+      // Garder les données en cache pendant 10 minutes
+      staleTime: 10 * 60 * 1000,
+      // Réessayer automatiquement en cas d'erreur
+      retry: 2,
+    },
+  },
+});
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+// Composant wrapper pour initialiser le système de rafraîchissement temps réel
+const AppContent = () => {
+  // Active l'écoute temps réel des changements dans la base de données
+  useRealtimeInvalidation();
+  
+  return (
+    <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/connexion" element={<LoginPage />} />
@@ -61,6 +74,15 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <AppContent />
     </TooltipProvider>
   </QueryClientProvider>
 );

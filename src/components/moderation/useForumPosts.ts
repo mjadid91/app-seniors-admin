@@ -19,6 +19,9 @@ const mapForumPost = (row: any): ForumPost => ({
 export const useForumPosts = () => {
   return useQuery({
     queryKey: ["moderation-forumPosts"],
+    // Refetch automatiquement toutes les 2 minutes pour la modération
+    refetchInterval: 2 * 60 * 1000,
+    staleTime: 1 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
           .from("v_forum_posts_moderation")

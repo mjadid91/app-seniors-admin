@@ -11,6 +11,9 @@ interface ModerationStatsData {
 export const useModerationStats = () => {
   return useQuery({
     queryKey: ["moderation-stats"],
+    // Refetch automatiquement toutes les 3 minutes pour les stats
+    refetchInterval: 3 * 60 * 1000,
+    staleTime: 2 * 60 * 1000,
     queryFn: async (): Promise<ModerationStatsData> => {
       // Récupérer le nombre total de signalements
       const { count: signalements } = await supabase

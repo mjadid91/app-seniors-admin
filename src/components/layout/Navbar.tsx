@@ -4,6 +4,7 @@ import { AppLogo } from "./AppLogo";
 import { NavigationLinks } from "./NavigationLinks";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { MobileMenu } from "./MobileMenu";
+import { RealtimeIndicator } from "../ui/realtime-indicator";
 
 const Navbar = () => {
   const { loading, isInitialized, isAuthenticated } = useSupabaseAuth();
@@ -21,6 +22,7 @@ const Navbar = () => {
           {/* Logo et titre - À gauche */}
           <div className="flex items-center space-x-4">
             <AppLogo />
+            <RealtimeIndicator />
           </div>
 
           {/* Liens de navigation - Centré (Desktop uniquement) */}
