@@ -43,7 +43,7 @@ const SeniorsTable = ({ seniors, onEditSenior, onDeleteSenior }: SeniorsTablePro
   };
 
   const displayGenre = (genre?: string) => {
-    return genre && genre !== 'Non précisé' ? genre : 'Non renseigné';
+    return genre && genre !== 'Non précisé' ? genre : '';
   };
 
   const getInitials = (prenom: string, nom: string) => {
@@ -84,7 +84,7 @@ const SeniorsTable = ({ seniors, onEditSenior, onDeleteSenior }: SeniorsTablePro
                 </Avatar>
                 <div>
                   <p className="font-medium">{senior.prenom} {senior.nom}</p>
-                  <p className="text-sm text-gray-500">{senior.ville || 'Ville non renseignée'}</p>
+                  <p className="text-sm text-gray-500">{senior.ville || ''}</p>
                 </div>
               </div>
             </TableCell>

@@ -46,7 +46,7 @@ const SeniorsList = ({ seniors }: SeniorsListProps) => {
       case 'tres_triste':
         return 'Très triste';
       default:
-        return 'Non renseigné';
+        return '';
     }
   };
 
@@ -86,12 +86,12 @@ const SeniorsList = ({ seniors }: SeniorsListProps) => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-600">
                       <div className="flex items-center gap-2">
                         <Phone className="h-4 w-4" />
-                        <span>{senior.telephone || 'Non renseigné'}</span>
+                        <span>{senior.telephone || ''}</span>
                       </div>
                       
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4" />
-                        <span>{senior.ville || 'Non renseigné'}</span>
+                        <span>{senior.ville || ''}</span>
                       </div>
                       
                       <div className="flex items-center gap-2">
