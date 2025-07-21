@@ -1,6 +1,7 @@
 
 import { useNavigate, useLocation } from "react-router-dom";
 import { usePermissions } from "../../hooks/usePermissions";
+import { useAuthStore } from "../../stores/authStore";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
@@ -22,18 +23,33 @@ interface NavigationLinksProps {
 
 export const NavigationLinks = ({ className, onItemClick }: NavigationLinksProps) => {
   const { canAccessPage } = usePermissions();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
 
   const handleNavigation = (item: typeof menuItems[0]) => {
-    if (canAccessPage(item.id)) {
+    let hasAccess = canAccessPage(item.id);
+    
+    // Protection spéciale pour Support : utiliser directement le rôle du user
+    if (item.id === 'support' && user) {
+      hasAccess = ['administrateur', 'support', 'visualisateur'].includes(user.role);
+    }
+    
+    if (hasAccess) {
       navigate(item.path);
       onItemClick?.();
     }
   };
 
   const getItemStyle = (item: typeof menuItems[0]) => {
-    if (!canAccessPage(item.id)) {
+    let hasAccess = canAccessPage(item.id);
+    
+    // Protection spéciale pour Support : utiliser directement le rôle du user
+    if (item.id === 'support' && user) {
+      hasAccess = ['administrateur', 'support', 'visualisateur'].includes(user.role);
+    }
+    
+    if (!hasAccess) {
       return "text-gray-400 cursor-not-allowed opacity-50";
     }
 
@@ -46,7 +62,12 @@ export const NavigationLinks = ({ className, onItemClick }: NavigationLinksProps
   return (
     <nav className={cn("flex items-center space-x-2", className)}>
       {menuItems.map((item) => {
-        const isAccessible = canAccessPage(item.id);
+        let isAccessible = canAccessPage(item.id);
+        
+        // Appliquer la même protection spéciale pour Support
+        if (item.id === 'support' && user) {
+          isAccessible = ['administrateur', 'support', 'visualisateur'].includes(user.role);
+        }
 
         return (
           <button

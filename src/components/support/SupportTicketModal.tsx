@@ -1,9 +1,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MessageSquare } from "lucide-react";
 import { useState } from "react";
-import TicketReplyForm from "./TicketReplyForm";
 import TicketAssignmentForm from "./TicketAssignmentForm";
 import ResolveTicketModal from "./ResolveTicketModal";
 import TicketHeader from "./TicketHeader";
@@ -109,27 +107,13 @@ const SupportTicketModal = ({ isOpen, onClose, ticket, onTicketUpdated }: Suppor
               />
             </div>
 
-            <Tabs defaultValue="reply" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="reply">Répondre au ticket</TabsTrigger>
-                <TabsTrigger value="assign">Assignation</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="reply" className="space-y-4">
-                <TicketReplyForm 
-                  ticketId={String(ticket.id)}
-                  onReplySubmitted={handleReplySubmitted}
-                />
-              </TabsContent>
-              
-              <TabsContent value="assign" className="space-y-4">
-                <TicketAssignmentForm
-                  ticketId={String(ticket.id)}
-                  currentAssignee={ticket.assigneA}
-                  onAssignmentChanged={handleAssignmentChanged}
-                />
-              </TabsContent>
-            </Tabs>
+            <div className="space-y-4">
+              <TicketAssignmentForm
+                ticketId={String(ticket.id)}
+                currentAssignee={ticket.assigneA}
+                onAssignmentChanged={handleAssignmentChanged}
+              />
+            </div>
 
             <TicketActions
               canResolve={canResolve}

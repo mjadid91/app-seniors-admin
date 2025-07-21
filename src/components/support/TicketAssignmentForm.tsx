@@ -40,7 +40,22 @@ const TicketAssignmentForm = ({ ticketId, currentAssignee, onAssignmentChanged }
       return;
     }
 
-    // 1. Créer une PrestationSupport
+    // 1. D'abord supprimer toute assignation existante pour éviter les doublons
+    const { error: deleteError } = await supabase
+        .from("PrestationSupport")
+        .delete()
+        .eq("IDTicketClient", parseInt(ticketId));
+
+    if (deleteError) {
+      toast({
+        title: "Erreur de suppression",
+        description: deleteError.message,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // 2. Créer la nouvelle PrestationSupport
     const { error: insertError } = await supabase
         .from("PrestationSupport")
         .insert({
