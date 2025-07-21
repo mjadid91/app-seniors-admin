@@ -194,7 +194,7 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
       }
 
       // Gérer l'évaluation si une mise en relation existe
-      if (miseEnRelationId && formData.evaluationNote) {
+      if (miseEnRelationId && formData.evaluationNote && formData.evaluationNote !== "none") {
         if (evaluationExists && evaluationId) {
           // Mettre à jour l'évaluation existante
           const { error: evaluationError } = await supabase
@@ -239,8 +239,8 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
             }
           }
         }
-      } else if (evaluationExists && evaluationId && !formData.evaluationNote) {
-        // Supprimer l'évaluation si la note est supprimée
+      } else if (evaluationExists && evaluationId && (formData.evaluationNote === "none" || !formData.evaluationNote)) {
+        // Supprimer l'évaluation si "none" est sélectionné ou si la note est vide
         const { error: deleteError } = await supabase
           .from("Evaluation")
           .delete()
@@ -384,7 +384,7 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
                         <SelectValue placeholder="Sélectionner une note" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Aucune note</SelectItem>
+                        <SelectItem value="none">Aucune note</SelectItem>
                         <SelectItem value="1">1 - Très insatisfait</SelectItem>
                         <SelectItem value="2">2 - Insatisfait</SelectItem>
                         <SelectItem value="3">3 - Neutre</SelectItem>
