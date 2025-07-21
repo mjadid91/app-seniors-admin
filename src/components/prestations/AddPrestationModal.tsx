@@ -120,7 +120,8 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
       console.log("Prestation créée avec ID:", idPrestation);
 
       // Étape 2: Créer la mise en relation (optionnelle)
-      if (formData.seniorId && formData.aidantId) {
+      if (formData.seniorId && formData.aidantId && 
+          formData.seniorId !== "none" && formData.aidantId !== "none") {
         console.log("Création de la mise en relation...");
         const { data: relationData, error: relationError } = await supabase
             .from("MiseEnRelation")
@@ -171,7 +172,8 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
 
       toast({
         title: "Prestation créée",
-        description: formData.seniorId && formData.aidantId 
+        description: (formData.seniorId && formData.aidantId && 
+                     formData.seniorId !== "none" && formData.aidantId !== "none")
           ? "La prestation et la mise en relation ont été créées avec succès"
           : "La prestation disponible a été créée avec succès",
       });
@@ -260,7 +262,7 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
                   <SelectValue placeholder="Sélectionner un senior (ou laisser vide)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Aucun (prestation disponible)</SelectItem>
+                  <SelectItem value="none">Aucun (prestation disponible)</SelectItem>
                   {seniors.map((s) => (
                       <SelectItem key={s.IDSeniors} value={s.IDSeniors.toString()}>
                         {s.Prenom} {s.Nom}
@@ -277,7 +279,7 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
                   <SelectValue placeholder="Sélectionner un aidant (ou laisser vide)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Aucun (prestation disponible)</SelectItem>
+                  <SelectItem value="none">Aucun (prestation disponible)</SelectItem>
                   {aidants.map((a) => (
                       <SelectItem key={a.IDAidant} value={a.IDAidant.toString()}>
                         {a.Prenom} {a.Nom}
