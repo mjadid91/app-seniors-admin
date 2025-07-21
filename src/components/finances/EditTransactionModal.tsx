@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface EditTransactionModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface EditTransactionModalProps {
 }
 
 const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdated }: EditTransactionModalProps) => {
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     montant: "",
     statut: "",
@@ -57,28 +59,30 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
             StatutCommande: formData.statut
           })
           .eq("IDCommande", transaction.idCommande || transaction.originalId || transaction.id);
-      } else if (transaction.type === "Activite") {
+      } else if (transaction.type === "Activité rémunérée") {
         updateResult = await supabase
           .from("ActiviteRemuneree_Utilisateurs")
           .update({
             MontantRevenu: montantValue,
             StatutPaiement: formData.statut
           })
-          .eq("IDActiviteRemuneree", transaction.idActiviteRemuneree || transaction.originalId || transaction.id);
-      } else if (transaction.type === "PostMortem") {
+          .eq("IDActiviteRemuneree", transaction.id_activite_remuneree || transaction.originalId || transaction.id);
+      } else if (transaction.type === "Service post-mortem") {
         updateResult = await supabase
           .from("ServicePostMortem")
           .update({
-            MontantPrestation: montantValue
+            MontantPrestation: montantValue,
+            StatutService: formData.statut
           })
-          .eq("IDServicePostMortem", transaction.idServicePostMortem || transaction.originalId || transaction.id);
-      } else if (transaction.type === "Don") {
+          .eq("IDServicePostMortem", transaction.id_service_post_mortem || transaction.originalId || transaction.id);
+      } else if (transaction.type === "Don cagnotte") {
+        // Pour les dons, supprimer le champ statut de paiement car il n'existe pas dans la DB
         updateResult = await supabase
           .from("DonCagnotte")
           .update({
             Montant: montantValue
           })
-          .eq("IDDonCagnotte", transaction.idDonCagnotte || transaction.originalId || transaction.id);
+          .eq("IDDonCagnotte", transaction.id_don_cagnotte || transaction.originalId || transaction.id);
       }
 
       console.log("Résultat de la mise à jour:", updateResult);
@@ -89,6 +93,13 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
       }
 
       toast.success("Transaction mise à jour avec succès");
+      
+      // Invalider les caches React Query pour mise à jour automatique
+      queryClient.invalidateQueries({ queryKey: ["finances-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["commission-rates"] });
+      queryClient.invalidateQueries({ queryKey: ["total-commissions-count"] });
+      queryClient.invalidateQueries({ queryKey: ["total-commissions-amount"] });
+      
       onTransactionUpdated();
       onClose();
     } catch (error) {
@@ -121,24 +132,28 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
             />
           </div>
           
-          <div>
-            <Label htmlFor="statut">Statut</Label>
-            <Select
-              value={formData.statut}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, statut: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="En attente">En attente</SelectItem>
-                <SelectItem value="Payé">Payé</SelectItem>
-                <SelectItem value="Validé">Validé</SelectItem>
-                <SelectItem value="Annulé">Annulé</SelectItem>
-                <SelectItem value="Remboursé">Remboursé</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Ne pas afficher le champ statut pour les dons cagnotte */}
+          {transaction.type !== "Don cagnotte" && (
+            <div>
+              <Label htmlFor="statut">Statut</Label>
+              <Select
+                value={formData.statut}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, statut: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionner un statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="En attente">En attente</SelectItem>
+                  <SelectItem value="Payé">Payé</SelectItem>
+                  <SelectItem value="Validé">Validé</SelectItem>
+                  <SelectItem value="Annulé">Annulé</SelectItem>
+                  <SelectItem value="Remboursé">Remboursé</SelectItem>
+                  <SelectItem value="En cours">En cours</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="flex justify-end gap-2 mt-6">
             <Button type="button" variant="outline" onClick={onClose}>

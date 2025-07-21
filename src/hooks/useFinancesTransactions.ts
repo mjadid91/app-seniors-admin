@@ -28,15 +28,15 @@ export interface FinanceTransaction {
 export const useFinancesTransactions = () => {
   return useQuery<FinanceTransaction[]>({
     queryKey: ["finances-transactions"],
-    // Refetch automatiquement toutes les 2 minutes pour les données financières
-    refetchInterval: 2 * 60 * 1000,
-    // Garder les données fraîches pendant 1 minute seulement
-    staleTime: 1 * 60 * 1000,
+    // Refetch automatiquement toutes les 30 secondes pour les données financières
+    refetchInterval: 30 * 1000,
+    // Garder les données fraîches pendant 15 secondes seulement
+    staleTime: 15 * 1000,
     queryFn: async () => {
       console.log("Récupération des transactions...");
       
       try {
-        // Récupération des paramètres de commission
+        // Récupération des paramètres de commission actuels
         const { data: commissionRates, error: commissionError } = await supabase
           .from("ParametresCommission")
           .select("*");
@@ -45,9 +45,50 @@ export const useFinancesTransactions = () => {
           console.error("Erreur lors du chargement des taux de commission:", commissionError);
         }
 
+        // Récupération des commissions déjà versées (avec taux historiques)
+        const { data: versementsCommissions, error: versementsError } = await supabase
+          .from("VersementCommissions")
+          .select("*");
+
+        if (versementsError) {
+          console.error("Erreur lors du chargement des versements de commissions:", versementsError);
+        }
+
         const getCommissionRate = (type: string) => {
           const rate = commissionRates?.find(r => r.TypeTransaction === type);
           return rate ? rate.Pourcentage : 5.0; // 5% par défaut
+        };
+
+        // Fonction pour récupérer le taux historique ou calculer avec le taux actuel
+        const getHistoricalOrCurrentCommission = (transactionId: number, transactionType: string, montant: number, typeIdentifier: string) => {
+          // Chercher si une commission a déjà été versée pour cette transaction
+          const existingCommission = versementsCommissions?.find(vc => {
+            switch (typeIdentifier) {
+              case 'commande':
+                return vc.IDCommande === transactionId;
+              case 'activite':
+                return vc.IDActiviteRemuneree === transactionId;
+              case 'postmortem':
+                return vc.IDServicePostMortem === transactionId;
+              default:
+                return false;
+            }
+          });
+
+          if (existingCommission) {
+            // Utiliser le montant et taux historiques
+            return {
+              commission: existingCommission.MontantCommission || 0,
+              taux: existingCommission.PourcentageCommission || 0
+            };
+          } else {
+            // Calculer avec le taux actuel pour les nouvelles transactions
+            const currentRate = getCommissionRate(transactionType);
+            return {
+              commission: (montant * currentRate) / 100,
+              taux: currentRate
+            };
+          }
         };
 
         // Récupération des transactions d'activités rémunérées
@@ -103,10 +144,14 @@ export const useFinancesTransactions = () => {
 
         const transactions: FinanceTransaction[] = [];
 
-        // Traitement des activités rémunérées (AVEC commission)
+        // Traitement des activités rémunérées (AVEC commission historique ou actuelle)
         activiteTransactions?.forEach((transaction, index) => {
-          const commissionRate = getCommissionRate('Activite');
-          const commission = (transaction.MontantRevenu * commissionRate) / 100;
+          const { commission, taux } = getHistoricalOrCurrentCommission(
+            transaction.IDActiviteRemuneree, 
+            'Activite', 
+            transaction.MontantRevenu || 0, 
+            'activite'
+          );
           
           transactions.push({
             id: index + 1,
@@ -128,10 +173,14 @@ export const useFinancesTransactions = () => {
           });
         });
 
-        // Traitement des commandes (AVEC commission)
+        // Traitement des commandes (AVEC commission historique ou actuelle)
         commandeTransactions?.forEach((transaction, index) => {
-          const commissionRate = getCommissionRate('Commande');
-          const commission = (transaction.MontantTotal * commissionRate) / 100;
+          const { commission, taux } = getHistoricalOrCurrentCommission(
+            transaction.IDCommande, 
+            'Commande', 
+            transaction.MontantTotal || 0, 
+            'commande'
+          );
           
           transactions.push({
             id: index + 10000,
@@ -153,10 +202,14 @@ export const useFinancesTransactions = () => {
           });
         });
 
-        // Traitement des services post-mortem (AVEC commission)
+        // Traitement des services post-mortem (AVEC commission historique ou actuelle)
         postMortemTransactions?.forEach((transaction, index) => {
-          const commissionRate = getCommissionRate('PostMortem');
-          const commission = (transaction.MontantPrestation * commissionRate) / 100;
+          const { commission, taux } = getHistoricalOrCurrentCommission(
+            transaction.IDServicePostMortem, 
+            'PostMortem', 
+            transaction.MontantPrestation || 0, 
+            'postmortem'
+          );
           
           transactions.push({
             id: index + 20000,

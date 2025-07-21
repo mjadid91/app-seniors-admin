@@ -1,9 +1,9 @@
 
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Percent, Calculator, Euro } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 interface CommissionRate {
   TypeTransaction: string;
@@ -11,58 +11,45 @@ interface CommissionRate {
 }
 
 const CommissionSummary = () => {
-  const [commissionRates, setCommissionRates] = useState<CommissionRate[]>([]);
-  const [totalCommissions, setTotalCommissions] = useState<number>(0);
-  const [totalCommissionAmount, setTotalCommissionAmount] = useState<number>(0);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    Promise.all([fetchCommissionRates(), fetchTotalCommissions(), fetchTotalCommissionAmount()]);
-  }, []);
-
-  const fetchCommissionRates = async () => {
-    try {
+  // Utiliser React Query pour un rechargement automatique
+  const { data: commissionRates = [], isLoading: ratesLoading } = useQuery({
+    queryKey: ["commission-rates"],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("ParametresCommission")
         .select("*")
         .order("TypeTransaction");
-
       if (error) throw error;
-      setCommissionRates(data || []);
-    } catch (error) {
-      console.error("Erreur lors du chargement des taux de commission:", error);
-    }
-  };
+      return data || [];
+    },
+    refetchInterval: 30 * 1000, // Refresh toutes les 30 secondes
+  });
 
-  const fetchTotalCommissions = async () => {
-    try {
+  const { data: totalCommissions = 0, isLoading: commissionsLoading } = useQuery({
+    queryKey: ["total-commissions-count"],
+    queryFn: async () => {
       const { count, error } = await supabase
         .from("VersementCommissions")
         .select("*", { count: "exact", head: true });
-
       if (error) throw error;
-      setTotalCommissions(count || 0);
-    } catch (error) {
-      console.error("Erreur lors du chargement du nombre total de commissions:", error);
-    }
-  };
+      return count || 0;
+    },
+    refetchInterval: 30 * 1000,
+  });
 
-  const fetchTotalCommissionAmount = async () => {
-    try {
+  const { data: totalCommissionAmount = 0, isLoading: amountLoading } = useQuery({
+    queryKey: ["total-commissions-amount"],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from("VersementCommissions")
         .select("MontantCommission");
-
       if (error) throw error;
-      
-      const total = data?.reduce((sum, commission) => sum + (commission.MontantCommission || 0), 0) || 0;
-      setTotalCommissionAmount(total);
-    } catch (error) {
-      console.error("Erreur lors du chargement du montant total des commissions:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data?.reduce((sum, commission) => sum + (commission.MontantCommission || 0), 0) || 0;
+    },
+    refetchInterval: 30 * 1000,
+  });
+
+  const loading = ratesLoading || commissionsLoading || amountLoading;
 
   const totalCommissionRate = commissionRates.reduce((sum, rate) => sum + rate.Pourcentage, 0);
 
