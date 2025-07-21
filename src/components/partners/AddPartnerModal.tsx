@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePasswordUtils } from "@/hooks/usePasswordUtils";
 import { usePartnerServices } from "@/hooks/usePartnerServices";
 import { Partner } from "./types";
-import { X } from "lucide-react";
+import { X, Plus } from "lucide-react";
 
 interface AddPartnerModalProps {
   isOpen: boolean;
@@ -45,6 +45,9 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
   });
   
   const [isLoading, setIsLoading] = useState(false);
+  const [newServiceName, setNewServiceName] = useState("");
+  const [isAddingService, setIsAddingService] = useState(false);
+  const [showAddServiceForm, setShowAddServiceForm] = useState(false);
   const { toast } = useToast();
   const { generatePassword, hashPassword, isGenerating } = usePasswordUtils();
   const { services, loading: servicesLoading, refetch: refetchServices } = usePartnerServices();
@@ -63,6 +66,60 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
         ? [...prev.selectedServiceIds, serviceId]
         : prev.selectedServiceIds.filter(id => id !== serviceId)
     }));
+  };
+
+  const handleAddNewService = async () => {
+    if (!newServiceName.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez saisir un nom de service.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsAddingService(true);
+    try {
+      const { data, error } = await supabase
+        .from('ServicePartenaire')
+        .insert({
+          NomService: newServiceName.trim()
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      // Actualiser la liste des services
+      await refetchServices();
+      
+      // Sélectionner automatiquement le nouveau service
+      setFormData(prev => ({
+        ...prev,
+        selectedServiceIds: [...prev.selectedServiceIds, data.IDServicePartenaire]
+      }));
+
+      // Réinitialiser le formulaire d'ajout
+      setNewServiceName("");
+      setShowAddServiceForm(false);
+
+      toast({
+        title: "Service créé",
+        description: `Le service "${newServiceName}" a été créé et sélectionné.`,
+      });
+
+    } catch (error: any) {
+      console.error('Erreur lors de la création du service:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de créer le service. " + (error.message || ''),
+        variant: "destructive"
+      });
+    } finally {
+      setIsAddingService(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -303,7 +360,57 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
 
           {/* Services proposés */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Services proposés</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Services proposés</h3>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowAddServiceForm(!showAddServiceForm)}
+                className="flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Ajouter un service
+              </Button>
+            </div>
+
+            {/* Formulaire d'ajout de service */}
+            {showAddServiceForm && (
+              <div className="border rounded-lg p-4 bg-muted/50 space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="newServiceName">Nom du nouveau service</Label>
+                  <Input
+                    id="newServiceName"
+                    value={newServiceName}
+                    onChange={(e) => setNewServiceName(e.target.value)}
+                    placeholder="Ex: Aide à domicile, Livraison de repas..."
+                    disabled={isAddingService}
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleAddNewService}
+                    disabled={isAddingService || !newServiceName.trim()}
+                  >
+                    {isAddingService ? "Ajout..." : "Créer le service"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setShowAddServiceForm(false);
+                      setNewServiceName("");
+                    }}
+                    disabled={isAddingService}
+                  >
+                    Annuler
+                  </Button>
+                </div>
+              </div>
+            )}
             
             {servicesLoading ? (
               <p className="text-sm text-muted-foreground">Chargement des services...</p>
