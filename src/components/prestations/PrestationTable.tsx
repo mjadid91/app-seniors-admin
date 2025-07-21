@@ -77,10 +77,14 @@ const PrestationTable = ({ prestations, onVoirPrestation, onEditPrestation, onDe
               <tr key={prestation.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                 <td className="py-4 px-4 font-mono text-sm text-slate-600">{prestation.id}</td>
                 <td className="py-4 px-4">
-                  <p className="font-medium text-slate-800">{prestation.seniorNom}</p>
+                  <p className={prestation.seniorNom === 'Non assigné' ? 'font-medium text-slate-400 italic' : 'font-medium text-slate-800'}>
+                    {prestation.seniorNom}
+                  </p>
                 </td>
                 <td className="py-4 px-4">
-                  <p className="font-medium text-slate-800">{prestation.aidantNom}</p>
+                  <p className={prestation.aidantNom === 'Non assigné' ? 'font-medium text-slate-400 italic' : 'font-medium text-slate-800'}>
+                    {prestation.aidantNom}
+                  </p>
                 </td>
                 <td className="py-4 px-4 text-slate-600">{prestation.typePrestation}</td>
                 <td className="py-4 px-4 text-slate-600">
