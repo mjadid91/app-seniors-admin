@@ -10,6 +10,13 @@ export interface PatrimonialDocument {
   URLDocument: string;
   IDSeniors: number | null;
   dateCreation?: string;
+  Seniors?: {
+    IDSeniors: number;
+    Utilisateurs?: {
+      Nom: string;
+      Prenom: string;
+    };
+  };
 }
 
 export const usePatrimonialDocuments = () => {
@@ -26,7 +33,16 @@ export const usePatrimonialDocuments = () => {
 
       let query = supabase
         .from("DocumentPatrimonial")
-        .select("*");
+        .select(`
+          *,
+          Seniors!IDSeniors(
+            IDSeniors,
+            Utilisateurs!IDUtilisateurSenior(
+              Nom,
+              Prenom
+            )
+          )
+        `);
 
       // Filtrer selon le rôle de l'utilisateur
       if (user?.role === 'support') {

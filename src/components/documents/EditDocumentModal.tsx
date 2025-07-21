@@ -28,12 +28,22 @@ const EditDocumentModal = ({ isOpen, onClose, document, onEditDocument, categori
   // Initialiser le formulaire quand le document change
   useEffect(() => {
     if (document && isOpen) {
+      console.log("Initialisation du formulaire avec document:", document);
       setFormData({
         name: document.name || "",
         category: document.category || "",
         status: document.status || "Brouillon",
         description: document.description || "",
         utilisateurId: document.utilisateurId ? document.utilisateurId.toString() : ""
+      });
+    } else if (isOpen) {
+      // Reset le formulaire si pas de document mais modal ouvert
+      setFormData({
+        name: "",
+        category: "",
+        status: "Brouillon", 
+        description: "",
+        utilisateurId: ""
       });
     }
   }, [document, isOpen, setFormData]);
