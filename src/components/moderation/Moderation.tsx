@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, MessageSquare, FileText, AlertTriangle, UserPlus, MessageCircle, Plus, UserCheck } from "lucide-react";
@@ -17,6 +18,7 @@ import { useForumPosts } from "./useForumPosts";
 import { useGroupMessages } from "./useGroupMessages";
 
 const Moderation = () => {
+  const queryClient = useQueryClient();
   const [isAddForumModalOpen, setIsAddForumModalOpen] = useState(false);
   const [isAddForumSubjectModalOpen, setIsAddForumSubjectModalOpen] = useState(false);
   const [isAddGroupModalOpen, setIsAddGroupModalOpen] = useState(false);
@@ -46,6 +48,10 @@ const Moderation = () => {
     setRefreshTrigger(prev => prev + 1);
     refetchForumPosts();
     refetchGroupMessages();
+    // Invalider la query des forums pour mettre à jour la liste dans AddForumSubjectModal
+    queryClient.invalidateQueries({ queryKey: ['forums'] });
+    // Invalider aussi les queries des utilisateurs pour s'assurer que tout est à jour
+    queryClient.invalidateQueries({ queryKey: ['utilisateurs'] });
   };
 
   return (
