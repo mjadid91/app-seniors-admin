@@ -29,7 +29,12 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
     tarif: "",
     domaine: "",
     statut: "",
+    evaluationNote: "",
+    evaluationCommentaire: "",
   });
+  const [evaluationExists, setEvaluationExists] = useState(false);
+  const [evaluationId, setEvaluationId] = useState<number | null>(null);
+  const [miseEnRelationId, setMiseEnRelationId] = useState<number | null>(null);
   const [domaines, setDomaines] = useState<Domaine[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -81,10 +86,10 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
           return;
         }
 
-        // Récupérer le statut depuis MiseEnRelation
+        // Récupérer le statut et l'ID depuis MiseEnRelation
         const { data: miseEnRelationData, error: miseEnRelationError } = await supabase
           .from("MiseEnRelation")
-          .select("Statut")
+          .select("Statut, IDMiseEnRelation")
           .eq("IDPrestation", parseInt(prestation.id))
           .single();
 
@@ -92,13 +97,57 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
           console.error("Erreur lors du chargement du statut:", miseEnRelationError);
         }
 
-        setFormData({
-          titre: prestationData?.Titre || prestation.typePrestation,
-          description: prestationData?.Description || "",
-          tarif: prestationData?.TarifIndicatif?.toString() || prestation.tarif.toString(),
-          domaine: prestationData?.IDDomaine?.toString() || "",
-          statut: miseEnRelationData?.Statut || "en_attente",
-        });
+        // Stocker l'ID de mise en relation pour l'évaluation
+        if (miseEnRelationData?.IDMiseEnRelation) {
+          setMiseEnRelationId(miseEnRelationData.IDMiseEnRelation);
+          
+          // Récupérer l'évaluation existante
+          const { data: evaluationData, error: evaluationError } = await supabase
+            .from("Evaluation")
+            .select("IDEvaluation, Note, Commentaire")
+            .eq("IDMiseEnRelation", miseEnRelationData.IDMiseEnRelation)
+            .single();
+
+          if (evaluationError && evaluationError.code !== 'PGRST116') {
+            console.error("Erreur lors du chargement de l'évaluation:", evaluationError);
+          }
+
+          if (evaluationData) {
+            setEvaluationExists(true);
+            setEvaluationId(evaluationData.IDEvaluation);
+            setFormData({
+              titre: prestationData?.Titre || prestation.typePrestation,
+              description: prestationData?.Description || "",
+              tarif: prestationData?.TarifIndicatif?.toString() || prestation.tarif.toString(),
+              domaine: prestationData?.IDDomaine?.toString() || "",
+              statut: miseEnRelationData?.Statut || "en_attente",
+              evaluationNote: evaluationData.Note?.toString() || "",
+              evaluationCommentaire: evaluationData.Commentaire || "",
+            });
+          } else {
+            setEvaluationExists(false);
+            setEvaluationId(null);
+            setFormData({
+              titre: prestationData?.Titre || prestation.typePrestation,
+              description: prestationData?.Description || "",
+              tarif: prestationData?.TarifIndicatif?.toString() || prestation.tarif.toString(),
+              domaine: prestationData?.IDDomaine?.toString() || "",
+              statut: miseEnRelationData?.Statut || "en_attente",
+              evaluationNote: "",
+              evaluationCommentaire: "",
+            });
+          }
+        } else {
+          setFormData({
+            titre: prestationData?.Titre || prestation.typePrestation,
+            description: prestationData?.Description || "",
+            tarif: prestationData?.TarifIndicatif?.toString() || prestation.tarif.toString(),
+            domaine: prestationData?.IDDomaine?.toString() || "",
+            statut: "en_attente",
+            evaluationNote: "",
+            evaluationCommentaire: "",
+          });
+        }
       }
     };
 
@@ -142,6 +191,64 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
 
       if (statutError) {
         throw statutError;
+      }
+
+      // Gérer l'évaluation si une mise en relation existe
+      if (miseEnRelationId && formData.evaluationNote) {
+        if (evaluationExists && evaluationId) {
+          // Mettre à jour l'évaluation existante
+          const { error: evaluationError } = await supabase
+            .from("Evaluation")
+            .update({
+              Note: parseInt(formData.evaluationNote),
+              Commentaire: formData.evaluationCommentaire || "Aucun commentaire",
+              DateEvaluation: new Date().toISOString().replace('T', ' ').replace('Z', ''),
+            })
+            .eq("IDEvaluation", evaluationId);
+
+          if (evaluationError) {
+            console.error("Erreur lors de la mise à jour de l'évaluation:", evaluationError);
+          }
+        } else {
+          // Créer une nouvelle évaluation
+          // D'abord récupérer l'ID utilisateur du senior depuis MiseEnRelation
+          const { data: miseEnRelationData, error: relationError } = await supabase
+            .from("MiseEnRelation")
+            .select(`
+              IDSeniors,
+              Seniors!inner(IDUtilisateurSenior)
+            `)
+            .eq("IDMiseEnRelation", miseEnRelationId)
+            .single();
+
+          if (relationError) {
+            console.error("Erreur lors de la récupération des données de relation:", relationError);
+          } else {
+            const { error: evaluationError } = await supabase
+              .from("Evaluation")
+              .insert({
+                IDMiseEnRelation: miseEnRelationId,
+                Note: parseInt(formData.evaluationNote),
+                Commentaire: formData.evaluationCommentaire || "Aucun commentaire",
+                DateEvaluation: new Date().toISOString().replace('T', ' ').replace('Z', ''),
+                IDUtilisateurs: miseEnRelationData.Seniors.IDUtilisateurSenior,
+              });
+
+            if (evaluationError) {
+              console.error("Erreur lors de la création de l'évaluation:", evaluationError);
+            }
+          }
+        }
+      } else if (evaluationExists && evaluationId && !formData.evaluationNote) {
+        // Supprimer l'évaluation si la note est supprimée
+        const { error: deleteError } = await supabase
+          .from("Evaluation")
+          .delete()
+          .eq("IDEvaluation", evaluationId);
+
+        if (deleteError) {
+          console.error("Erreur lors de la suppression de l'évaluation:", deleteError);
+        }
       }
 
       toast({
@@ -249,6 +356,57 @@ const EditPrestationModal = ({ isOpen, onClose, prestation, onSuccess }: EditPre
                   rows={3}
               />
             </div>
+
+            {/* Section Évaluation */}
+            {miseEnRelationId && (
+              <div className="space-y-4 border-t pt-4">
+                <div>
+                  <Label className="text-sm font-medium">
+                    Évaluation du senior pour l'aidant 
+                    {evaluationExists ? " (existante)" : " (optionnel)"}
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {evaluationExists 
+                      ? "Modifiez ou supprimez l'évaluation existante"
+                      : "Ajoutez une évaluation pour cette prestation"
+                    }
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="evaluationNote">Note (sur 5)</Label>
+                    <Select 
+                      value={formData.evaluationNote} 
+                      onValueChange={(value) => handleInputChange("evaluationNote", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner une note" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Aucune note</SelectItem>
+                        <SelectItem value="1">1 - Très insatisfait</SelectItem>
+                        <SelectItem value="2">2 - Insatisfait</SelectItem>
+                        <SelectItem value="3">3 - Neutre</SelectItem>
+                        <SelectItem value="4">4 - Satisfait</SelectItem>
+                        <SelectItem value="5">5 - Très satisfait</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="evaluationCommentaire">Commentaire</Label>
+                    <Textarea
+                        id="evaluationCommentaire"
+                        value={formData.evaluationCommentaire}
+                        onChange={(e) => handleInputChange("evaluationCommentaire", e.target.value)}
+                        placeholder="Commentaire du senior sur l'aidant"
+                        rows={2}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
