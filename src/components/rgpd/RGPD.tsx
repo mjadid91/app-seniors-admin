@@ -21,6 +21,7 @@ import AddConsentementModal from "./AddConsentementModal";
 import AddDocumentRGPDModal from "./AddDocumentRGPDModal";
 import EditDemandeRGPDModal from "./EditDemandeRGPDModal";
 import UserDetailsModal from "./UserDetailsModal";
+import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
 
 const RGPD = () => {
   const { toast } = useToast();
@@ -32,10 +33,18 @@ const RGPD = () => {
   const [addDocumentModalOpen, setAddDocumentModalOpen] = useState(false);
   const [editDemandeModalOpen, setEditDemandeModalOpen] = useState(false);
   const [userDetailsModalOpen, setUserDetailsModalOpen] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   
   // États des éléments sélectionnés
   const [selectedRequest, setSelectedRequest] = useState<DemandeRGPD | null>(null);
   const [selectedConsent, setSelectedConsent] = useState<ConsentementCookies | null>(null);
+  
+  // État pour la suppression
+  const [deleteAction, setDeleteAction] = useState<{
+    type: 'demande' | 'consentement' | 'document';
+    id: number;
+    name: string;
+  } | null>(null);
 
   // Hooks pour les données
   const { data: demandes = [], isLoading: demandesLoading, refetch: refetchDemandes } = useDemandesRGPD();
@@ -65,9 +74,16 @@ const RGPD = () => {
   };
 
   // Fonction pour supprimer une demande
-  const handleDeleteRequest = async (requestId: number) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer cette demande RGPD ?")) return;
-    
+  const handleDeleteRequest = (requestId: number, requestType: string) => {
+    setDeleteAction({
+      type: 'demande',
+      id: requestId,
+      name: `Demande #${requestId} (${requestType})`
+    });
+    setConfirmDeleteOpen(true);
+  };
+
+  const executeDeleteRequest = async (requestId: number) => {
     try {
       await supprimerDemandeMutation.mutateAsync(requestId);
       toast({
@@ -85,9 +101,16 @@ const RGPD = () => {
   };
 
   // Fonction pour supprimer un consentement
-  const handleDeleteConsent = async (consentId: number) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce consentement ?")) return;
-    
+  const handleDeleteConsent = (consentId: number, consentType: string) => {
+    setDeleteAction({
+      type: 'consentement',
+      id: consentId,
+      name: `Consentement #${consentId} (${consentType})`
+    });
+    setConfirmDeleteOpen(true);
+  };
+
+  const executeDeleteConsent = async (consentId: number) => {
     try {
       await supprimerConsentementMutation.mutateAsync(consentId);
       toast({
@@ -105,9 +128,16 @@ const RGPD = () => {
   };
 
   // Fonction pour supprimer un document
-  const handleDeleteDocument = async (documentId: number) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer ce document ?")) return;
-    
+  const handleDeleteDocument = (documentId: number, documentTitle: string) => {
+    setDeleteAction({
+      type: 'document',
+      id: documentId,
+      name: `Document #${documentId} (${documentTitle})`
+    });
+    setConfirmDeleteOpen(true);
+  };
+
+  const executeDeleteDocument = async (documentId: number) => {
     try {
       await supprimerDocumentMutation.mutateAsync(documentId);
       toast({
@@ -122,6 +152,25 @@ const RGPD = () => {
         variant: "destructive"
       });
     }
+  };
+
+  // Fonction pour exécuter la suppression confirmée
+  const executeConfirmedDelete = async () => {
+    if (!deleteAction) return;
+
+    switch (deleteAction.type) {
+      case 'demande':
+        await executeDeleteRequest(deleteAction.id);
+        break;
+      case 'consentement':
+        await executeDeleteConsent(deleteAction.id);
+        break;
+      case 'document':
+        await executeDeleteDocument(deleteAction.id);
+        break;
+    }
+    
+    setDeleteAction(null);
   };
 
   const getStatutBadgeColor = (statut: string) => {
@@ -292,7 +341,7 @@ const RGPD = () => {
                             variant="ghost" 
                             size="sm" 
                             title="Supprimer"
-                            onClick={() => handleDeleteRequest(demande.IDDemandeRGPD)}
+                            onClick={() => handleDeleteRequest(demande.IDDemandeRGPD, demande.TypeDemande)}
                           >
                             <Trash2 className="h-4 w-4 text-red-600" />
                           </Button>
@@ -373,7 +422,7 @@ const RGPD = () => {
                             variant="ghost" 
                             size="sm" 
                             title="Supprimer"
-                            onClick={() => handleDeleteConsent(consent.IDConsentement)}
+                            onClick={() => handleDeleteConsent(consent.IDConsentement, consent.TypeCookie)}
                           >
                             <Trash2 className="h-4 w-4 text-red-600" />
                           </Button>
@@ -439,7 +488,7 @@ const RGPD = () => {
                           variant="ghost" 
                           size="sm" 
                           title="Supprimer"
-                          onClick={() => handleDeleteDocument(doc.IDDocumentRGPD)}
+                          onClick={() => handleDeleteDocument(doc.IDDocumentRGPD, doc.Titre)}
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />
                         </Button>
@@ -507,6 +556,18 @@ const RGPD = () => {
         isOpen={userDetailsModalOpen}
         onClose={() => setUserDetailsModalOpen(false)}
         consent={selectedConsent}
+      />
+
+      <ConfirmDeleteDialog
+        isOpen={confirmDeleteOpen}
+        onClose={() => {
+          setConfirmDeleteOpen(false);
+          setDeleteAction(null);
+        }}
+        onConfirm={executeConfirmedDelete}
+        title="Confirmer la suppression"
+        description="Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible."
+        itemName={deleteAction?.name || ""}
       />
     </div>
   );
