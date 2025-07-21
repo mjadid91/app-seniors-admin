@@ -13,11 +13,8 @@ import { useSupabasePrestations, PrestationDB } from "../../hooks/useSupabasePre
 import { Button } from "@/components/ui/button";
 import AddDomaineModal from "./AddDomaineModal";
 
-// Import type pour type safety
-import type { Prestation as PrestationTableType } from "./PrestationTable";
-
-// Use the same type everywhere in this component
-type Prestation = PrestationTableType;
+// Import type from PrestationTable for consistency
+import type { Prestation } from "./PrestationTable";
 
 const mapPrestationDBToUI = (db: PrestationDB): Prestation => {
   console.log("Mapping prestation DB to UI:", db);
@@ -29,7 +26,7 @@ const mapPrestationDBToUI = (db: PrestationDB): Prestation => {
     typePrestation: db.type_prestation ?? "Sans titre",
     dateCreation: db.date_creation ?? "",
     tarif: typeof db.tarif === "number" ? db.tarif : 0,
-    statut: db.statut ?? "en_attente",
+    statut: db.statut ?? "disponible",
     evaluation: db.evaluation ? Number(db.evaluation) : undefined,
     domaineNom: db.domaine_titre || undefined,
 
@@ -89,10 +86,11 @@ const PrestationTracking = () => {
     // Only allow the union types (type safety for assignment)
     const allowedStatuts = [
       "en_attente",
-      "en_cours",
+      "en_cours", 
       "terminee",
       "refusee",
       "annulee",
+      "disponible",
       "tous"
     ] as const;
     if ((allowedStatuts as readonly string[]).includes(statut)) {
@@ -151,7 +149,7 @@ const PrestationTracking = () => {
         </div>
 
         {/* Statistiques */}
-        <PrestationStatsCards prestations={mappedPrestations} />
+        <PrestationStatsCards prestations={mappedPrestations as any} />
 
         {/* Tableau */}
         <Card>
@@ -177,13 +175,13 @@ const PrestationTracking = () => {
         <PrestationDetailsModal
             isOpen={isDetailsModalOpen}
             onClose={() => setIsDetailsModalOpen(false)}
-            prestation={selectedPrestation}
+            prestation={selectedPrestation as any}
         />
 
         <EditPrestationModal
             isOpen={isEditModalOpen}
             onClose={() => setIsEditModalOpen(false)}
-            prestation={selectedPrestation}
+            prestation={selectedPrestation as any}
             onSuccess={handleEditSuccess}
         />
 

@@ -10,7 +10,7 @@ export interface Prestation {
   typePrestation: string;
   dateCreation: string;
   tarif: number;
-  statut: 'en_attente' | 'en_cours' | 'terminee' | 'refusee' | 'annulee';
+  statut: 'en_attente' | 'en_cours' | 'terminee' | 'refusee' | 'annulee' | 'disponible';
   evaluation?: number;
   domaineNom?: string;
 }
@@ -29,6 +29,7 @@ const PrestationTable = ({ prestations, onVoirPrestation, onEditPrestation }: Pr
       case 'terminee': return 'bg-green-100 text-green-700 border-green-200';
       case 'refusee': return 'bg-red-100 text-red-700 border-red-200';
       case 'annulee': return 'bg-gray-100 text-gray-700 border-gray-200';
+      case 'disponible': return 'bg-purple-100 text-purple-700 border-purple-200';
       default: return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
@@ -40,6 +41,7 @@ const PrestationTable = ({ prestations, onVoirPrestation, onEditPrestation }: Pr
       case 'terminee': return 'Terminée';
       case 'refusee': return 'Refusée';
       case 'annulee': return 'Annulée';
+      case 'disponible': return 'Disponible';
       default: return statut;
     }
   };

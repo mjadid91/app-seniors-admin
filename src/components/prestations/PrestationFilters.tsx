@@ -12,6 +12,7 @@ const PrestationFilters = ({ selectedStatut, onStatutChange }: PrestationFilters
       className="px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
     >
       <option value="tous">Tous les statuts</option>
+      <option value="disponible">Disponible</option>
       <option value="en_attente">En attente</option>
       <option value="en_cours">En cours</option>
       <option value="terminee">Terminée</option>

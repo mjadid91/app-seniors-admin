@@ -79,6 +79,8 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
     setIsSubmitting(true);
 
     try {
+      // Étape 1: Créer la prestation
+      console.log("Création de la prestation...");
       const { data: prestationData, error: prestationError } = await supabase
           .from("Prestation")
           .insert({
@@ -91,9 +93,20 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
           .select()
           .single();
 
-      if (prestationError || !prestationData) throw prestationError;
-      const idPrestation = prestationData.IDPrestation;
+      if (prestationError) {
+        console.error("Erreur création prestation:", prestationError);
+        throw new Error(`Erreur lors de la création de la prestation: ${prestationError.message}`);
+      }
 
+      if (!prestationData) {
+        throw new Error("Aucune donnée retournée lors de la création de la prestation");
+      }
+
+      const idPrestation = prestationData.IDPrestation;
+      console.log("Prestation créée avec ID:", idPrestation);
+
+      // Étape 2: Créer la mise en relation
+      console.log("Création de la mise en relation...");
       const { data: relationData, error: relationError } = await supabase
           .from("MiseEnRelation")
           .insert({
@@ -110,9 +123,20 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
           .select()
           .single();
 
-      if (relationError || !relationData) throw relationError;
-      const idMiseEnRelation = relationData.IDMiseEnRelation;
+      if (relationError) {
+        console.error("Erreur création mise en relation:", relationError);
+        throw new Error(`Erreur lors de la création de la mise en relation: ${relationError.message}`);
+      }
 
+      if (!relationData) {
+        throw new Error("Aucune donnée retournée lors de la création de la mise en relation");
+      }
+
+      const idMiseEnRelation = relationData.IDMiseEnRelation;
+      console.log("Mise en relation créée avec ID:", idMiseEnRelation);
+
+      // Étape 3: Créer la liaison prestation-mise en relation
+      console.log("Création de la liaison...");
       const { error: liaisonError } = await supabase
           .from("MiseEnRelation_Prestation")
           .insert({
@@ -120,7 +144,12 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
             IDMiseEnRelation: idMiseEnRelation,
           });
 
-      if (liaisonError) throw liaisonError;
+      if (liaisonError) {
+        console.error("Erreur création liaison:", liaisonError);
+        throw new Error(`Erreur lors de la création de la liaison: ${liaisonError.message}`);
+      }
+
+      console.log("Prestation complète créée avec succès!");
 
       toast({
         title: "Prestation créée",
