@@ -10,6 +10,7 @@ import TicketResolutionInfo from "./TicketResolutionInfo";
 import TicketDescription from "./TicketDescription";
 import TicketActions from "./TicketActions";
 import TicketReplies from "./TicketReplies";
+import TicketReplyForm from "./TicketReplyForm";
 import { useTicketPermissions } from "@/hooks/useTicketPermissions";
 import { useSupportTicketMutations } from "@/hooks/useSupportTicketMutations";
 import { useSupportReplies } from "@/hooks/useSupportReplies";
@@ -105,6 +106,14 @@ const SupportTicketModal = ({ isOpen, onClose, ticket, onTicketUpdated }: Suppor
                 replies={replies} 
                 isLoading={isLoadingReplies}
               />
+              
+              {/* Formulaire de réponse pour les agents de support */}
+              {ticket.statut !== 'resolu' && (
+                <TicketReplyForm 
+                  ticketId={String(ticket.id)}
+                  onReplySubmitted={handleReplySubmitted}
+                />
+              )}
             </div>
 
             <div className="space-y-4">
