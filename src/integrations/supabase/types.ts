@@ -2615,7 +2615,6 @@ export type Database = {
         Row: {
           Contenu: string
           DateReponse: string
-          FichierJoint: string | null
           IDAuteur: number
           IDReponse: number
           IDTicketClient: number
@@ -2623,7 +2622,6 @@ export type Database = {
         Insert: {
           Contenu: string
           DateReponse?: string
-          FichierJoint?: string | null
           IDAuteur: number
           IDReponse?: number
           IDTicketClient: number
@@ -2631,7 +2629,6 @@ export type Database = {
         Update: {
           Contenu?: string
           DateReponse?: string
-          FichierJoint?: string | null
           IDAuteur?: number
           IDReponse?: number
           IDTicketClient?: number
