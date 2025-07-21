@@ -31,23 +31,34 @@ const Support = () => {
   const [openModal, setOpenModal] = useState(false);
   const { toast } = useToast();
 
-  // Mapping : vue → modèle local Ticket
-  const mappedTickets: Ticket[] = useMemo(() => ticketsDB.map(t => ({
-    id: t.id,
-    sujet: t.sujet ?? "—",
-    utilisateur:
-      ((t.utilisateur_prenom ?? "") + " " + (t.utilisateur_nom ?? "")).trim() || "—",
-    dateCreation: t.date_creation ?? "",
-    statut: t.statut,
-    priorite: t.priorite,
-    assigneA:
-      t.assigne_prenom && t.assigne_nom
-        ? `${t.assigne_prenom} ${t.assigne_nom}`
-        : undefined,
-    message: t.message,
-    utilisateur_email: t.utilisateur_email,
-    descriptionDemande: t.message,
-  })), [ticketsDB]);
+  // Mapping : vue → modèle local Ticket avec déduplication
+  const mappedTickets: Ticket[] = useMemo(() => {
+    const seenIds = new Set<number>();
+    return ticketsDB
+      .filter(t => {
+        if (seenIds.has(t.id)) {
+          return false; // Skip duplicates
+        }
+        seenIds.add(t.id);
+        return true;
+      })
+      .map(t => ({
+        id: t.id,
+        sujet: t.sujet ?? "—",
+        utilisateur:
+          ((t.utilisateur_prenom ?? "") + " " + (t.utilisateur_nom ?? "")).trim() || "—",
+        dateCreation: t.date_creation ?? "",
+        statut: t.statut,
+        priorite: t.priorite,
+        assigneA:
+          t.assigne_prenom && t.assigne_nom
+            ? `${t.assigne_prenom} ${t.assigne_nom}`
+            : undefined,
+        message: t.message,
+        utilisateur_email: t.utilisateur_email,
+        descriptionDemande: t.message,
+      }));
+  }, [ticketsDB]);
 
   const tickets = mappedTickets;
 
