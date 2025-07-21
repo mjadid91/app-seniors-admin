@@ -316,40 +316,51 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
               </Select>
             </div>
 
-            {/* Champs d'évaluation - visibles uniquement quand senior ET aidant sont sélectionnés */}
-            {formData.seniorId && formData.aidantId && 
-             formData.seniorId !== "none" && formData.aidantId !== "none" && (
-              <div className="space-y-4 border-t pt-4">
-                <div>
-                  <Label className="text-sm font-medium">Évaluation du senior pour l'aidant (optionnel)</Label>
-                </div>
-                
-                <div>
-                  <Label>Note (sur 5)</Label>
-                  <Select value={formData.evaluationNote} onValueChange={(v) => setFormData((p) => ({ ...p, evaluationNote: v }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner une note" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 - Très insatisfait</SelectItem>
-                      <SelectItem value="2">2 - Insatisfait</SelectItem>
-                      <SelectItem value="3">3 - Neutre</SelectItem>
-                      <SelectItem value="4">4 - Satisfait</SelectItem>
-                      <SelectItem value="5">5 - Très satisfait</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Commentaire d'évaluation</Label>
-                  <Textarea
-                      placeholder="Commentaire du senior sur l'aidant"
-                      value={formData.evaluationCommentaire}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, evaluationCommentaire: e.target.value }))}
-                  />
-                </div>
+            {/* Section Évaluation */}
+            <div className="space-y-4 border-t pt-4">
+              <div>
+                <Label className="text-sm font-medium">Évaluation du senior pour l'aidant (optionnel)</Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {!(formData.seniorId && formData.aidantId && 
+                     formData.seniorId !== "none" && formData.aidantId !== "none") 
+                    ? "Sélectionnez un senior et un aidant pour activer l'évaluation"
+                    : "Le senior peut évaluer l'aidant pour cette prestation"
+                  }
+                </p>
               </div>
-            )}
+              
+              <div>
+                <Label>Note (sur 5)</Label>
+                <Select 
+                  value={formData.evaluationNote} 
+                  onValueChange={(v) => setFormData((p) => ({ ...p, evaluationNote: v }))}
+                  disabled={!(formData.seniorId && formData.aidantId && 
+                             formData.seniorId !== "none" && formData.aidantId !== "none")}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner une note" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 - Très insatisfait</SelectItem>
+                    <SelectItem value="2">2 - Insatisfait</SelectItem>
+                    <SelectItem value="3">3 - Neutre</SelectItem>
+                    <SelectItem value="4">4 - Satisfait</SelectItem>
+                    <SelectItem value="5">5 - Très satisfait</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Commentaire d'évaluation</Label>
+                <Textarea
+                    placeholder="Commentaire du senior sur l'aidant"
+                    value={formData.evaluationCommentaire}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, evaluationCommentaire: e.target.value }))}
+                    disabled={!(formData.seniorId && formData.aidantId && 
+                               formData.seniorId !== "none" && formData.aidantId !== "none")}
+                />
+              </div>
+            </div>
 
             <div className="flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>Annuler</Button>
