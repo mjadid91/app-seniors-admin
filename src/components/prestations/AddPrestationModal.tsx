@@ -135,6 +135,8 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
               DurePrestation: 1,
               TarifPreste: parseFloat(formData.tarifIndicatif),
               Statut: "en_attente",
+              IDUtilisateurPayeur: null,
+              IDPartenairePayeur: null,
             })
             .select()
             .single();
