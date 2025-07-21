@@ -277,55 +277,101 @@ export const usePartners = () => {
   };
 
   const handleDeletePartner = async (partnerId: number) => {
-    // D'abord supprimer les bons plans associés
-    const { error: bonPlanError } = await supabase
-      .from("BonPlan")
-      .delete()
-      .eq("IDPartenaire", partnerId);
+    try {
+      // D'abord récupérer les informations du partenaire pour trouver l'utilisateur associé
+      const { data: partnerData, error: partnerFetchError } = await supabase
+        .from("Partenaire")
+        .select("Email")
+        .eq("IDPartenaire", partnerId)
+        .single();
 
-    if (bonPlanError) {
-      toast({
-        title: "Erreur",
-        description: "Erreur lors de la suppression des bons plans associés.",
-        variant: "destructive"
-      });
-      return;
-    }
+      if (partnerFetchError) {
+        toast({
+          title: "Erreur",
+          description: "Impossible de récupérer les informations du partenaire.",
+          variant: "destructive"
+        });
+        return;
+      }
 
-    // Ensuite supprimer les relations services
-    const { error: servicesError } = await supabase
-      .from("Partenaire_Services")
-      .delete()
-      .eq("IDPartenaire", partnerId);
+      // Supprimer les bons plans associés
+      const { error: bonPlanError } = await supabase
+        .from("BonPlan")
+        .delete()
+        .eq("IDPartenaire", partnerId);
 
-    if (servicesError) {
-      toast({
-        title: "Erreur",
-        description: "Erreur lors de la suppression des services associés.",
-        variant: "destructive"
-      });
-      return;
-    }
+      if (bonPlanError) {
+        toast({
+          title: "Erreur",
+          description: "Erreur lors de la suppression des bons plans associés.",
+          variant: "destructive"
+        });
+        return;
+      }
 
-    // Enfin supprimer le partenaire
-    const { error } = await supabase
-      .from("Partenaire")
-      .delete()
-      .eq("IDPartenaire", partnerId);
+      // Supprimer les relations services
+      const { error: servicesError } = await supabase
+        .from("Partenaire_Services")
+        .delete()
+        .eq("IDPartenaire", partnerId);
 
-    if (error) {
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer le partenaire.",
-        variant: "destructive"
-      });
-    } else {
+      if (servicesError) {
+        toast({
+          title: "Erreur",
+          description: "Erreur lors de la suppression des services associés.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Supprimer le partenaire
+      const { error: partnerError } = await supabase
+        .from("Partenaire")
+        .delete()
+        .eq("IDPartenaire", partnerId);
+
+      if (partnerError) {
+        toast({
+          title: "Erreur",
+          description: "Impossible de supprimer le partenaire.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Supprimer l'utilisateur associé s'il existe
+      if (partnerData.Email) {
+        const { error: userError } = await supabase
+          .from("Utilisateurs")
+          .delete()
+          .eq("Email", partnerData.Email);
+
+        if (userError) {
+          console.warn("Erreur lors de la suppression de l'utilisateur associé:", userError);
+          // Ne pas faire échouer toute l'opération si la suppression de l'utilisateur échoue
+        }
+      }
+
       toast({
         title: "Partenaire supprimé",
         description: "Le partenaire et ses dépendances ont été supprimés avec succès.",
       });
-      fetchPartners();
-      fetchBonsPlans();
+
+      // Recharger toutes les données pour s'assurer que l'interface se met à jour correctement
+      await Promise.all([
+        fetchPartners(),
+        fetchBonsPlans(),
+        fetchServices(),
+        fetchPartenaireServices()
+      ]);
+      
+    } catch (error) {
+      console.error("Erreur lors de la suppression du partenaire:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur inattendue s'est produite lors de la suppression.",
+        variant: "destructive"
+      });
     }
   };
 
