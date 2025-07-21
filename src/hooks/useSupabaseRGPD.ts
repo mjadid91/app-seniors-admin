@@ -23,6 +23,10 @@ export interface ConsentementCookies {
   TypeCookie: string;
   Statut: boolean;
   DateConsentement: string;
+  user_nom?: string;
+  user_prenom?: string;
+  user_email?: string;
+  user_telephone?: string;
 }
 
 // Types pour les documents RGPD
@@ -95,13 +99,56 @@ export const useConsentementsCookies = () => {
   return useQuery({
     queryKey: ["consentements-cookies"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      console.log("Fetching consentements cookies...");
+      
+      // Première tentative avec jointure
+      const { data: dataWithJoin, error: errorWithJoin } = await supabase
         .from("ConsentementCookies")
-        .select("*")
+        .select(`
+          *,
+          Utilisateurs!ConsentementCookies_IDUtilisateurs_fkey (
+            Nom,
+            Prenom,
+            Email,
+            Telephone
+          )
+        `)
         .order("DateConsentement", { ascending: false });
       
-      if (error) throw new Error(error.message);
-      return data as ConsentementCookies[];
+      console.log("Consentements query with join result:", { dataWithJoin, errorWithJoin });
+      
+      if (errorWithJoin) {
+        console.log("Join query failed, trying without join:");
+        // Si la jointure échoue, essayons sans jointure
+        const { data: dataWithoutJoin, error: errorWithoutJoin } = await supabase
+          .from("ConsentementCookies")
+          .select("*")
+          .order("DateConsentement", { ascending: false });
+        
+        console.log("Query without join result:", { dataWithoutJoin, errorWithoutJoin });
+        
+        if (errorWithoutJoin) {
+          throw new Error(errorWithoutJoin.message);
+        }
+        
+        // Retourner les données sans les informations utilisateur
+        return dataWithoutJoin?.map((consent: any) => ({
+          ...consent,
+          user_nom: "",
+          user_prenom: "",
+          user_email: "Email non disponible",
+          user_telephone: "Téléphone non disponible"
+        })) as ConsentementCookies[];
+      }
+      
+      // Transformer les données pour inclure les noms, prénoms, emails et téléphones
+      return dataWithJoin?.map((consent: any) => ({
+        ...consent,
+        user_nom: consent.Utilisateurs?.Nom || "",
+        user_prenom: consent.Utilisateurs?.Prenom || "",
+        user_email: consent.Utilisateurs?.Email || "Email non disponible",
+        user_telephone: consent.Utilisateurs?.Telephone || "Téléphone non disponible"
+      })) as ConsentementCookies[];
     },
   });
 };

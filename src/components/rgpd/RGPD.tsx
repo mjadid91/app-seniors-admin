@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Check, Trash2, Plus, FileText, Cookie, Shield, AlertTriangle } from "lucide-react";
+import { Eye, Check, Trash2, Plus, FileText, Cookie, Shield, AlertTriangle, Info } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { 
   useDemandesRGPD, 
@@ -12,13 +12,15 @@ import {
   useSupprimerDemandeRGPD,
   useSupprimerConsentement,
   useSupprimerDocumentRGPD,
-  type DemandeRGPD 
+  type DemandeRGPD,
+  type ConsentementCookies
 } from "@/hooks/useSupabaseRGPD";
 import ProcessRequestModal from "./ProcessRequestModal";
 import AddDemandeRGPDModal from "./AddDemandeRGPDModal";
 import AddConsentementModal from "./AddConsentementModal";
 import AddDocumentRGPDModal from "./AddDocumentRGPDModal";
 import EditDemandeRGPDModal from "./EditDemandeRGPDModal";
+import UserDetailsModal from "./UserDetailsModal";
 
 const RGPD = () => {
   const { toast } = useToast();
@@ -29,9 +31,11 @@ const RGPD = () => {
   const [addConsentementModalOpen, setAddConsentementModalOpen] = useState(false);
   const [addDocumentModalOpen, setAddDocumentModalOpen] = useState(false);
   const [editDemandeModalOpen, setEditDemandeModalOpen] = useState(false);
+  const [userDetailsModalOpen, setUserDetailsModalOpen] = useState(false);
   
   // États des éléments sélectionnés
   const [selectedRequest, setSelectedRequest] = useState<DemandeRGPD | null>(null);
+  const [selectedConsent, setSelectedConsent] = useState<ConsentementCookies | null>(null);
 
   // Hooks pour les données
   const { data: demandes = [], isLoading: demandesLoading, refetch: refetchDemandes } = useDemandesRGPD();
@@ -336,31 +340,48 @@ const RGPD = () => {
                 </tr>
               </thead>
               <tbody>
-                {consentements.map((consent) => (
-                  <tr key={consent.IDConsentement} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                    <td className="py-4 px-4 font-mono text-sm text-slate-600">#{consent.IDConsentement}</td>
-                    <td className="py-4 px-4 text-slate-600">Utilisateur {consent.IDUtilisateurs}</td>
-                    <td className="py-4 px-4 text-slate-600">{consent.TypeCookie}</td>
-                    <td className="py-4 px-4">
-                      <Badge className={consent.Statut ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}>
-                        {consent.Statut ? 'Accepté' : 'Refusé'}
-                      </Badge>
-                    </td>
-                    <td className="py-4 px-4 text-slate-600">
-                      {new Date(consent.DateConsentement).toLocaleDateString('fr-FR')}
-                    </td>
-                    <td className="py-4 px-4">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        title="Supprimer"
-                        onClick={() => handleDeleteConsent(consent.IDConsentement)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-600" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
+                {consentements.map((consent) => {
+                  const fullName = `${consent.user_prenom || ''} ${consent.user_nom || ''}`.trim() || `Utilisateur ${consent.IDUtilisateurs}`;
+                  
+                  return (
+                    <tr key={consent.IDConsentement} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                      <td className="py-4 px-4 font-mono text-sm text-slate-600">#{consent.IDConsentement}</td>
+                      <td className="py-4 px-4 font-medium text-slate-800">{fullName}</td>
+                      <td className="py-4 px-4 text-slate-600">{consent.TypeCookie}</td>
+                      <td className="py-4 px-4">
+                        <Badge className={consent.Statut ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}>
+                          {consent.Statut ? 'Accepté' : 'Refusé'}
+                        </Badge>
+                      </td>
+                      <td className="py-4 px-4 text-slate-600">
+                        {new Date(consent.DateConsentement).toLocaleDateString('fr-FR')}
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            title="Voir détails utilisateur"
+                            onClick={() => {
+                              setSelectedConsent(consent);
+                              setUserDetailsModalOpen(true);
+                            }}
+                          >
+                            <Info className="h-4 w-4 text-blue-600" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            title="Supprimer"
+                            onClick={() => handleDeleteConsent(consent.IDConsentement)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
             {consentements.length === 0 && (
@@ -480,6 +501,12 @@ const RGPD = () => {
           setEditDemandeModalOpen(false);
           refetchDemandes();
         }}
+      />
+
+      <UserDetailsModal
+        isOpen={userDetailsModalOpen}
+        onClose={() => setUserDetailsModalOpen(false)}
+        consent={selectedConsent}
       />
     </div>
   );
