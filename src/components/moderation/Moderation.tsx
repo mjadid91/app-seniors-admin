@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, MessageSquare, FileText, AlertTriangle, UserPlus, MessageCircle, Plus, UserCheck } from "lucide-react";
+import { Users, MessageSquare, FileText, AlertTriangle, UserPlus, MessageCircle, Plus, UserCheck, List, UsersIcon } from "lucide-react";
 import ModerationStats from "./ModerationStats";
 import ForumPostsTable from "./ForumPostsTable";
 import GroupMessagesTable from "./GroupMessagesTable";
@@ -14,6 +14,8 @@ import AddGroupModal from "../groups/AddGroupModal";
 import AddGroupMessageModal from "./AddGroupMessageModal";
 import AddSignalementModal from "./AddSignalementModal";
 import AddGroupMembersModal from "./AddGroupMembersModal";
+import ForumsListSection from "./ForumsListSection";
+import GroupsListSection from "./GroupsListSection";
 import { useForumPosts } from "./useForumPosts";
 import { useGroupMessages } from "./useGroupMessages";
 
@@ -48,9 +50,11 @@ const Moderation = () => {
     setRefreshTrigger(prev => prev + 1);
     refetchForumPosts();
     refetchGroupMessages();
-    // Invalider la query des forums pour mettre à jour la liste dans AddForumSubjectModal
+    // Invalider toutes les queries pour mettre à jour les nouvelles sections
     queryClient.invalidateQueries({ queryKey: ['forums'] });
-    // Invalider aussi les queries des utilisateurs pour s'assurer que tout est à jour
+    queryClient.invalidateQueries({ queryKey: ['forums-list'] });
+    queryClient.invalidateQueries({ queryKey: ['groups-list'] });
+    queryClient.invalidateQueries({ queryKey: ['group-members'] });
     queryClient.invalidateQueries({ queryKey: ['utilisateurs'] });
   };
 
@@ -83,24 +87,38 @@ const Moderation = () => {
             <Tabs defaultValue="forums" className="w-full">
               <div className="border-b border-slate-200 bg-slate-50/50">
                 <div className="px-6">
-                  <TabsList className="grid w-full max-w-md grid-cols-3 bg-transparent h-auto p-0">
+                  <TabsList className="grid w-full max-w-5xl grid-cols-5 bg-transparent h-auto p-0">
                     <TabsTrigger 
                       value="forums" 
-                      className="flex items-center gap-2 py-4 px-6 data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-sm rounded-none border-b-2 border-transparent"
+                      className="flex items-center gap-2 py-4 px-4 data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-sm rounded-none border-b-2 border-transparent"
                     >
                       <MessageSquare className="h-4 w-4" />
-                      <span className="hidden sm:inline">Forums</span>
+                      <span className="hidden sm:inline">Posts Forums</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="groupes" 
-                      className="flex items-center gap-2 py-4 px-6 data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-sm rounded-none border-b-2 border-transparent"
+                      className="flex items-center gap-2 py-4 px-4 data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-sm rounded-none border-b-2 border-transparent"
                     >
                       <Users className="h-4 w-4" />
+                      <span className="hidden sm:inline">Messages</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="forums-list" 
+                      className="flex items-center gap-2 py-4 px-4 data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-sm rounded-none border-b-2 border-transparent"
+                    >
+                      <List className="h-4 w-4" />
+                      <span className="hidden sm:inline">Forums</span>
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="groups-list" 
+                      className="flex items-center gap-2 py-4 px-4 data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-sm rounded-none border-b-2 border-transparent"
+                    >
+                      <UsersIcon className="h-4 w-4" />
                       <span className="hidden sm:inline">Groupes</span>
                     </TabsTrigger>
                     <TabsTrigger 
                       value="signalements" 
-                      className="flex items-center gap-2 py-4 px-6 data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-sm rounded-none border-b-2 border-transparent"
+                      className="flex items-center gap-2 py-4 px-4 data-[state=active]:bg-white data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-sm rounded-none border-b-2 border-transparent"
                     >
                       <AlertTriangle className="h-4 w-4" />
                       <span className="hidden sm:inline">Signalements</span>
@@ -164,6 +182,14 @@ const Moderation = () => {
                     groupMessages={localGroupMessages}
                     setGroupMessages={setLocalGroupMessages}
                   />
+                </TabsContent>
+
+                <TabsContent value="forums-list" className="space-y-6 mt-0">
+                  <ForumsListSection />
+                </TabsContent>
+
+                <TabsContent value="groups-list" className="space-y-6 mt-0">
+                  <GroupsListSection />
                 </TabsContent>
 
                 <TabsContent value="signalements" className="space-y-6 mt-0">
