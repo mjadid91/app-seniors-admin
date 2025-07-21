@@ -23,7 +23,8 @@ const ProtectedRoute = ({
   const { canAccessPage, hasPermission } = usePermissions();
 
   // Afficher le chargement si l'auth n'est pas encore initialisée ou en cours
-  if (!isInitialized || loading) {
+  // IMPORTANT: Attendre que l'utilisateur soit complètement chargé avant de vérifier les permissions
+  if (!isInitialized || loading || !user) {
     return (
       <div className="min-h-[400px] flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -35,7 +36,7 @@ const ProtectedRoute = ({
   }
 
   // Si pas authentifié, ne pas afficher le contenu
-  if (!isAuthenticated || !user) {
+  if (!isAuthenticated) {
     console.log('ProtectedRoute: User not authenticated');
     return (
       <div className="min-h-[400px] flex items-center justify-center">

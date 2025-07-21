@@ -1,5 +1,5 @@
 
-import { useAuthStore } from '../stores/authStore';
+import { useSupabaseAuth } from './useSupabaseAuth';
 
 // Définition des permissions par rôle
 export const PERMISSIONS = {
@@ -68,7 +68,7 @@ export const ACCESSIBLE_PAGES = {
 };
 
 export const usePermissions = () => {
-  const { user } = useAuthStore();
+  const { user } = useSupabaseAuth();
 
   const hasPermission = (permission: Permission): boolean => {
     if (!user) return false;
