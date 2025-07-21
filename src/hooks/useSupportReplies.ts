@@ -69,6 +69,11 @@ export const useSupportReplies = (ticketId: string) => {
     }) => {
       console.log("Ajout d'une réponse:", { ticketId, content, authorId });
 
+      // Validation de l'authorId
+      if (!authorId || isNaN(authorId)) {
+        throw new Error("ID auteur invalide");
+      }
+
       const { data, error } = await supabase
         .from("ReponsesSupport")
         .insert({

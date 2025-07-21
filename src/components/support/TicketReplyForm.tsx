@@ -21,7 +21,13 @@ const TicketReplyForm = ({ ticketId, onReplySubmitted }: TicketReplyFormProps) =
   const { addReply, isAddingReply } = useSupportReplies(ticketId);
 
   // Get current user ID from session - use ID 8 (Mohamed Jadid) as fallback since he's logged in
-  const currentUserId = session?.user?.id ? parseInt(session.user.id) : 8;
+  const currentUserId = session?.user?.id ? parseInt(session.user.id) || 8 : 8;
+  
+  console.log("Debug TicketReplyForm:", { 
+    sessionUserId: session?.user?.id, 
+    currentUserId,
+    hasSession: !!session 
+  });
 
   const handleSubmitReply = async () => {
     if (!reply.trim()) {
