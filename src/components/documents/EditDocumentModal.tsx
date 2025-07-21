@@ -25,10 +25,13 @@ const EditDocumentModal = ({ isOpen, onClose, document, onEditDocument, categori
     users
   } = useDocumentForm(isOpen);
 
-  // Initialiser le formulaire quand le document change
+  // Initialiser le formulaire quand le document change ou que les utilisateurs sont chargés
   useEffect(() => {
-    if (document && isOpen) {
+    if (document && isOpen && users.length > 0) {
       console.log("Initialisation du formulaire avec document:", document);
+      console.log("Utilisateurs disponibles:", users);
+      console.log("UtilisateurId du document:", document.utilisateurId);
+      
       setFormData({
         name: document.name || "",
         category: document.category || "",
@@ -36,7 +39,7 @@ const EditDocumentModal = ({ isOpen, onClose, document, onEditDocument, categori
         description: document.description || "",
         utilisateurId: document.utilisateurId ? document.utilisateurId.toString() : ""
       });
-    } else if (isOpen) {
+    } else if (isOpen && !document) {
       // Reset le formulaire si pas de document mais modal ouvert
       setFormData({
         name: "",
@@ -46,7 +49,7 @@ const EditDocumentModal = ({ isOpen, onClose, document, onEditDocument, categori
         utilisateurId: ""
       });
     }
-  }, [document, isOpen, setFormData]);
+  }, [document, isOpen, users, setFormData]);
 
   const handleFieldChange = (field: keyof typeof formData, value: string) => {
     setFormData({ ...formData, [field]: value });
