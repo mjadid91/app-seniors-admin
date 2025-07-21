@@ -117,8 +117,8 @@ export const usePartners = () => {
 
   // Compose partner full data
   useEffect(() => {
-    // Only process when all necessary data are fetched
-    if (!rawPartners.length || !services.length || !partenaireServices.length) return;
+    // Only process when necessary data are fetched (services and partenaireServices can be empty)
+    if (!rawPartners.length) return;
 
     const buildPartners: Partner[] = rawPartners.map((p) => {
       // Find service IDs for this partner
@@ -245,6 +245,7 @@ export const usePartners = () => {
     // Recharger les données pour avoir les informations à jour
     await Promise.all([
       fetchPartners(),
+      fetchServices(),
       fetchPartenaireServices()
     ]);
   };
