@@ -9,7 +9,6 @@ export interface SupportReply {
   IDAuteur: number;
   Contenu: string;
   DateReponse: string;
-  FichierJoint: string | null;
   auteur_nom?: string;
   auteur_prenom?: string;
   auteur_email?: string;
@@ -63,22 +62,19 @@ export const useSupportReplies = (ticketId: string) => {
   const addReplyMutation = useMutation({
     mutationFn: async ({ 
       content, 
-      authorId, 
-      fileUrl 
+      authorId 
     }: { 
       content: string; 
-      authorId: number; 
-      fileUrl?: string | null 
+      authorId: number;
     }) => {
-      console.log("Ajout d'une réponse:", { ticketId, content, authorId, fileUrl });
+      console.log("Ajout d'une réponse:", { ticketId, content, authorId });
 
       const { data, error } = await supabase
         .from("ReponsesSupport")
         .insert({
           IDTicketClient: parseInt(ticketId),
           IDAuteur: authorId,
-          Contenu: content,
-          FichierJoint: fileUrl
+          Contenu: content
         })
         .select()
         .single();
@@ -89,9 +85,9 @@ export const useSupportReplies = (ticketId: string) => {
       }
 
       console.log("Réponse ajoutée avec succès:", data);
-      return { data, fileUrl };
+      return data;
     },
-    onSuccess: async ({ data, fileUrl }) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["support-replies", ticketId] });
       queryClient.invalidateQueries({ queryKey: ["support-tickets"] });
       
@@ -100,9 +96,9 @@ export const useSupportReplies = (ticketId: string) => {
         description: "Votre réponse a été envoyée avec succès.",
       });
 
-      // Déclencher l'envoi de l'email avec les informations du fichier
+      // Déclencher l'envoi de l'email
       try {
-        await sendEmailNotification(parseInt(ticketId), data.Contenu, fileUrl);
+        await sendEmailNotification(parseInt(ticketId), data.Contenu);
       } catch (emailError) {
         console.error("Erreur lors de l'envoi de l'email, mais la réponse a été sauvegardée:", emailError);
         // On ne fait pas échouer l'opération si l'email ne peut pas être envoyé
@@ -119,15 +115,14 @@ export const useSupportReplies = (ticketId: string) => {
   });
 
   // Fonction pour envoyer l'email de notification
-  const sendEmailNotification = async (ticketId: number, replyContent: string, fileUrl?: string | null) => {
+  const sendEmailNotification = async (ticketId: number, replyContent: string) => {
     try {
-      console.log("Envoi de l'email de notification pour le ticket:", ticketId, "avec fichier:", fileUrl);
+      console.log("Envoi de l'email de notification pour le ticket:", ticketId);
       
       const { data, error } = await supabase.functions.invoke('send-ticket-response', {
         body: {
           ticketId: ticketId,
-          response: replyContent,
-          fileUrl: fileUrl
+          response: replyContent
         }
       });
 

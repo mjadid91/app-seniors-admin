@@ -1,8 +1,6 @@
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Download, FileText } from "lucide-react";
 import { SupportReply } from "@/hooks/useSupportReplies";
 
 interface TicketRepliesProps {
@@ -11,9 +9,6 @@ interface TicketRepliesProps {
 }
 
 const TicketReplies = ({ replies, isLoading }: TicketRepliesProps) => {
-  const handleDownloadFile = (fileUrl: string, fileName: string) => {
-    window.open(fileUrl, '_blank');
-  };
 
   if (isLoading) {
     return (
@@ -71,26 +66,9 @@ const TicketReplies = ({ replies, isLoading }: TicketRepliesProps) => {
           </CardHeader>
           
           <CardContent className="pt-0">
-            <div className="whitespace-pre-wrap text-slate-700 mb-3">
+            <div className="whitespace-pre-wrap text-slate-700">
               {reply.Contenu}
             </div>
-            
-            {reply.FichierJoint && (
-              <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border">
-                <FileText className="h-4 w-4 text-gray-600" />
-                <span className="text-sm text-gray-700 flex-1">
-                  Fichier joint
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDownloadFile(reply.FichierJoint!, `fichier-ticket-${reply.IDTicketClient}`)}
-                >
-                  <Download className="h-4 w-4 mr-1" />
-                  Télécharger
-                </Button>
-              </div>
-            )}
           </CardContent>
         </Card>
       ))}
