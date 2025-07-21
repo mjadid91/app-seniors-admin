@@ -36,6 +36,8 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
     tarifIndicatif: "",
     seniorId: "",
     aidantId: "",
+    evaluationNote: "",
+    evaluationCommentaire: "",
   });
 
   const { data: domaines = [] } = useQuery({
@@ -167,9 +169,30 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
           throw new Error(`Erreur lors de la création de la liaison: ${liaisonError.message}`);
         }
 
-        console.log("Prestation avec mise en relation créée avec succès!");
-      } else {
-        console.log("Prestation disponible créée avec succès (sans assignation)!");
+         // Étape 4: Créer l'évaluation si fournie
+         if (formData.evaluationNote && formData.evaluationCommentaire) {
+           console.log("Création de l'évaluation...");
+           const { error: evaluationError } = await supabase
+               .from("Evaluation")
+               .insert({
+                 IDMiseEnRelation: idMiseEnRelation,
+                 Note: parseInt(formData.evaluationNote),
+                 Commentaire: formData.evaluationCommentaire,
+                 DateEvaluation: new Date().toISOString(),
+                 IDUtilisateurs: parseInt(formData.seniorId), // Le senior qui évalue
+               });
+
+           if (evaluationError) {
+             console.error("Erreur création évaluation:", evaluationError);
+             // On ne fait pas échouer la création pour l'évaluation
+           } else {
+             console.log("Évaluation créée avec succès!");
+           }
+         }
+
+         console.log("Prestation avec mise en relation créée avec succès!");
+       } else {
+         console.log("Prestation disponible créée avec succès (sans assignation)!");
       }
 
       toast({
@@ -189,6 +212,8 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
         tarifIndicatif: "",
         seniorId: "",
         aidantId: "",
+        evaluationNote: "",
+        evaluationCommentaire: "",
       });
     } catch (error) {
       console.error("Erreur lors de la création:", error);
@@ -290,6 +315,41 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Champs d'évaluation - visibles uniquement quand senior ET aidant sont sélectionnés */}
+            {formData.seniorId && formData.aidantId && 
+             formData.seniorId !== "none" && formData.aidantId !== "none" && (
+              <div className="space-y-4 border-t pt-4">
+                <div>
+                  <Label className="text-sm font-medium">Évaluation du senior pour l'aidant (optionnel)</Label>
+                </div>
+                
+                <div>
+                  <Label>Note (sur 5)</Label>
+                  <Select value={formData.evaluationNote} onValueChange={(v) => setFormData((p) => ({ ...p, evaluationNote: v }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner une note" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 - Très insatisfait</SelectItem>
+                      <SelectItem value="2">2 - Insatisfait</SelectItem>
+                      <SelectItem value="3">3 - Neutre</SelectItem>
+                      <SelectItem value="4">4 - Satisfait</SelectItem>
+                      <SelectItem value="5">5 - Très satisfait</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Commentaire d'évaluation</Label>
+                  <Textarea
+                      placeholder="Commentaire du senior sur l'aidant"
+                      value={formData.evaluationCommentaire}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, evaluationCommentaire: e.target.value }))}
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>Annuler</Button>
