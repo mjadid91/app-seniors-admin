@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit } from "lucide-react";
+import { Eye, Edit, Trash2 } from "lucide-react";
 
 
 export interface Prestation {
@@ -19,9 +19,10 @@ interface PrestationTableProps {
   prestations: Prestation[];
   onVoirPrestation: (prestation: Prestation) => void;
   onEditPrestation: (prestation: Prestation) => void;
+  onDeletePrestation: (prestation: Prestation) => void;
 }
 
-const PrestationTable = ({ prestations, onVoirPrestation, onEditPrestation }: PrestationTableProps) => {
+const PrestationTable = ({ prestations, onVoirPrestation, onEditPrestation, onDeletePrestation }: PrestationTableProps) => {
   const getStatutBadgeColor = (statut: string) => {
     switch (statut) {
       case 'en_attente': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
@@ -114,13 +115,22 @@ const PrestationTable = ({ prestations, onVoirPrestation, onEditPrestation }: Pr
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button
+                     <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => onEditPrestation(prestation)}
                         title="Modifier"
                     >
                       <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onDeletePrestation(prestation)}
+                        title="Supprimer"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </td>
