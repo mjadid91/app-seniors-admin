@@ -172,21 +172,33 @@ const AddPrestationModal = ({ isOpen, onClose, onSuccess }: AddPrestationModalPr
          // Étape 4: Créer l'évaluation si une note est fournie
          if (formData.evaluationNote) {
            console.log("Création de l'évaluation...");
-           const { error: evaluationError } = await supabase
-               .from("Evaluation")
-               .insert({
-                 IDMiseEnRelation: idMiseEnRelation,
-                 Note: parseInt(formData.evaluationNote),
-                 Commentaire: formData.evaluationCommentaire || "Aucun commentaire",
-                 DateEvaluation: new Date().toISOString().replace('T', ' ').replace('Z', ''),
-                 IDUtilisateurs: parseInt(formData.seniorId), // Le senior qui évalue
-               });
+           
+           // Récupérer l'ID utilisateur du senior
+           const { data: seniorData, error: seniorError } = await supabase
+             .from("Seniors")
+             .select("IDUtilisateurSenior")
+             .eq("IDSeniors", parseInt(formData.seniorId))
+             .single();
 
-           if (evaluationError) {
-             console.error("Erreur création évaluation:", evaluationError);
-             // On ne fait pas échouer la création pour l'évaluation
+           if (seniorError || !seniorData) {
+             console.error("Erreur récupération utilisateur senior:", seniorError);
            } else {
-             console.log("Évaluation créée avec succès!");
+             const { error: evaluationError } = await supabase
+                 .from("Evaluation")
+                 .insert({
+                   IDMiseEnRelation: idMiseEnRelation,
+                   Note: parseInt(formData.evaluationNote),
+                   Commentaire: formData.evaluationCommentaire || "Aucun commentaire",
+                   DateEvaluation: new Date().toISOString().replace('T', ' ').replace('Z', ''),
+                   IDUtilisateurs: seniorData.IDUtilisateurSenior, // L'ID utilisateur du senior qui évalue
+                 });
+
+             if (evaluationError) {
+               console.error("Erreur création évaluation:", evaluationError);
+               // On ne fait pas échouer la création pour l'évaluation
+             } else {
+               console.log("Évaluation créée avec succès!");
+             }
            }
          }
 
