@@ -145,80 +145,78 @@ const GroupsListSection = () => {
                 </tr>
               </thead>
               <tbody>
-                {groups.map((group) => (
-                  <>
-                    <tr key={group.IDGroupe} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                      <td className="py-4 px-4">
-                        <div>
-                          <p className="font-medium text-slate-800">{group.Titre}</p>
-                          <p className="text-sm text-slate-500">{group.Description}</p>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 text-slate-600">
-                        {group.Utilisateurs ? `${group.Utilisateurs.Prenom} ${group.Utilisateurs.Nom}` : 'Inconnu'}
-                      </td>
-                      <td className="py-4 px-4 text-slate-600">
-                        {groupStats[group.IDGroupe] || 0} message{(groupStats[group.IDGroupe] || 0) !== 1 ? 's' : ''}
-                      </td>
-                      <td className="py-4 px-4 text-slate-600">
-                        {new Date(group.DateCreation).toLocaleDateString('fr-FR')}
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            title="Voir les membres"
-                            onClick={() => toggleGroupExpansion(group.IDGroupe.toString())}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            title="Supprimer le groupe"
-                            onClick={() => handleDeleteGroup({
-                              IDGroupe: group.IDGroupe,
-                              Titre: group.Titre
-                            })}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                {groups.map((group) => [
+                  <tr key={`group-${group.IDGroupe}`} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                    <td className="py-4 px-4">
+                      <div>
+                        <p className="font-medium text-slate-800">{group.Titre}</p>
+                        <p className="text-sm text-slate-500">{group.Description}</p>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4 text-slate-600">
+                      {group.Utilisateurs ? `${group.Utilisateurs.Prenom} ${group.Utilisateurs.Nom}` : 'Inconnu'}
+                    </td>
+                    <td className="py-4 px-4 text-slate-600">
+                      {groupStats[group.IDGroupe] || 0} message{(groupStats[group.IDGroupe] || 0) !== 1 ? 's' : ''}
+                    </td>
+                    <td className="py-4 px-4 text-slate-600">
+                      {new Date(group.DateCreation).toLocaleDateString('fr-FR')}
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          title="Voir les membres"
+                          onClick={() => toggleGroupExpansion(group.IDGroupe.toString())}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          title="Supprimer le groupe"
+                          onClick={() => handleDeleteGroup({
+                            IDGroupe: group.IDGroupe,
+                            Titre: group.Titre
+                          })}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>,
+                  
+                  expandedGroupId === group.IDGroupe.toString() && (
+                    <tr key={`group-members-${group.IDGroupe}`}>
+                      <td colSpan={5} className="px-4 py-2 bg-slate-50">
+                        <div className="space-y-2">
+                          <h4 className="font-medium text-slate-700">Membres du groupe :</h4>
+                          {groupMembers[group.IDGroupe.toString()]?.length > 0 ? (
+                            <div className="space-y-1">
+                              {groupMembers[group.IDGroupe.toString()].map((member: any) => (
+                                <div key={`member-${member.id}-${group.IDGroupe}`} className="flex items-center justify-between bg-white p-2 rounded border">
+                                  <span className="text-sm">{member.prenom} {member.nom}</span>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-red-600 hover:text-red-700"
+                                    onClick={() => handleDeleteMember(member)}
+                                  >
+                                    <UserMinus className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-slate-500">Aucun membre dans ce groupe</p>
+                          )}
                         </div>
                       </td>
                     </tr>
-                    
-                    {expandedGroupId === group.IDGroupe.toString() && (
-                      <tr>
-                        <td colSpan={5} className="px-4 py-2 bg-slate-50">
-                          <div className="space-y-2">
-                            <h4 className="font-medium text-slate-700">Membres du groupe :</h4>
-                            {groupMembers[group.IDGroupe.toString()]?.length > 0 ? (
-                              <div className="space-y-1">
-                                {groupMembers[group.IDGroupe.toString()].map((member: any) => (
-                                  <div key={member.id} className="flex items-center justify-between bg-white p-2 rounded border">
-                                    <span className="text-sm">{member.prenom} {member.nom}</span>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="text-red-600 hover:text-red-700"
-                                      onClick={() => handleDeleteMember(member)}
-                                    >
-                                      <UserMinus className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="text-sm text-slate-500">Aucun membre dans ce groupe</p>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </>
-                ))}
+                  )
+                ])}
               </tbody>
             </table>
           </div>
