@@ -123,7 +123,6 @@ const Support = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <MessageCircle className="h-8 w-8 text-blue-600" />
             <h1 className="text-3xl font-bold text-slate-800">Support Client</h1>
           </div>
           <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2">
@@ -135,8 +134,7 @@ const Support = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-blue-600" />
-              Tickets de support ({tickets.length})
+             {tickets.length} tickets actuellement
             </CardTitle>
           </CardHeader>
           <CardContent>
