@@ -44,7 +44,7 @@ const GroupsListSection = () => {
       if (!expandedGroupId) return {};
       
       const { data, error } = await supabase
-        .from('Groupe_Utilisateurs')
+        .from('Utilisateurs_Groupe')
         .select(`
           IDUtilisateurs,
           IDGroupe,

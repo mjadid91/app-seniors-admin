@@ -26,7 +26,12 @@ export const useTicketPermissions = (ticket: Ticket) => {
     return false;
   };
 
+  const canViewTickets = () => {
+    return isAdmin() || isSupport();
+  };
+
   return {
     canResolve: canResolve(),
+    canViewTickets: canViewTickets(),
   };
 };

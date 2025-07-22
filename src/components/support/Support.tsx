@@ -32,7 +32,7 @@ const Support = () => {
   const [deleteTicket, setDeleteTicket] = useState<{ id: number; sujet: string } | null>(null);
 
   // Récupérer les tickets depuis Supabase
-  const { data: tickets = [], isLoading, error, refetch } = useSupabaseSupportTickets();
+  const { data: ticketsDB = [], isLoading, error, refetch } = useSupabaseSupportTickets();
 
   const { canViewTickets } = useTicketPermissions({ statut: 'en_attente' });
 
@@ -60,6 +60,19 @@ const Support = () => {
       </div>
     );
   }
+
+  // Transform database tickets to UI tickets
+  const tickets: Ticket[] = ticketsDB.map(ticketDB => ({
+    id: ticketDB.id_ticket_client,
+    sujet: ticketDB.sujet,
+    utilisateur: ticketDB.nom_utilisateur || 'Utilisateur inconnu',
+    dateCreation: ticketDB.date_creation,
+    statut: ticketDB.statut as 'en_attente' | 'en_cours' | 'resolu',
+    priorite: ticketDB.priorite as 'basse' | 'normale' | 'haute',
+    assigneA: ticketDB.assigne_a || undefined,
+    dateResolution: ticketDB.date_resolution || undefined,
+    descriptionDemande: ticketDB.description_demande,
+  }));
 
   const handleVoirTicket = (ticket: Ticket) => {
     setSelectedTicket(ticket);
@@ -199,7 +212,7 @@ const Support = () => {
       <AddTicketModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onTicketAdded={() => {
+        onSuccess={() => {
           refetch();
           setIsAddModalOpen(false);
         }}

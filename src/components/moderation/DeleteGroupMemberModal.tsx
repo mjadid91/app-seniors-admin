@@ -20,7 +20,7 @@ const DeleteGroupMemberModal = ({ isOpen, onClose, member, onSuccess }: DeleteGr
 
     try {
       const { error } = await supabase
-        .from('Groupe_Utilisateurs')
+        .from('Utilisateurs_Groupe')
         .delete()
         .eq('IDUtilisateurs', parseInt(member.id))
         .eq('IDGroupe', parseInt(member.groupeId));

@@ -33,7 +33,7 @@ const DeleteGroupModal = ({ isOpen, onClose, group, onSuccess }: DeleteGroupModa
 
       // Supprimer les membres du groupe
       const { error: membersError } = await supabase
-        .from('Groupe_Utilisateurs')
+        .from('Utilisateurs_Groupe')
         .delete()
         .eq('IDGroupe', groupId);
 
