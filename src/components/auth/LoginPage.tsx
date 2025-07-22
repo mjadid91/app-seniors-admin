@@ -8,6 +8,7 @@ import { useSupabaseAuth } from "../../hooks/useSupabaseAuth";
 import { AlertCircle, ArrowRight, Shield, Users, Heart, Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../stores/authStore";
+import { useAdminEmail } from "../../hooks/useAdminEmail";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -19,6 +20,7 @@ const LoginPage = () => {
   const { signIn, user, isAuthenticated, loading: authLoading, isInitialized } = useSupabaseAuth();
   const { logout } = useAuthStore();
   const navigate = useNavigate();
+  const { adminEmail } = useAdminEmail();
 
   // S'assurer que l'état de connexion est nettoyé au chargement de la page
   useEffect(() => {
@@ -172,6 +174,20 @@ const LoginPage = () => {
                     )}
                   </Button>
                 </form>
+                
+                {adminEmail && (
+                  <div className="mt-6 text-center">
+                    <p className="text-sm text-app-text-light">
+                      Mot de passe oublié ? Contactez un administrateur à l'adresse :{" "}
+                      <a 
+                        href={`mailto:${adminEmail}`}
+                        className="text-app-primary hover:text-app-primary/80 transition-colors duration-200 font-medium"
+                      >
+                        {adminEmail}
+                      </a>
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

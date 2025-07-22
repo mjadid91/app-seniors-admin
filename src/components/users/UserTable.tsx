@@ -18,6 +18,7 @@ import { User } from "../../stores/authStore";
 import RoleManager from "./RoleManager";
 import { usePermissions, PERMISSIONS } from "../../hooks/usePermissions";
 import { useUserActivation } from "../../hooks/useUserActivation";
+import ChangePasswordModal from "./ChangePasswordModal";
 
 interface UserTableProps {
   users: User[];
@@ -33,6 +34,8 @@ const UserTable = ({ users, onRoleChange, onEditUser, onDeleteUser, onRefresh }:
   const { toggleUserActivation, isLoading } = useUserActivation();
   const [userToToggle, setUserToToggle] = useState<User | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [userToChangePassword, setUserToChangePassword] = useState<User | null>(null);
 
   const handleToggleActivationClick = (user: User) => {
     setUserToToggle(user);
@@ -57,6 +60,17 @@ const UserTable = ({ users, onRoleChange, onEditUser, onDeleteUser, onRefresh }:
   const handleCancelToggleActivation = () => {
     setIsDialogOpen(false);
     setUserToToggle(null);
+  };
+
+  const handleChangePassword = (user: User) => {
+    setUserToChangePassword(user);
+    setIsPasswordModalOpen(true);
+  };
+
+  const handlePasswordChanged = () => {
+    if (onRefresh) {
+      onRefresh();
+    }
   };
 
   const getStatusBadge = (user: User) => {
@@ -153,6 +167,17 @@ const UserTable = ({ users, onRoleChange, onEditUser, onDeleteUser, onRefresh }:
                     Modifier
                   </Button>
                   {canManageUsers && !isViewer() && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      disabled={user.estDesactive}
+                      className="text-blue-600 hover:text-blue-700"
+                      onClick={() => handleChangePassword(user)}
+                    >
+                      Mot de passe
+                    </Button>
+                  )}
+                  {canManageUsers && !isViewer() && (
                     <>
                       <Button 
                         variant="ghost" 
@@ -199,6 +224,16 @@ const UserTable = ({ users, onRoleChange, onEditUser, onDeleteUser, onRefresh }:
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ChangePasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => {
+          setIsPasswordModalOpen(false);
+          setUserToChangePassword(null);
+        }}
+        user={userToChangePassword}
+        onPasswordChanged={handlePasswordChanged}
+      />
     </>
   );
 };
