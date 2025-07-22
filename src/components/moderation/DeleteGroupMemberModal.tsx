@@ -19,13 +19,20 @@ const DeleteGroupMemberModal = ({ isOpen, onClose, member, onSuccess }: DeleteGr
     if (!member) return;
 
     try {
+      console.log('Suppression membre:', member.id, 'du groupe:', member.groupeId);
+
       const { error } = await supabase
         .from('Utilisateurs_Groupe')
         .delete()
         .eq('IDUtilisateurs', parseInt(member.id))
         .eq('IDGroupe', parseInt(member.groupeId));
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur lors de la suppression du membre:', error);
+        throw error;
+      }
+
+      console.log('Membre supprimé avec succès');
 
       toast({
         title: "Membre supprimé",
@@ -39,7 +46,7 @@ const DeleteGroupMemberModal = ({ isOpen, onClose, member, onSuccess }: DeleteGr
       console.error('Erreur lors de la suppression du membre:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de supprimer le membre du groupe",
+        description: `Impossible de supprimer le membre du groupe: ${error.message}`,
         variant: "destructive"
       });
     }
