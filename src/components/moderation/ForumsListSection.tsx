@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Eye, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useRealtimeInvalidation } from "@/hooks/useRealtimeInvalidation";
 import AddForumModal from "./AddForumModal";
 import DeleteForumModal from "./DeleteForumModal";
 import ViewForumDetailsModal from "./ViewForumDetailsModal";
@@ -17,9 +16,6 @@ const ForumsListSection = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedForum, setSelectedForum] = useState<{ IDForum: number; TitreForum: string } | null>(null);
   const [viewForum, setViewForum] = useState<any>(null);
-
-  // Activer les mises à jour en temps réel
-  useRealtimeInvalidation();
 
   const { data: forums = [], refetch } = useQuery({
     queryKey: ['forums-list'],

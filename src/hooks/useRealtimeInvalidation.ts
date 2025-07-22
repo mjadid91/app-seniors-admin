@@ -41,15 +41,23 @@ const TABLE_QUERY_MAPPING = {
 /**
  * Hook pour gérer l'invalidation automatique des queries en temps réel
  * Écoute les changements sur les tables Supabase et invalide les queries correspondantes
+ * IMPORTANT: Ce hook ne doit être utilisé qu'une seule fois dans l'application (dans App.tsx)
  */
 export const useRealtimeInvalidation = () => {
   const queryClient = useQueryClient();
   const channelRef = useRef<any>(null);
+  const isSubscribedRef = useRef(false);
 
   useEffect(() => {
-    // Créer un canal pour écouter les changements sur toutes les tables
+    // Éviter les souscriptions multiples
+    if (isSubscribedRef.current || channelRef.current) {
+      console.log('Real-time invalidation already active, skipping subscription');
+      return;
+    }
+
+    // Créer un canal unique pour écouter les changements sur toutes les tables
     channelRef.current = supabase
-      .channel('schema-db-changes')
+      .channel(`schema-db-changes-${Math.random().toString(36).substr(2, 9)}`) // Canal unique
       .on(
         'postgres_changes',
         {
@@ -74,14 +82,21 @@ export const useRealtimeInvalidation = () => {
           }
         }
       )
-      .subscribe();
-
-    console.log('Écoute temps réel activée pour toutes les tables');
+      .subscribe((status) => {
+        console.log('Real-time subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          isSubscribedRef.current = true;
+          console.log('Écoute temps réel activée pour toutes les tables');
+        }
+      });
 
     // Nettoyage lors du démontage
     return () => {
       if (channelRef.current) {
+        console.log('Cleaning up real-time subscription...');
         supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+        isSubscribedRef.current = false;
         console.log('Écoute temps réel désactivée');
       }
     };
