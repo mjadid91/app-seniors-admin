@@ -63,15 +63,19 @@ const Support = () => {
 
   // Transform database tickets to UI tickets
   const tickets: Ticket[] = ticketsDB.map(ticketDB => ({
-    id: ticketDB.id_ticket_client,
+    id: ticketDB.id,
     sujet: ticketDB.sujet,
-    utilisateur: ticketDB.nom_utilisateur || 'Utilisateur inconnu',
-    dateCreation: ticketDB.date_creation,
+    utilisateur: ticketDB.utilisateur_nom && ticketDB.utilisateur_prenom 
+      ? `${ticketDB.utilisateur_prenom} ${ticketDB.utilisateur_nom}` 
+      : ticketDB.utilisateur_email || 'Utilisateur inconnu',
+    dateCreation: ticketDB.date_creation || new Date().toISOString(),
     statut: ticketDB.statut as 'en_attente' | 'en_cours' | 'resolu',
     priorite: ticketDB.priorite as 'basse' | 'normale' | 'haute',
-    assigneA: ticketDB.assigne_a || undefined,
+    assigneA: ticketDB.assigne_nom && ticketDB.assigne_prenom 
+      ? `${ticketDB.assigne_prenom} ${ticketDB.assigne_nom}` 
+      : ticketDB.assigne_email || undefined,
     dateResolution: ticketDB.date_resolution || undefined,
-    descriptionDemande: ticketDB.description_demande,
+    descriptionDemande: ticketDB.message,
   }));
 
   const handleVoirTicket = (ticket: Ticket) => {
