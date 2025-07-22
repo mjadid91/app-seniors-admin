@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,7 +36,13 @@ const SignalementsTable = ({ refreshTrigger }: SignalementsTableProps) => {
 
   const { data: signalements = [], refetch } = useQuery({
     queryKey: ['signalements', refreshTrigger],
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    staleTime: 30 * 1000, // 30 secondes
+    refetchInterval: 60 * 1000, // 1 minute
     queryFn: async () => {
+      console.log('Récupération des signalements...');
       const { data, error } = await supabase
         .from('SignalementContenu')
         .select(`
@@ -91,6 +96,7 @@ const SignalementsTable = ({ refreshTrigger }: SignalementsTableProps) => {
         })
       );
 
+      console.log('Signalements récupérés:', enrichedData?.length || 0);
       return enrichedData as Signalement[];
     }
   });

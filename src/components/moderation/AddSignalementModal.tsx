@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface AddSignalementModalProps {
   isOpen: boolean;
@@ -16,6 +16,7 @@ interface AddSignalementModalProps {
 
 const AddSignalementModal = ({ isOpen, onClose, onSuccess }: AddSignalementModalProps) => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     messageId: "",
@@ -24,10 +25,17 @@ const AddSignalementModal = ({ isOpen, onClose, onSuccess }: AddSignalementModal
     description: ""
   });
 
-  // Récupérer les messages de groupe avec auteur et groupe
+  // Récupérer les messages de groupe avec actualisation temps réel
   const { data: messages = [] } = useQuery({
     queryKey: ['messages-groupe'],
+    // Configuration temps réel optimisée
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    staleTime: 30 * 1000, // 30 secondes
+    refetchInterval: 60 * 1000, // 1 minute
     queryFn: async () => {
+      console.log('Récupération des messages pour signalement...');
       const { data, error } = await supabase
         .from('MessageGroupe')
         .select(`
@@ -40,15 +48,24 @@ const AddSignalementModal = ({ isOpen, onClose, onSuccess }: AddSignalementModal
         .order('DateEnvoi', { ascending: false });
       
       if (error) throw error;
+      console.log('Messages pour signalement récupérés:', data?.length || 0);
       return data;
     }
   });
 
-  // Récupérer les membres du groupe du message sélectionné
+  // Récupérer les membres du groupe du message sélectionné avec actualisation temps réel
   const { data: membresGroupe = [] } = useQuery({
     queryKey: ['membres-groupe-signalement', formData.messageId],
+    // Configuration temps réel
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    refetchOnReconnect: true,
+    staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000,
     queryFn: async () => {
       if (!formData.messageId) return [];
+      
+      console.log('Récupération des membres du groupe pour signalement...');
       
       // D'abord, récupérer le groupe du message
       const { data: messageData, error: messageError } = await supabase
@@ -69,6 +86,7 @@ const AddSignalementModal = ({ isOpen, onClose, onSuccess }: AddSignalementModal
         .eq('IDGroupe', messageData.IDGroupe);
       
       if (error) throw error;
+      console.log('Membres du groupe récupérés:', data?.length || 0);
       return data.map(item => ({
         IDUtilisateurs: item.Utilisateurs.IDUtilisateurs,
         Nom: item.Utilisateurs.Nom,
@@ -134,6 +152,12 @@ const AddSignalementModal = ({ isOpen, onClose, onSuccess }: AddSignalementModal
         });
 
       if (error) throw error;
+
+      // Invalider toutes les queries pertinentes pour la mise à jour temps réel
+      queryClient.invalidateQueries({ queryKey: ['signalements'] });
+      queryClient.invalidateQueries({ queryKey: ['moderation-groupMessages'] });
+      queryClient.invalidateQueries({ queryKey: ['moderation-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['messages-groupe'] });
 
       toast({
         title: "Signalement ajouté",

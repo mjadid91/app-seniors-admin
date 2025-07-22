@@ -29,12 +29,12 @@ const TABLE_QUERY_MAPPING = {
   'DocumentPatrimonial': ['documents-patrimoniaux'],
   'Notifications': ['notifications'],
   'SignalementContenu': ['moderation-stats', 'signalements'],
-  'MessageGroupe': ['moderation-groupMessages', 'group-members'],
+  'MessageGroupe': ['moderation-groupMessages', 'group-members', 'messages-groupe'],
   'SujetForum': ['moderation-forumPosts', 'forum-stats'],
   'ReponseForum': ['forum-replies', 'moderation-forumPosts', 'forum-stats'],
   'Forum': ['forums', 'forums-list'],
-  'Groupe': ['groupes', 'groups-list'],
-  'Utilisateurs_Groupe': ['group-members', 'groups-list'],
+  'Groupe': ['groupes', 'groups-list', 'messages-groupe'],
+  'Utilisateurs_Groupe': ['group-members', 'groups-list', 'membres-groupe-signalement'],
   'ParametresCommission': ['finances-transactions']
 };
 
@@ -81,9 +81,24 @@ export const useRealtimeInvalidation = () => {
             // Forcer un refetch immédiat pour les données critiques de modération
             if (tableName === 'MessageGroupe') {
               queryClient.refetchQueries({ queryKey: ['moderation-groupMessages'] });
+              queryClient.refetchQueries({ queryKey: ['messages-groupe'] });
             }
             if (tableName === 'ReponseForum') {
               queryClient.refetchQueries({ queryKey: ['moderation-forumPosts'] });
+            }
+            if (tableName === 'SignalementContenu') {
+              queryClient.refetchQueries({ queryKey: ['signalements'] });
+              queryClient.refetchQueries({ queryKey: ['moderation-stats'] });
+            }
+            if (tableName === 'Utilisateurs_Groupe') {
+              queryClient.refetchQueries({ queryKey: ['group-members'] });
+              // Invalider toutes les queries qui commencent par 'membres-groupe-signalement'
+              queryClient.invalidateQueries({ 
+                predicate: (query) => {
+                  const queryKey = query.queryKey[0] as string;
+                  return queryKey?.startsWith('membres-groupe-signalement');
+                }
+              });
             }
           } else {
             console.log(`Aucune query key configurée pour la table: ${tableName}`);

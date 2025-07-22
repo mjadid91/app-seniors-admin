@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -50,12 +49,28 @@ const Moderation = () => {
     setRefreshTrigger(prev => prev + 1);
     refetchForumPosts();
     refetchGroupMessages();
+    
     // Invalider toutes les queries pour mettre à jour les nouvelles sections
-    queryClient.invalidateQueries({ queryKey: ['forums'] });
-    queryClient.invalidateQueries({ queryKey: ['forums-list'] });
-    queryClient.invalidateQueries({ queryKey: ['groups-list'] });
-    queryClient.invalidateQueries({ queryKey: ['group-members'] });
-    queryClient.invalidateQueries({ queryKey: ['utilisateurs'] });
+    // avec une approche plus complète pour le temps réel
+    const queriesToInvalidate = [
+      'forums', 'forums-list', 'groups-list', 'group-members', 'utilisateurs',
+      'moderation-groupMessages', 'moderation-forumPosts', 'moderation-stats',
+      'signalements', 'messages-groupe'
+    ];
+    
+    queriesToInvalidate.forEach(queryKey => {
+      queryClient.invalidateQueries({ queryKey: [queryKey] });
+    });
+    
+    // Invalider aussi les queries dynamiques comme membres-groupe-signalement
+    queryClient.invalidateQueries({ 
+      predicate: (query) => {
+        const queryKey = query.queryKey[0] as string;
+        return queryKey?.startsWith('membres-groupe-signalement');
+      }
+    });
+    
+    console.log('Toutes les queries de modération ont été invalidées pour mise à jour temps réel');
   };
 
   return (
