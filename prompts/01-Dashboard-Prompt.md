@@ -1,4 +1,3 @@
-
 # 🚀 Prompt Lovable - Dashboard AppSeniors Admin
 
 ## 🎯 Objectif
