@@ -70,12 +70,9 @@ export const useUserCrud = (
   // Fonction pour ajouter un utilisateur avec le mot de passe fourni
   const addUser = async (userData: CreateUserData, userPassword: string): Promise<User> => {
     try {
-      console.log('Création utilisateur avec catégorie:', userData.categoryId);
       const currentDate = new Date().toISOString();
-
       const roleFlags = getRoleFlags(userData.categoryId);
-      console.log('Flags de rôle générés:', roleFlags);
-      
+
       // S'assurer que la catégorie existe avec les bons flags
       await supabase
           .from("CatUtilisateurs")
@@ -103,8 +100,6 @@ export const useUserCrud = (
         EstRGPD: false
       };
 
-      console.log('Données utilisateur à insérer:', supabaseUserData);
-
       const { data, error: insertError } = await supabase
           .from('Utilisateurs')
           .insert([supabaseUserData])
@@ -115,8 +110,6 @@ export const useUserCrud = (
 
       const userId = data?.IDUtilisateurs;
       if (!userId) throw new Error('IDUtilisateurs introuvable');
-
-      console.log('Utilisateur créé avec succès, ID:', userId);
 
       // Ajout langue
       if (userData.languePreferee) {
@@ -192,7 +185,7 @@ export const useUserCrud = (
       console.log('Données utilisateur récupérées après création:', newUserData);
       const newUser = convertSupabaseUserToAppUser(newUserData, getRoleFromCategory);
       console.log('Utilisateur converti:', newUser);
-      
+
       setUsers([...users, newUser]);
       return newUser;
 
