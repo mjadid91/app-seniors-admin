@@ -31,7 +31,7 @@ const TABLE_QUERY_MAPPING = {
   'SignalementContenu': ['moderation-stats', 'signalements'],
   'MessageGroupe': ['moderation-groupMessages', 'group-members'],
   'SujetForum': ['moderation-forumPosts', 'forum-stats'],
-  'ReponseForum': ['forum-replies', 'moderation-forumPosts'],
+  'ReponseForum': ['forum-replies', 'moderation-forumPosts', 'forum-stats'],
   'Forum': ['forums', 'forums-list'],
   'Groupe': ['groupes', 'groups-list'],
   'Utilisateurs_Groupe': ['group-members', 'groups-list'],
@@ -77,6 +77,14 @@ export const useRealtimeInvalidation = () => {
             queryKeys.forEach(queryKey => {
               queryClient.invalidateQueries({ queryKey: [queryKey] });
             });
+            
+            // Forcer un refetch immédiat pour les données critiques de modération
+            if (tableName === 'MessageGroupe') {
+              queryClient.refetchQueries({ queryKey: ['moderation-groupMessages'] });
+            }
+            if (tableName === 'ReponseForum') {
+              queryClient.refetchQueries({ queryKey: ['moderation-forumPosts'] });
+            }
           } else {
             console.log(`Aucune query key configurée pour la table: ${tableName}`);
           }
