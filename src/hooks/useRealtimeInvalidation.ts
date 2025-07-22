@@ -30,7 +30,7 @@ const TABLE_QUERY_MAPPING = {
   'Notifications': ['notifications'],
   'SignalementContenu': ['moderation-stats', 'signalements'],
   'MessageGroupe': ['moderation-groupMessages', 'group-members', 'messages-groupe'],
-  'SujetForum': ['moderation-forumPosts', 'forum-stats'],
+  'SujetForum': ['moderation-forumPosts', 'forum-stats', 'forums-list'],
   'ReponseForum': ['forum-replies', 'moderation-forumPosts', 'forum-stats'],
   'Forum': ['forums', 'forums-list'],
   'Groupe': ['groupes', 'groups-list', 'messages-groupe'],
@@ -85,6 +85,13 @@ export const useRealtimeInvalidation = () => {
             }
             if (tableName === 'ReponseForum') {
               queryClient.refetchQueries({ queryKey: ['moderation-forumPosts'] });
+            }
+            if (tableName === 'SujetForum') {
+              queryClient.refetchQueries({ queryKey: ['moderation-forumPosts'] });
+              queryClient.refetchQueries({ queryKey: ['forums-list'] });
+            }
+            if (tableName === 'Forum') {
+              queryClient.refetchQueries({ queryKey: ['forums-list'] });
             }
             if (tableName === 'SignalementContenu') {
               queryClient.refetchQueries({ queryKey: ['signalements'] });

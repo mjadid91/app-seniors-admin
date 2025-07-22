@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface AddForumSubjectModalProps {
   isOpen: boolean;
@@ -17,6 +17,7 @@ interface AddForumSubjectModalProps {
 
 const AddForumSubjectModal = ({ isOpen, onClose, onSuccess }: AddForumSubjectModalProps) => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     titre: "",
@@ -84,6 +85,11 @@ const AddForumSubjectModal = ({ isOpen, onClose, onSuccess }: AddForumSubjectMod
         });
 
       if (error) throw error;
+
+      // Invalider les queries liées aux forums pour forcer le rafraîchissement
+      queryClient.invalidateQueries({ queryKey: ['forums-list'] });
+      queryClient.invalidateQueries({ queryKey: ['forum-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['moderation-forumPosts'] });
 
       toast({
         title: "Sujet créé",
