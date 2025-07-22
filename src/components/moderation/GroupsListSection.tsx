@@ -1,19 +1,24 @@
+
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ChevronDown, ChevronRight, Users, Calendar, User, UserCheck } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Eye, Trash2, UserMinus } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import AddGroupModal from "./AddGroupModal";
+import DeleteGroupModal from "./DeleteGroupModal";
+import DeleteGroupMemberModal from "./DeleteGroupMemberModal";
 
 const GroupsListSection = () => {
-  const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleteMemberModalOpen, setIsDeleteMemberModalOpen] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<{ id: string; titre: string } | null>(null);
+  const [selectedMember, setSelectedMember] = useState<{ id: string; nom: string; prenom: string; groupeId: string } | null>(null);
+  const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
 
-  const { data: groups = [], isLoading } = useQuery({
+  const { data: groups = [], refetch } = useQuery({
     queryKey: ['groups-list'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -23,7 +28,6 @@ const GroupsListSection = () => {
           Titre,
           Description,
           DateCreation,
-          IDUtilisateursCreateur,
           Utilisateurs!inner(Nom, Prenom)
         `)
         .order('DateCreation', { ascending: false });
@@ -34,197 +38,211 @@ const GroupsListSection = () => {
   });
 
   const { data: groupMembers = {} } = useQuery({
-    queryKey: ['group-members', expandedGroups],
+    queryKey: ['group-members', expandedGroupId],
+    enabled: !!expandedGroupId,
     queryFn: async () => {
-      if (expandedGroups.size === 0) return {};
+      if (!expandedGroupId) return {};
       
-      const groupIds = Array.from(expandedGroups);
       const { data, error } = await supabase
-        .from('Utilisateurs_Groupe')
+        .from('Groupe_Utilisateurs')
         .select(`
-          IDGroupe,
           IDUtilisateurs,
-          Utilisateurs!inner(
-            IDUtilisateurs,
-            Nom,
-            Prenom,
-            Email
-          )
+          IDGroupe,
+          Utilisateurs!inner(Nom, Prenom)
         `)
-        .in('IDGroupe', groupIds);
+        .eq('IDGroupe', parseInt(expandedGroupId));
       
       if (error) throw error;
       
-      // Grouper les membres par groupe
-      const membersByGroup: Record<number, any[]> = {};
+      const membersByGroup: { [key: string]: any[] } = {};
       data.forEach(member => {
-        if (!membersByGroup[member.IDGroupe]) {
-          membersByGroup[member.IDGroupe] = [];
+        const groupId = member.IDGroupe.toString();
+        if (!membersByGroup[groupId]) {
+          membersByGroup[groupId] = [];
         }
-        membersByGroup[member.IDGroupe].push(member.Utilisateurs);
+        membersByGroup[groupId].push({
+          id: member.IDUtilisateurs.toString(),
+          nom: member.Utilisateurs?.Nom || '',
+          prenom: member.Utilisateurs?.Prenom || '',
+          groupeId: groupId
+        });
       });
       
       return membersByGroup;
-    },
-    enabled: expandedGroups.size > 0
+    }
   });
 
-  const toggleGroup = (groupId: number) => {
-    const newExpanded = new Set(expandedGroups);
-    if (newExpanded.has(groupId)) {
-      newExpanded.delete(groupId);
-    } else {
-      newExpanded.add(groupId);
+  const { data: groupStats = {} } = useQuery({
+    queryKey: ['group-stats'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('MessageGroupe')
+        .select('IDGroupe, IDMessageGroupe')
+        .order('IDGroupe');
+      
+      if (error) throw error;
+      
+      const stats: { [key: number]: number } = {};
+      data.forEach(message => {
+        if (!stats[message.IDGroupe]) {
+          stats[message.IDGroupe] = 0;
+        }
+        stats[message.IDGroupe]++;
+      });
+      
+      return stats;
     }
-    setExpandedGroups(newExpanded);
+  });
+
+  const handleDeleteGroup = (group: { IDGroupe: number; Titre: string }) => {
+    setSelectedGroup({
+      id: group.IDGroupe.toString(),
+      titre: group.Titre
+    });
+    setIsDeleteModalOpen(true);
   };
 
-  const getInitials = (nom: string, prenom: string) => {
-    return `${prenom?.[0] || ''}${nom?.[0] || ''}`.toUpperCase();
+  const handleDeleteMember = (member: any) => {
+    setSelectedMember(member);
+    setIsDeleteMemberModalOpen(true);
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Groupes existants</h3>
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Card key={i} className="animate-pulse">
-              <CardHeader>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="h-3 bg-gray-200 rounded"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const toggleGroupExpansion = (groupId: string) => {
+    setExpandedGroupId(expandedGroupId === groupId ? null : groupId);
+  };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-slate-900">Groupes existants</h3>
-        <Badge variant="secondary" className="bg-purple-50 text-purple-700">
-          {groups.length} groupe{groups.length > 1 ? 's' : ''}
-        </Badge>
-      </div>
-      
-      <div className="space-y-4">
-        {groups.map((group) => {
-          const isExpanded = expandedGroups.has(group.IDGroupe);
-          const members = groupMembers[group.IDGroupe] || [];
-          
-          return (
-            <Card key={group.IDGroupe} className="hover:shadow-md transition-shadow duration-200">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <CardTitle className="text-base text-slate-900">
-                    {group.Titre}
-                  </CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleGroup(group.IDGroupe)}
-                    className="flex items-center gap-1 text-xs text-slate-600 hover:text-slate-900"
-                  >
-                    <Users className="h-3 w-3" />
-                    Voir les membres
-                    {isExpanded ? (
-                      <ChevronDown className="h-3 w-3" />
-                    ) : (
-                      <ChevronRight className="h-3 w-3" />
-                    )}
-                  </Button>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-3">
-                {group.Description && (
-                  <p className="text-sm text-slate-600 line-clamp-2">
-                    {group.Description}
-                  </p>
-                )}
-                
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
-                    <Calendar className="h-3 w-3" />
-                    <span>
-                      Créé le {format(new Date(group.DateCreation), 'dd MMMM yyyy', { locale: fr })}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
-                    <User className="h-3 w-3" />
-                    <span>
-                      Par {group.Utilisateurs?.Prenom} {group.Utilisateurs?.Nom}
-                    </span>
-                  </div>
-                </div>
-
-                <Collapsible open={isExpanded} onOpenChange={() => toggleGroup(group.IDGroupe)}>
-                  <CollapsibleContent className="space-y-3">
-                    <div className="border-t pt-3 mt-3">
-                      <div className="flex items-center gap-2 mb-3">
-                        <UserCheck className="h-4 w-4 text-slate-500" />
-                        <span className="text-sm font-medium text-slate-700">
-                          Membres ({members.length})
-                        </span>
-                      </div>
-                      
-                      {members.length > 0 ? (
-                        <div className="grid gap-2 sm:grid-cols-2">
-                          {members.map((member) => (
-                            <div 
-                              key={member.IDUtilisateurs} 
-                              className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg"
-                            >
-                              <Avatar className="h-8 w-8">
-                                <AvatarFallback className="bg-slate-200 text-slate-600 text-xs">
-                                  {getInitials(member.Nom, member.Prenom)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-slate-900 truncate">
-                                  {member.Prenom} {member.Nom}
-                                </p>
-                                <p className="text-xs text-slate-500 truncate">
-                                  {member.Email}
-                                </p>
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Groupes disponibles</CardTitle>
+          <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Ajouter un groupe
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200">
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Titre</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Créateur</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Messages</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Date</th>
+                  <th className="text-left py-3 px-4 font-medium text-slate-700">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {groups.map((group) => (
+                  <>
+                    <tr key={group.IDGroupe} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                      <td className="py-4 px-4">
+                        <div>
+                          <p className="font-medium text-slate-800">{group.Titre}</p>
+                          <p className="text-sm text-slate-500">{group.Description}</p>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4 text-slate-600">
+                        {group.Utilisateurs ? `${group.Utilisateurs.Prenom} ${group.Utilisateurs.Nom}` : 'Inconnu'}
+                      </td>
+                      <td className="py-4 px-4 text-slate-600">
+                        {groupStats[group.IDGroupe] || 0} message{(groupStats[group.IDGroupe] || 0) !== 1 ? 's' : ''}
+                      </td>
+                      <td className="py-4 px-4 text-slate-600">
+                        {new Date(group.DateCreation).toLocaleDateString('fr-FR')}
+                      </td>
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            title="Voir les membres"
+                            onClick={() => toggleGroupExpansion(group.IDGroupe.toString())}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Supprimer le groupe"
+                            onClick={() => handleDeleteGroup({
+                              IDGroupe: group.IDGroupe,
+                              Titre: group.Titre
+                            })}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                    
+                    {expandedGroupId === group.IDGroupe.toString() && (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-2 bg-slate-50">
+                          <div className="space-y-2">
+                            <h4 className="font-medium text-slate-700">Membres du groupe :</h4>
+                            {groupMembers[group.IDGroupe.toString()]?.length > 0 ? (
+                              <div className="space-y-1">
+                                {groupMembers[group.IDGroupe.toString()].map((member: any) => (
+                                  <div key={member.id} className="flex items-center justify-between bg-white p-2 rounded border">
+                                    <span className="text-sm">{member.prenom} {member.nom}</span>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-red-600 hover:text-red-700"
+                                      onClick={() => handleDeleteMember(member)}
+                                    >
+                                      <UserMinus className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                ))}
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-4">
-                          <Users className="h-6 w-6 text-slate-400 mx-auto mb-2" />
-                          <p className="text-sm text-slate-500">Aucun membre dans ce groupe</p>
-                        </div>
-                      )}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-      
-      {groups.length === 0 && (
-        <Card className="border-dashed border-2 border-slate-200">
-          <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-            <Users className="h-8 w-8 text-slate-400 mb-2" />
-            <p className="text-slate-500">Aucun groupe trouvé</p>
-            <p className="text-sm text-slate-400">Les groupes créés apparaîtront ici</p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+                            ) : (
+                              <p className="text-sm text-slate-500">Aucun membre dans ce groupe</p>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <AddGroupModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSuccess={() => {
+          refetch();
+          setIsAddModalOpen(false);
+        }}
+      />
+
+      <DeleteGroupModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        group={selectedGroup}
+        onSuccess={() => {
+          refetch();
+          setIsDeleteModalOpen(false);
+        }}
+      />
+
+      <DeleteGroupMemberModal
+        isOpen={isDeleteMemberModalOpen}
+        onClose={() => setIsDeleteMemberModalOpen(false)}
+        member={selectedMember}
+        onSuccess={() => {
+          refetch();
+          setIsDeleteMemberModalOpen(false);
+        }}
+      />
+    </>
   );
 };
 

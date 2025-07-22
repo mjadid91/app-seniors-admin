@@ -1,148 +1,66 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { User, Calendar, MessageSquare, Shield } from "lucide-react";
+import { User, Calendar, Settings } from "lucide-react";
 import { ForumPost } from './types';
-import { getStatutBadgeColor } from './utils';
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 
 interface ViewForumPostModalProps {
   isOpen: boolean;
   onClose: () => void;
   post: ForumPost | null;
-  onModerate?: (post: ForumPost) => void;
+  onModerate: (post: ForumPost) => void;
 }
 
 const ViewForumPostModal = ({ isOpen, onClose, post, onModerate }: ViewForumPostModalProps) => {
-  // Récupérer le contenu détaillé du sujet depuis la base de données
-  const { data: forumSubjectData } = useQuery({
-    queryKey: ['forum-subject-detail', post?.id],
-    queryFn: async () => {
-      if (!post?.id) return null;
-      
-      const { data, error } = await supabase
-        .from('SujetForum')
-        .select(`
-          IDSujetForum,
-          TitreSujet,
-          ContenuSujet,
-          DateCreationSujet,
-          NbVues,
-          IDUtilisateurs,
-          IDForum,
-          Utilisateurs!inner(Nom, Prenom),
-          Forum!inner(TitreForum)
-        `)
-        .eq('IDSujetForum', parseInt(post.id))
-        .single();
-      
-      if (error) {
-        console.error('Error fetching forum subject:', error);
-        return null;
-      }
-      
-      return data;
-    },
-    enabled: !!post?.id && isOpen
-  });
-
   if (!post) return null;
-
-  const handleModerate = () => {
-    if (onModerate) {
-      onModerate(post);
-    }
-  };
-
-  const displayData = forumSubjectData || post;
-  const titre = forumSubjectData?.TitreSujet || post.titre;
-  const contenu = forumSubjectData?.ContenuSujet || "Contenu non disponible";
-  const auteur = forumSubjectData?.Utilisateurs ? 
-    `${forumSubjectData.Utilisateurs.Prenom} ${forumSubjectData.Utilisateurs.Nom}` : 
-    post.auteur;
-  const dateCreation = forumSubjectData?.DateCreationSujet || post.dateCreation;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-blue-600" />
-            Détails du sujet de forum
+            Détails du sujet : {post.titre}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           <Card>
-            <CardContent className="p-4">
-              <h3 className="text-lg font-semibold text-slate-800 mb-4">{titre}</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <User className="h-5 w-5 text-slate-500" />
-                  <div>
-                    <p className="text-sm text-slate-600">Auteur</p>
-                    <p className="font-medium text-slate-800">{auteur}</p>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">{post.titre}</h3>
+                </div>
+
+                <div className="flex items-center gap-4 text-sm text-slate-600">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span>Auteur : {post.auteur}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    <span>Date : {new Date(post.dateCreation).toLocaleDateString('fr-FR')}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <Calendar className="h-5 w-5 text-slate-500" />
-                  <div>
-                    <p className="text-sm text-slate-600">Date de création</p>
-                    <p className="font-medium text-slate-800">
-                      {new Date(dateCreation).toLocaleDateString('fr-FR')}
-                    </p>
-                  </div>
+                <div className="flex items-center gap-4 text-sm">
+                  <span className="font-medium">Réponses : {post.nbReponses}</span>
+                  <span className="font-medium">Signalements : {post.signalements}</span>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm text-slate-600 mb-2">Statut</p>
-              <Badge className={getStatutBadgeColor(post.statut)}>
-                {post.statut}
-              </Badge>
-            </div>
-
-            <div>
-              <p className="text-sm text-slate-600 mb-2">Réponses</p>
-              <p className="font-medium text-slate-800">{post.nbReponses}</p>
-            </div>
-
-            <div>
-              <p className="text-sm text-slate-600 mb-2">Signalements</p>
-              {post.signalements > 0 ? (
-                <Badge className="bg-red-100 text-red-700 border-red-200">
-                  {post.signalements}
-                </Badge>
-              ) : (
-                <span className="text-slate-400">0</span>
-              )}
-            </div>
-          </div>
-
-          <Card>
-            <CardContent className="p-4">
-              <h4 className="font-semibold text-slate-800 mb-3">Contenu du sujet</h4>
-              <div className="prose max-w-none">
-                <p className="text-slate-600 whitespace-pre-wrap">{contenu}</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-between items-center pt-4">
             <Button variant="outline" onClick={onClose}>
               Fermer
             </Button>
-            <Button onClick={handleModerate} className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Modérer le sujet
+            <Button 
+              onClick={() => onModerate(post)}
+              className="flex items-center gap-2"
+            >
+              <Settings className="h-4 w-4" />
+              Modérer
             </Button>
           </div>
         </div>
