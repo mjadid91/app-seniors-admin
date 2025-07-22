@@ -113,18 +113,15 @@ export const useModerationActions = () => {
     try {
       const itemIdNum = parseInt(itemId);
       
-      // D'abord traiter les signalements
+      // D'abord supprimer tous les signalements associés
       const column = type === 'forum' ? 'IDReponseForum' : 'IDMessageGroupe';
       
-      const { error: signalError } = await supabase
+      const { error: deleteSignalError } = await supabase
         .from('SignalementContenu')
-        .update({ 
-          Traité: true,
-          ActionModeration: 'Contenu supprimé'
-        })
+        .delete()
         .eq(column, itemIdNum);
 
-      if (signalError) throw signalError;
+      if (deleteSignalError) throw deleteSignalError;
 
       // Ensuite supprimer le contenu
       if (type === 'forum') {
@@ -145,7 +142,7 @@ export const useModerationActions = () => {
 
       toast({
         title: "Contenu supprimé",
-        description: "Le contenu a été supprimé et les signalements traités"
+        description: "Le contenu et tous ses signalements ont été supprimés définitivement"
       });
 
       return true;
