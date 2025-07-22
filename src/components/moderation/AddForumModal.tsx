@@ -42,6 +42,35 @@ const AddForumModal = ({ isOpen, onClose, onSuccess }: AddForumModalProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation côté client
+    if (formData.titre.length > 50) {
+      toast({
+        title: "Erreur de validation",
+        description: "Le titre ne doit pas dépasser 50 caractères",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (formData.description.length > 255) {
+      toast({
+        title: "Erreur de validation",
+        description: "La description ne doit pas dépasser 255 caractères",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (formData.categorie.length > 50) {
+      toast({
+        title: "Erreur de validation",
+        description: "La catégorie ne doit pas dépasser 50 caractères",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -70,7 +99,25 @@ const AddForumModal = ({ isOpen, onClose, onSuccess }: AddForumModalProps) => {
           DateCreationForum: new Date().toISOString().split('T')[0]
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erreur Supabase:', error);
+        
+        // Messages d'erreur plus spécifiques
+        if (error.code === '22001') {
+          toast({
+            title: "Erreur",
+            description: "Un des champs dépasse la longueur maximale autorisée. Veuillez raccourcir votre texte.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Erreur",
+            description: error.message || "Impossible de créer le forum",
+            variant: "destructive"
+          });
+        }
+        return;
+      }
 
       toast({
         title: "Forum créé",
@@ -86,11 +133,11 @@ const AddForumModal = ({ isOpen, onClose, onSuccess }: AddForumModalProps) => {
         createurId: "",
         estPublic: true
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erreur lors de la création du forum:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de créer le forum",
+        description: "Une erreur inattendue s'est produite",
         variant: "destructive"
       });
     } finally {
@@ -107,31 +154,43 @@ const AddForumModal = ({ isOpen, onClose, onSuccess }: AddForumModalProps) => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Titre du forum</label>
+            <label className="block text-sm font-medium mb-1">
+              Titre du forum <span className="text-xs text-gray-500">({formData.titre.length}/50)</span>
+            </label>
             <Input
               value={formData.titre}
               onChange={(e) => setFormData(prev => ({ ...prev, titre: e.target.value }))}
+              maxLength={50}
               required
+              className={formData.titre.length > 50 ? "border-red-500" : ""}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Description</label>
+            <label className="block text-sm font-medium mb-1">
+              Description <span className="text-xs text-gray-500">({formData.description.length}/255)</span>
+            </label>
             <Textarea
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               rows={3}
+              maxLength={255}
               required
+              className={formData.description.length > 255 ? "border-red-500" : ""}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Catégorie</label>
+            <label className="block text-sm font-medium mb-1">
+              Catégorie <span className="text-xs text-gray-500">({formData.categorie.length}/50)</span>
+            </label>
             <Input
               value={formData.categorie}
               onChange={(e) => setFormData(prev => ({ ...prev, categorie: e.target.value }))}
               placeholder="Ex: Général, Support, etc."
+              maxLength={50}
               required
+              className={formData.categorie.length > 50 ? "border-red-500" : ""}
             />
           </div>
 
