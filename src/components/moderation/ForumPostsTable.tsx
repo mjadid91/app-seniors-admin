@@ -3,13 +3,15 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Trash2 } from "lucide-react";
+import { Eye, Trash2, MessageSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ForumPost } from './types';
 import { getStatutBadgeColor } from './utils';
 import ViewForumPostModal from './ViewForumPostModal';
+import ViewForumRepliesModal from './ViewForumRepliesModal';
 import ModerationActionsModal from './ModerationActionsModal';
+import ConfirmDeleteDialog from '../rgpd/ConfirmDeleteDialog';
 
 interface ForumPostsTableProps {
   forumPosts: ForumPost[];
@@ -23,7 +25,10 @@ const ForumPostsTable = ({ forumPosts, setForumPosts }: ForumPostsTableProps) =>
   const { toast } = useToast();
   const [selectedPost, setSelectedPost] = useState<ForumPost | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isRepliesModalOpen, setIsRepliesModalOpen] = useState(false);
   const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
+  const [deletePostId, setDeletePostId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleVoirPost = (post: ForumPost) => {
     setSelectedPost(post);
@@ -33,6 +38,15 @@ const ForumPostsTable = ({ forumPosts, setForumPosts }: ForumPostsTableProps) =>
       description: `Ouverture du sujet "${post.titre}"`,
     });
     console.log("Voir sujet:", post);
+  };
+
+  const handleVoirReponses = (post: ForumPost) => {
+    setSelectedPost(post);
+    setIsRepliesModalOpen(true);
+    toast({
+      title: "Réponses du sujet",
+      description: `Affichage des réponses pour "${post.titre}"`,
+    });
   };
 
   const handleModeratePost = (post: ForumPost) => {
@@ -54,21 +68,37 @@ const ForumPostsTable = ({ forumPosts, setForumPosts }: ForumPostsTableProps) =>
     }
   };
 
-  const handleSupprimerPost = async (post: ForumPost) => {
+  const handleDeletePost = async () => {
+    if (!deletePostId) return;
+    
+    setIsDeleting(true);
     try {
-      const { error } = await supabase
+      // Supprimer d'abord les réponses liées au sujet
+      const { error: repliesError } = await supabase
+        .from('ReponseForum')
+        .delete()
+        .eq('IDSujetForum', parseInt(deletePostId));
+
+      if (repliesError) {
+        console.error('Erreur lors de la suppression des réponses:', repliesError);
+      }
+
+      // Ensuite supprimer le sujet
+      const { error: subjectError } = await supabase
         .from('SujetForum')
         .delete()
-        .eq('IDSujetForum', parseInt(post.id));
+        .eq('IDSujetForum', parseInt(deletePostId));
 
-      if (error) throw error;
+      if (subjectError) throw subjectError;
 
-      setForumPosts(prev => prev.filter(p => p.id !== post.id));
+      setForumPosts(prev => prev.filter(p => p.id !== deletePostId));
       toast({
         title: "Sujet supprimé",
-        description: `Le sujet "${post.titre}" a été supprimé définitivement`,
+        description: "Le sujet et ses réponses ont été supprimés définitivement",
         variant: "destructive"
       });
+      
+      setDeletePostId(null);
     } catch (error: any) {
       console.error('Erreur lors de la suppression:', error);
       toast({
@@ -76,6 +106,8 @@ const ForumPostsTable = ({ forumPosts, setForumPosts }: ForumPostsTableProps) =>
         description: "Impossible de supprimer le sujet",
         variant: "destructive"
       });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -137,9 +169,17 @@ const ForumPostsTable = ({ forumPosts, setForumPosts }: ForumPostsTableProps) =>
                         <Button 
                           variant="ghost" 
                           size="sm" 
+                          title="Voir les réponses"
+                          onClick={() => handleVoirReponses(post)}
+                        >
+                          <MessageSquare className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
                           className="text-red-600 hover:text-red-700 hover:bg-red-50" 
                           title="Supprimer"
-                          onClick={() => handleSupprimerPost(post)}
+                          onClick={() => setDeletePostId(post.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -160,12 +200,28 @@ const ForumPostsTable = ({ forumPosts, setForumPosts }: ForumPostsTableProps) =>
         onModerate={handleModeratePost}
       />
 
+      <ViewForumRepliesModal
+        isOpen={isRepliesModalOpen}
+        onClose={() => setIsRepliesModalOpen(false)}
+        post={selectedPost}
+      />
+
       <ModerationActionsModal
         isOpen={isModerationModalOpen}
         onClose={() => setIsModerationModalOpen(false)}
         item={selectedPost}
         type="forum"
         onAction={handleModerationAction}
+      />
+
+      <ConfirmDeleteDialog
+        isOpen={!!deletePostId}
+        onClose={() => setDeletePostId(null)}
+        onConfirm={handleDeletePost}
+        title="Supprimer le sujet de forum"
+        description="Cette action supprimera définitivement ce sujet et toutes ses réponses."
+        itemName={forumPosts.find(p => p.id === deletePostId)?.titre}
+        isLoading={isDeleting}
       />
     </>
   );
