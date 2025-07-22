@@ -1,5 +1,4 @@
 
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -55,7 +54,8 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess }: AddGroupModalProps) => {
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await supabase
+      // Créer le groupe
+      const { data: groupeData, error: groupeError } = await supabase
         .from('Groupe')
         .insert({
           Titre: formData.titre,
@@ -66,16 +66,27 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess }: AddGroupModalProps) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (groupeError) throw groupeError;
+
+      // Ajouter automatiquement le créateur comme membre du groupe
+      const { error: membreError } = await supabase
+        .from('Utilisateurs_Groupe')
+        .insert({
+          IDUtilisateurs: parseInt(formData.createur),
+          IDGroupe: groupeData.IDGroupe
+        });
+
+      if (membreError) throw membreError;
 
       // Invalider les queries liées aux groupes
       queryClient.invalidateQueries({ queryKey: ['groups-list'] });
       queryClient.invalidateQueries({ queryKey: ['group-stats'] });
       queryClient.invalidateQueries({ queryKey: ['groupes'] });
+      queryClient.invalidateQueries({ queryKey: ['group-members'] });
 
       toast({
         title: "Groupe créé",
-        description: `Le groupe "${formData.titre}" a été créé avec succès`
+        description: `Le groupe "${formData.titre}" a été créé avec succès et le créateur a été ajouté comme membre`
       });
 
       onSuccess();
@@ -159,4 +170,3 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess }: AddGroupModalProps) => {
 };
 
 export default AddGroupModal;
-
