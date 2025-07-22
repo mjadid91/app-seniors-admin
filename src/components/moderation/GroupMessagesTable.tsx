@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Trash2, Archive } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { GroupMessage } from './types';
 import { getStatutBadgeColor } from './utils';
 import ViewGroupMessageModal from './ViewGroupMessageModal';
 import ModerationActionsModal from './ModerationActionsModal';
+import { useModerationActions } from '@/hooks/useModerationActions';
 
 interface GroupMessagesTableProps {
   groupMessages: GroupMessage[];
@@ -18,6 +18,7 @@ interface GroupMessagesTableProps {
 
 const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTableProps) => {
   const { toast } = useToast();
+  const { deleteContent, isProcessing } = useModerationActions();
   const [selectedMessage, setSelectedMessage] = useState<GroupMessage | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
@@ -71,19 +72,15 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
 
   const handleSupprimerMessage = async (message: GroupMessage) => {
     try {
-      const { error } = await supabase
-        .from('MessageGroupe')
-        .delete()
-        .eq('IDMessageGroupe', parseInt(message.id));
-
-      if (error) throw error;
-
-      setGroupMessages(prev => prev.filter(m => m.id !== message.id));
-      toast({
-        title: "Message supprimé",
-        description: "Le message a été supprimé définitivement",
-        variant: "destructive"
-      });
+      console.log('Début suppression message:', message.id);
+      
+      // Utiliser la fonction deleteContent qui gère les signalements associés
+      const success = await deleteContent('group', message.id);
+      
+      if (success) {
+        setGroupMessages(prev => prev.filter(m => m.id !== message.id));
+        console.log('Message supprimé avec succès:', message.id);
+      }
     } catch (error: any) {
       console.error('Erreur lors de la suppression:', error);
       toast({
@@ -165,6 +162,7 @@ const GroupMessagesTable = ({ groupMessages, setGroupMessages }: GroupMessagesTa
                           className="text-red-600 hover:text-red-700 hover:bg-red-50" 
                           title="Supprimer"
                           onClick={() => handleSupprimerMessage(message)}
+                          disabled={isProcessing}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
