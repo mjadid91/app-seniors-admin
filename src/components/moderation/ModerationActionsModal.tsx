@@ -9,6 +9,7 @@ import { AlertTriangle, Eye, EyeOff, Archive, Trash2, CheckCircle } from "lucide
 import { useToast } from "@/hooks/use-toast";
 import { ForumPost, GroupMessage } from './types';
 import { getStatutBadgeColor } from './utils';
+import { useModerationActions } from '@/hooks/useModerationActions';
 import { markSignalementAsTraited } from '@/hooks/useSignalements';
 
 interface ModerationActionsModalProps {
@@ -23,6 +24,7 @@ const ModerationActionsModal = ({ isOpen, onClose, item, type, onAction }: Moder
   const { toast } = useToast();
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { deleteContent } = useModerationActions();
 
   if (!item) return null;
 
@@ -39,27 +41,29 @@ const ModerationActionsModal = ({ isOpen, onClose, item, type, onAction }: Moder
     setIsSubmitting(true);
     
     try {
-      // Si c'est l'action "marquer comme traité", on met à jour les signalements
       if (action === 'marquer_traite') {
         await markSignalementAsTraited(type, item.id);
+        toast({
+          title: "Action effectuée",
+          description: "Le signalement a été marqué comme traité"
+        });
+      } else if (action === 'supprime') {
+        // Utiliser la nouvelle fonction qui gère les signalements
+        await deleteContent(type, item.id);
       } else {
         await onAction(item.id, action, reason);
-      }
-      
-      const actionLabels = {
-        'visible': 'rendu visible',
-        'masque': 'masqué',
-        'archive': 'archivé',
-        'supprime': 'supprimé',
-        'marquer_traite': 'signalement marqué comme traité'
-      };
+        
+        const actionLabels = {
+          'visible': 'rendu visible',
+          'masque': 'masqué',
+          'archive': 'archivé'
+        };
 
-      toast({
-        title: "Action effectuée",
-        description: action === 'marquer_traite' 
-          ? `Le signalement a été marqué comme traité` 
-          : `Le ${type === 'forum' ? 'sujet' : 'message'} a été ${actionLabels[action as keyof typeof actionLabels]}`,
-      });
+        toast({
+          title: "Action effectuée",
+          description: `Le ${type === 'forum' ? 'sujet' : 'message'} a été ${actionLabels[action as keyof typeof actionLabels]}`,
+        });
+      }
 
       onClose();
       setReason("");

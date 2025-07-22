@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Eye, Trash2, UserMinus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useRealtimeInvalidation } from "@/hooks/useRealtimeInvalidation";
 import AddGroupModal from "./AddGroupModal";
 import DeleteGroupModal from "./DeleteGroupModal";
 import DeleteGroupMemberModal from "./DeleteGroupMemberModal";
@@ -17,6 +18,9 @@ const GroupsListSection = () => {
   const [selectedGroup, setSelectedGroup] = useState<{ id: string; titre: string } | null>(null);
   const [selectedMember, setSelectedMember] = useState<{ id: string; nom: string; prenom: string; groupeId: string } | null>(null);
   const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
+
+  // Activer les mises à jour en temps réel
+  useRealtimeInvalidation();
 
   const { data: groups = [], refetch } = useQuery({
     queryKey: ['groups-list'],

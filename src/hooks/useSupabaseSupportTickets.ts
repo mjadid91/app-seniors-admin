@@ -33,8 +33,19 @@ export const useSupabaseSupportTickets = () => {
       const { data, error } = await supabase
         .from("support_dashboard_view")
         .select("*");
+      
       if (error) throw new Error(error.message);
-      return data as SupportTicketDB[];
+      
+      // Éliminer les doublons basés sur l'ID
+      const uniqueTickets = data?.reduce((acc: SupportTicketDB[], current: SupportTicketDB) => {
+        const existingTicket = acc.find(ticket => ticket.id === current.id);
+        if (!existingTicket) {
+          acc.push(current);
+        }
+        return acc;
+      }, []) || [];
+      
+      return uniqueTickets as SupportTicketDB[];
     },
   });
 };

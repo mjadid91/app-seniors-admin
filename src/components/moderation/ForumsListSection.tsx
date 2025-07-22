@@ -6,13 +6,20 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Eye, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useRealtimeInvalidation } from "@/hooks/useRealtimeInvalidation";
 import AddForumModal from "./AddForumModal";
 import DeleteForumModal from "./DeleteForumModal";
+import ViewForumDetailsModal from "./ViewForumDetailsModal";
 
 const ForumsListSection = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [selectedForum, setSelectedForum] = useState<{ IDForum: number; TitreForum: string } | null>(null);
+  const [viewForum, setViewForum] = useState<any>(null);
+
+  // Activer les mises à jour en temps réel
+  useRealtimeInvalidation();
 
   const { data: forums = [], refetch } = useQuery({
     queryKey: ['forums-list'],
@@ -60,6 +67,11 @@ const ForumsListSection = () => {
   const handleDeleteForum = (forum: { IDForum: number; TitreForum: string }) => {
     setSelectedForum(forum);
     setIsDeleteModalOpen(true);
+  };
+
+  const handleViewForum = (forum: any) => {
+    setViewForum(forum);
+    setIsViewModalOpen(true);
   };
 
   return (
@@ -110,7 +122,12 @@ const ForumsListSection = () => {
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm" title="Voir les détails">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          title="Voir les détails"
+                          onClick={() => handleViewForum(forum)}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                         <Button 
@@ -152,6 +169,12 @@ const ForumsListSection = () => {
           refetch();
           setIsDeleteModalOpen(false);
         }}
+      />
+
+      <ViewForumDetailsModal
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+        forum={viewForum}
       />
     </>
   );

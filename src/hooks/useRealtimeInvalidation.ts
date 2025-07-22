@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +10,7 @@ const TABLE_QUERY_MAPPING = {
   'Aidant': ['aidants'],
   'SupportClient': ['support-tickets'],
   'ReponseSupport': ['support-replies'],
+  'ReponsesSupport': ['support-replies'],
   'ActiviteRemuneree_Utilisateurs': ['finances-transactions'],
   'Commande': ['finances-transactions'],
   'ServicePostMortem': ['finances-transactions'],
@@ -27,10 +29,12 @@ const TABLE_QUERY_MAPPING = {
   'DocumentPatrimonial': ['documents-patrimoniaux'],
   'Notifications': ['notifications'],
   'SignalementContenu': ['moderation-stats', 'signalements'],
-  'MessageGroupe': ['moderation-groupMessages'],
-  'SujetForum': ['moderation-forumPosts'],
-  'Forum': ['forums'],
-  'Groupe': ['groupes'],
+  'MessageGroupe': ['moderation-groupMessages', 'group-members'],
+  'SujetForum': ['moderation-forumPosts', 'forum-stats'],
+  'ReponseForum': ['forum-replies', 'moderation-forumPosts'],
+  'Forum': ['forums', 'forums-list'],
+  'Groupe': ['groupes', 'groups-list'],
+  'Utilisateurs_Groupe': ['group-members', 'groups-list'],
   'ParametresCommission': ['finances-transactions']
 };
 

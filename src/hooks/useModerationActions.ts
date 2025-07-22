@@ -48,7 +48,6 @@ export const useModerationActions = () => {
     try {
       const itemIdNum = parseInt(itemId);
       
-      // Marquer le contenu comme supprimé/masqué - use separate operations for each type
       if (type === 'forum') {
         const { error: hideError } = await supabase
           .from('ReponseForum')
@@ -59,7 +58,6 @@ export const useModerationActions = () => {
 
         if (hideError) throw hideError;
 
-        // Marquer le signalement comme traité
         const { error: signalError } = await supabase
           .from('SignalementContenu')
           .update({ 
@@ -79,7 +77,6 @@ export const useModerationActions = () => {
 
         if (hideError) throw hideError;
 
-        // Marquer le signalement comme traité
         const { error: signalError } = await supabase
           .from('SignalementContenu')
           .update({ 
@@ -110,9 +107,65 @@ export const useModerationActions = () => {
     }
   };
 
+  const deleteContent = async (type: 'forum' | 'group', itemId: string) => {
+    setIsProcessing(true);
+    
+    try {
+      const itemIdNum = parseInt(itemId);
+      
+      // D'abord traiter les signalements
+      const column = type === 'forum' ? 'IDReponseForum' : 'IDMessageGroupe';
+      
+      const { error: signalError } = await supabase
+        .from('SignalementContenu')
+        .update({ 
+          Traité: true,
+          ActionModeration: 'Contenu supprimé'
+        })
+        .eq(column, itemIdNum);
+
+      if (signalError) throw signalError;
+
+      // Ensuite supprimer le contenu
+      if (type === 'forum') {
+        const { error: deleteError } = await supabase
+          .from('ReponseForum')
+          .delete()
+          .eq('IDReponseForum', itemIdNum);
+
+        if (deleteError) throw deleteError;
+      } else {
+        const { error: deleteError } = await supabase
+          .from('MessageGroupe')
+          .delete()
+          .eq('IDMessageGroupe', itemIdNum);
+
+        if (deleteError) throw deleteError;
+      }
+
+      toast({
+        title: "Contenu supprimé",
+        description: "Le contenu a été supprimé et les signalements traités"
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error('Erreur lors de la suppression:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le contenu",
+        variant: "destructive"
+      });
+      return false;
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return {
     markAsProcessed,
     hideContent,
+    deleteContent,
     isProcessing
   };
 };
