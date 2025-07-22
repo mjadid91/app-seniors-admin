@@ -1,18 +1,19 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Eye, Trash2, UserMinus } from "lucide-react";
+import { Plus, Eye, Trash2, UserMinus, UserPlus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeInvalidation } from "@/hooks/useRealtimeInvalidation";
 import AddGroupModal from "./AddGroupModal";
+import AddGroupMembersModal from "./AddGroupMembersModal";
 import DeleteGroupModal from "./DeleteGroupModal";
 import DeleteGroupMemberModal from "./DeleteGroupMemberModal";
 
 const GroupsListSection = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAddMembersModalOpen, setIsAddMembersModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleteMemberModalOpen, setIsDeleteMemberModalOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<{ id: string; titre: string } | null>(null);
@@ -120,10 +121,16 @@ const GroupsListSection = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Groupes disponibles</CardTitle>
-          <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Ajouter un groupe
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setIsAddMembersModalOpen(true)} variant="outline" className="flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              Ajouter des membres
+            </Button>
+            <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Ajouter un groupe
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -224,6 +231,15 @@ const GroupsListSection = () => {
         onSuccess={() => {
           refetch();
           setIsAddModalOpen(false);
+        }}
+      />
+
+      <AddGroupMembersModal
+        isOpen={isAddMembersModalOpen}
+        onClose={() => setIsAddMembersModalOpen(false)}
+        onSuccess={() => {
+          refetch();
+          setIsAddMembersModalOpen(false);
         }}
       />
 

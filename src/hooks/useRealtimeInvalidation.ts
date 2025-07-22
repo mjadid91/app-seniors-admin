@@ -1,4 +1,5 @@
 
+
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,8 +34,8 @@ const TABLE_QUERY_MAPPING = {
   'SujetForum': ['moderation-forumPosts', 'forum-stats', 'forums-list'],
   'ReponseForum': ['forum-replies', 'moderation-forumPosts', 'forum-stats'],
   'Forum': ['forums', 'forums-list'],
-  'Groupe': ['groupes', 'groups-list', 'messages-groupe'],
-  'Utilisateurs_Groupe': ['group-members', 'groups-list', 'membres-groupe-signalement'],
+  'Groupe': ['groupes', 'groups-list', 'messages-groupe', 'group-stats'],
+  'Utilisateurs_Groupe': ['group-members', 'groups-list', 'membres-groupe-signalement', 'group-stats'],
   'ParametresCommission': ['finances-transactions']
 };
 
@@ -97,8 +98,14 @@ export const useRealtimeInvalidation = () => {
               queryClient.refetchQueries({ queryKey: ['signalements'] });
               queryClient.refetchQueries({ queryKey: ['moderation-stats'] });
             }
+            if (tableName === 'Groupe') {
+              queryClient.refetchQueries({ queryKey: ['groups-list'] });
+              queryClient.refetchQueries({ queryKey: ['group-stats'] });
+            }
             if (tableName === 'Utilisateurs_Groupe') {
               queryClient.refetchQueries({ queryKey: ['group-members'] });
+              queryClient.refetchQueries({ queryKey: ['groups-list'] });
+              queryClient.refetchQueries({ queryKey: ['group-stats'] });
               // Invalider toutes les queries qui commencent par 'membres-groupe-signalement'
               queryClient.invalidateQueries({ 
                 predicate: (query) => {
@@ -141,3 +148,4 @@ export const useRealtimeInvalidation = () => {
 
   return { invalidateQueries };
 };
+

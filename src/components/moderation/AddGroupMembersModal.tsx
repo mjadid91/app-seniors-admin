@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { X, Plus, Search } from "lucide-react";
 
 interface AddGroupMembersModalProps {
@@ -24,6 +23,7 @@ interface User {
 
 const AddGroupMembersModal = ({ isOpen, onClose, onSuccess }: AddGroupMembersModalProps) => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState("");
   const [searchEmail, setSearchEmail] = useState("");
@@ -151,6 +151,11 @@ const AddGroupMembersModal = ({ isOpen, onClose, onSuccess }: AddGroupMembersMod
       
       // Vérifier s'il y a eu des erreurs
       const errors = results.filter(result => result.status === 'rejected');
+      
+      // Invalider les queries liées aux groupes et membres
+      queryClient.invalidateQueries({ queryKey: ['groups-list'] });
+      queryClient.invalidateQueries({ queryKey: ['group-members'] });
+      queryClient.invalidateQueries({ queryKey: ['group-stats'] });
       
       if (errors.length > 0) {
         console.error('Erreurs lors de l\'ajout des membres:', errors);

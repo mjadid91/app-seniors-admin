@@ -1,4 +1,5 @@
 
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface AddGroupModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface AddGroupModalProps {
 
 const AddGroupModal = ({ isOpen, onClose, onSuccess }: AddGroupModalProps) => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     titre: "",
@@ -65,6 +67,11 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess }: AddGroupModalProps) => {
         .single();
 
       if (error) throw error;
+
+      // Invalider les queries liées aux groupes
+      queryClient.invalidateQueries({ queryKey: ['groups-list'] });
+      queryClient.invalidateQueries({ queryKey: ['group-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['groupes'] });
 
       toast({
         title: "Groupe créé",
@@ -152,3 +159,4 @@ const AddGroupModal = ({ isOpen, onClose, onSuccess }: AddGroupModalProps) => {
 };
 
 export default AddGroupModal;
+
