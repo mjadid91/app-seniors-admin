@@ -12,7 +12,6 @@ import {
 import StatsCard from "./StatsCard";
 import RecentActivity from "./RecentActivity";
 import { useDashboardStats } from "./useDashboardStats";
-import DemoDataInfo from "@/components/ui/demo-data-info";
 
 const Dashboard = () => {
   const { stats, loading, error } = useDashboardStats();
@@ -88,9 +87,6 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-8">
-      {/* Info données de démonstration */}
-      <DemoDataInfo />
-      
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <h1 className="text-3xl font-bold text-slate-800">Tableau de bord</h1>

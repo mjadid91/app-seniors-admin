@@ -25,7 +25,6 @@ import MentionsLegales from "./pages/MentionsLegales";
 import PolitiqueConfidentialite from "./pages/PolitiqueConfidentialite";
 import ConditionsUtilisation from "./pages/ConditionsUtilisation";
 import ContactPage from "./pages/ContactPage";
-import PresentationPage from "./pages/PresentationPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,7 +53,6 @@ const AppContent = () => {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/contact" element={<ContactPage />} />
-          <Route path="/presentation" element={<PresentationPage />} />
           
           {/* Routes with shared navbar layout */}
           <Route element={<SharedLayout />}>
