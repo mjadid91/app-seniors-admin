@@ -171,22 +171,34 @@
 
   /* Custom scrollbar styling for modern look */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
 
   ::-webkit-scrollbar-track {
-    background: hsl(var(--muted));
-    border-radius: 3px;
+    background: hsl(var(--app-background));
+    border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
-    border-radius: 3px;
+    background: linear-gradient(135deg, hsl(var(--app-primary) / 0.3), hsl(var(--app-secondary) / 0.3));
+    border-radius: 4px;
+    border: 1px solid hsl(var(--app-background));
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--muted-foreground) / 0.3);
+    background: linear-gradient(135deg, hsl(var(--app-primary) / 0.5), hsl(var(--app-secondary) / 0.5));
+  }
+
+  /* Selection styling */
+  ::selection {
+    background: hsl(var(--app-primary) / 0.2);
+    color: hsl(var(--app-text));
+  }
+
+  ::-moz-selection {
+    background: hsl(var(--app-primary) / 0.2);
+    color: hsl(var(--app-text));
   }
 }
 
@@ -298,6 +310,54 @@
 
   .status-error {
     @apply bg-app-error shadow-[0_0_6px_hsl(var(--app-error)/0.4)];
+  }
+
+  /* Professional page container */
+  .page-container {
+    @apply min-h-screen bg-gradient-to-br from-app-background via-app-surface to-app-background;
+  }
+
+  .page-content {
+    @apply max-w-full mx-auto px-6 lg:px-8 py-8 animate-fade-in;
+  }
+
+  /* Enhanced table styling */
+  .table-modern {
+    @apply w-full bg-app-surface rounded-xl border-elegant shadow-elegant overflow-hidden;
+  }
+
+  .table-modern th {
+    @apply bg-gradient-subtle px-6 py-4 text-left text-sm font-semibold text-app-text border-b border-elegant;
+  }
+
+  .table-modern td {
+    @apply px-6 py-4 text-sm text-app-text border-b border-elegant/50 last:border-0;
+  }
+
+  .table-modern tr:hover td {
+    @apply bg-app-primary/5 transition-colors duration-200;
+  }
+
+  /* Professional form styling */
+  .form-section {
+    @apply space-y-6 p-6 bg-app-surface rounded-xl border-elegant shadow-elegant;
+  }
+
+  .form-header {
+    @apply flex items-center gap-3 pb-4 border-b border-elegant;
+  }
+
+  .form-icon {
+    @apply w-10 h-10 bg-gradient-to-br from-app-primary/10 to-app-secondary/10 rounded-lg flex items-center justify-center;
+  }
+
+  /* Enhanced buttons */
+  .btn-gradient {
+    @apply bg-gradient-to-r from-app-primary to-app-secondary text-white font-medium px-4 py-2 rounded-lg hover:shadow-elegant-lg hover:-translate-y-0.5 transition-all duration-200;
+  }
+
+  .btn-outline-modern {
+    @apply border-elegant bg-app-surface/50 backdrop-blur-sm text-app-text hover:bg-app-primary/5 hover:border-app-primary/20 hover:shadow-elegant-md transition-all duration-200;
   }
 }
 
