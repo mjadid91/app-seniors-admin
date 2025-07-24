@@ -41,7 +41,7 @@ const ProfileSection = () => {
         deviseId: profile.deviseId || 1,
         niveauLangue: profile.niveauLangue || 5
       });
-      setProfileImage(profile.photo || null);
+      setProfileImage(profile.photo && profile.photo.trim() !== '' ? profile.photo : null);
     }
   }, [profile, isLoading]);
 
@@ -54,7 +54,7 @@ const ProfileSection = () => {
     console.log('Sauvegarde du profil avec les données:', formData);
     const success = await saveProfile({
       ...formData,
-      photo: profileImage || undefined
+      photo: profileImage || ''
     });
 
     if (success) {

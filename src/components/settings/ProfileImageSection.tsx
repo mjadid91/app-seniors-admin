@@ -27,7 +27,7 @@ const ProfileImageSection = ({ profileImage, initials, onImageChange }: ProfileI
   const handleRemoveImage = async () => {
     const success = await removeProfileImage();
     if (success) {
-      onImageChange(null);
+      onImageChange('');
     }
   };
 
@@ -36,7 +36,7 @@ const ProfileImageSection = ({ profileImage, initials, onImageChange }: ProfileI
       <Label className="text-base font-medium">Photo de profil</Label>
       <div className="flex items-center gap-6">
         <Avatar className="h-20 w-20">
-          <AvatarImage src={profileImage || undefined} alt="Photo de profil" />
+          <AvatarImage src={profileImage && profileImage.trim() !== '' ? profileImage : undefined} alt="Photo de profil" />
           <AvatarFallback className="text-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white">
             {initials}
           </AvatarFallback>
@@ -64,7 +64,7 @@ const ProfileImageSection = ({ profileImage, initials, onImageChange }: ProfileI
               </label>
             </Button>
             
-            {profileImage && (
+            {profileImage && profileImage.trim() !== '' && (
               <Button
                 variant="outline"
                 size="sm"

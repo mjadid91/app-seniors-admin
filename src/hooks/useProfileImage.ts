@@ -162,11 +162,11 @@ export const useProfileImage = () => {
         // Continuer même si on ne peut pas récupérer les données
       }
 
-      // Supprimer le champ Photo de la table Utilisateurs
+      // Supprimer le champ Photo de la table Utilisateurs (utiliser chaîne vide à cause de contrainte NOT NULL)
       const { error: updateError } = await supabase
         .from('Utilisateurs')
         .update({
-          Photo: null,
+          Photo: '',
           DateModification: new Date().toISOString()
         })
         .eq('IDUtilisateurs', userId);

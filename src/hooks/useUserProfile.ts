@@ -121,7 +121,7 @@ export const useUserProfile = () => {
 
       // Décoder l'URL de la photo si elle est en format hexadécimal
       let photoUrl = userData?.Photo || '';
-      if (photoUrl && photoUrl.startsWith('\\x')) {
+      if (photoUrl && photoUrl.trim() !== '' && photoUrl.startsWith('\\x')) {
         try {
           // Convertir la chaîne hexadécimale en URL
           const hexString = photoUrl.slice(2); // Enlever le préfixe \\x
