@@ -84,7 +84,7 @@ const SeniorsTable = ({ seniors, onEditSenior, onDeleteSenior }: SeniorsTablePro
                 </Avatar>
                 <div>
                   <p className="font-medium">{senior.prenom} {senior.nom}</p>
-                  <p className="text-sm text-gray-500">{senior.ville || ''}</p>
+                  {senior.ville && <p className="text-sm text-gray-500">{senior.ville}</p>}
                 </div>
               </div>
             </TableCell>

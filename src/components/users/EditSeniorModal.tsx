@@ -112,11 +112,11 @@ const EditSeniorModal = ({ isOpen, onClose, senior, onSave }: EditSeniorModalPro
           </div>
           
           <div>
-            <Label htmlFor="ville">Ville</Label>
+            <Label htmlFor="adresse">Adresse</Label>
             <Input
-              id="ville"
-              value={formData.ville || ''}
-              onChange={(e) => handleChange('ville', e.target.value)}
+              id="adresse"
+              value={formData.adresse || ''}
+              onChange={(e) => handleChange('adresse', e.target.value)}
             />
           </div>
           
