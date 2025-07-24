@@ -2,12 +2,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Settings as SettingsIcon, User, Shield, Sliders, Bell } from "lucide-react";
+import { ArrowLeft, Settings as SettingsIcon, User, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ProfileSection from "../components/settings/ProfileSection";
 import SecuritySection from "../components/settings/SecuritySection";
-import PreferencesSection from "../components/settings/PreferencesSection";
-import NotificationsSection from "../components/settings/NotificationsSection";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -16,8 +14,6 @@ const Settings = () => {
   const sections = [
     { id: "profile", label: "Profil administrateur", icon: User },
     { id: "security", label: "Sécurité du compte", icon: Shield },
-    { id: "preferences", label: "Préférences", icon: Sliders },
-    { id: "notifications", label: "Notifications", icon: Bell },
   ];
 
   const renderSection = () => {
@@ -26,10 +22,6 @@ const Settings = () => {
         return <ProfileSection />;
       case "security":
         return <SecuritySection />;
-      case "preferences":
-        return <PreferencesSection />;
-      case "notifications":
-        return <NotificationsSection />;
       default:
         return <ProfileSection />;
     }
