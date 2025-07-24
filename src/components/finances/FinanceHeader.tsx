@@ -1,6 +1,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Plus, TrendingUp, DollarSign } from "lucide-react";
+import FinanceExportActions from "./FinanceExportActions";
+import { FinanceTransaction } from "@/hooks/useFinancesTransactions";
 
 interface FinanceHeaderProps {
   canManageFinances: boolean;
@@ -8,6 +10,7 @@ interface FinanceHeaderProps {
   totalTransactions: number;
   totalAmount: number;
   totalCommissions: number;
+  transactions: FinanceTransaction[];
 }
 
 const FinanceHeader = ({ 
@@ -15,7 +18,8 @@ const FinanceHeader = ({
   onAddTransaction, 
   totalTransactions, 
   totalAmount, 
-  totalCommissions 
+  totalCommissions,
+  transactions 
 }: FinanceHeaderProps) => {
   return (
     <div className="space-y-6">
@@ -27,15 +31,18 @@ const FinanceHeader = ({
             Suivi des transactions et des commissions de la plateforme
           </p>
         </div>
-        {canManageFinances && (
-          <Button 
-            onClick={onAddTransaction}
-            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Ajouter une transaction
-          </Button>
-        )}
+        <div className="flex items-center gap-3">
+          <FinanceExportActions transactions={transactions} />
+          {canManageFinances && (
+            <Button 
+              onClick={onAddTransaction}
+              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Ajouter une transaction
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Statistiques rapides */}

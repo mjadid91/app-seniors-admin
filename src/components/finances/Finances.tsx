@@ -50,6 +50,7 @@ const Finances = () => {
         totalTransactions={totalTransactions}
         totalAmount={totalAmount}
         totalCommissions={totalCommissions}
+        transactions={transactions || []}
       />
 
       {/* Résumé des commissions */}
