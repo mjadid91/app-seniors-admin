@@ -169,10 +169,11 @@ export const useFileOperations = () => {
       return documentData;
 
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error('Erreur upload du fichier:', error);
       toast({
         title: "Erreur d'upload",
-        description: error instanceof Error ? error.message : "Impossible d'uploader le fichier",
+        description: error instanceof Error ?
+            error.message : "Impossible d'uploader le fichier",
         variant: "destructive"
       });
       throw error;
