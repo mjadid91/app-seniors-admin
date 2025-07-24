@@ -14,7 +14,7 @@ import {
   RefreshCw
 } from "lucide-react";
 import heroImage from "@/assets/hero-image.jpg";
-import ProjectFooter from "@/components/ui/project-footer";
+// import ProjectFooter from "@/components/ui/project-footer";
 
 const PresentationPage = () => {
   const [currentDate] = useState(new Date().toLocaleDateString('fr-FR', {
@@ -248,7 +248,7 @@ const PresentationPage = () => {
       </div>
 
       {/* Footer projet */}
-      <ProjectFooter />
+      {/* <ProjectFooter /> */}
     </div>
   );
 };
