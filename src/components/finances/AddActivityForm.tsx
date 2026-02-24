@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,20 +30,23 @@ export const AddActivityForm = ({ onClose, onSuccess }: Props) => {
                     IDUtilisateurSenior,
                     Utilisateurs:IDUtilisateurSenior(Nom, Prenom)
                 `);
-            
+
             if (error) {
                 console.error("Erreur lors du chargement des seniors:", error);
             } else {
                 setSeniors(data || []);
             }
         };
-        
+
         fetchSeniors();
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!descriptionActivite || !typeActiviteRemuneree || !tarifHoraire || !disponibilite || !idSeniors) return;
+        if (!descriptionActivite || !typeActiviteRemuneree || !tarifHoraire || !disponibilite || !idSeniors) {
+            toast.error("Veuillez remplir tous les champs obligatoires.");
+            return;
+        }
 
         setLoading(true);
         const { data, error } = await supabase.from("ActiviteRemuneree").insert({
@@ -53,7 +55,8 @@ export const AddActivityForm = ({ onClose, onSuccess }: Props) => {
             TarifHoraire: parseFloat(tarifHoraire),
             Disponibilite: disponibilite,
             StatutActiviteRemuneree: statutActiviteRemuneree,
-            DateCreationActivite: new Date().toISOString().split("T")[0],
+            // Correction : Utilisation complète de l'ISO string pour le TIMESTAMP
+            DateCreationActivite: new Date().toISOString(),
             IDSeniors: parseInt(idSeniors),
         }).select();
 
@@ -84,62 +87,69 @@ export const AddActivityForm = ({ onClose, onSuccess }: Props) => {
                     </SelectContent>
                 </Select>
             </div>
+
             <div>
                 <Label>Description de l'activité</Label>
-                <Input 
-                    value={descriptionActivite} 
-                    onChange={(e) => setDescriptionActivite(e.target.value)} 
-                    required 
+                <Input
+                    value={descriptionActivite}
+                    onChange={(e) => setDescriptionActivite(e.target.value)}
+                    required
                 />
             </div>
+
             <div>
                 <Label>Type d'activité</Label>
-                <select
-                    value={typeActiviteRemuneree}
-                    onChange={(e) => setTypeActiviteRemuneree(e.target.value)}
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-                    required
-                >
-                    <option value="">-- Sélectionner --</option>
-                    <option value="Service à domicile">Service à domicile</option>
-                    <option value="Accompagnement">Accompagnement</option>
-                    <option value="Formation">Formation</option>
-                    <option value="Conseil">Conseil</option>
-                    <option value="Autre">Autre</option>
-                </select>
+                {/* Remplacement du <select> natif par le composant Shadcn UI */}
+                <Select value={typeActiviteRemuneree} onValueChange={setTypeActiviteRemuneree} required>
+                    <SelectTrigger>
+                        <SelectValue placeholder="-- Sélectionner un type --" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Service à domicile">Service à domicile</SelectItem>
+                        <SelectItem value="Accompagnement">Accompagnement</SelectItem>
+                        <SelectItem value="Formation">Formation</SelectItem>
+                        <SelectItem value="Conseil">Conseil</SelectItem>
+                        <SelectItem value="Autre">Autre</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
+
             <div>
                 <Label>Tarif horaire (€)</Label>
-                <Input 
-                    type="number" 
+                <Input
+                    type="number"
                     step="0.01"
-                    value={tarifHoraire} 
-                    onChange={(e) => setTarifHoraire(e.target.value)} 
-                    required 
+                    value={tarifHoraire}
+                    onChange={(e) => setTarifHoraire(e.target.value)}
+                    required
                 />
             </div>
+
             <div>
                 <Label>Disponibilité</Label>
-                <Input 
+                <Input
                     type="date"
-                    value={disponibilite} 
-                    onChange={(e) => setDisponibilite(e.target.value)} 
-                    required 
+                    value={disponibilite}
+                    onChange={(e) => setDisponibilite(e.target.value)}
+                    required
                 />
             </div>
+
             <div>
                 <Label>Statut</Label>
-                <select
-                    value={statutActiviteRemuneree}
-                    onChange={(e) => setStatutActiviteRemuneree(e.target.value)}
-                    className="w-full border border-slate-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-                    required
-                >
-                    <option value="Disponible">Disponible</option>
-                    <option value="Indisponible">Indisponible</option>
-                    <option value="En cours">En cours</option>
-                </select>
+                {/* Remplacement du <select> natif par le composant Shadcn UI */}
+                <Select value={statutActiviteRemuneree} onValueChange={setStatutActiviteRemuneree} required>
+                    <SelectTrigger>
+                        <SelectValue placeholder="-- Sélectionner un statut --" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Disponible">Disponible</SelectItem>
+                        <SelectItem value="Indisponible">Indisponible</SelectItem>
+                        <SelectItem value="En cours">En cours</SelectItem>
+                    </SelectContent>
+                </Select>
             </div>
+
             <div className="flex justify-end space-x-3 pt-4">
                 <Button type="button" variant="outline" onClick={onClose}>
                     Annuler

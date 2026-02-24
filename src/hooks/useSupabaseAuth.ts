@@ -1,273 +1,118 @@
-
-import { useEffect, useState, useRef } from 'react';
-import { Session, User as SupabaseUser } from '@supabase/supabase-js';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User } from '../stores/authStore';
-import { useSupabaseUserMapping } from './useSupabaseUserMapping';
-import { useDatabaseAuth } from './useDatabaseAuth';
+import { useAuthStore } from '@/stores/authStore';
 
 export const useSupabaseAuth = () => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [manualUserMapping, setManualUserMapping] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const initializationInProgress = useRef(false);
-  
-  const { userMapping, isLoading: mappingLoading, findOrCreateUserMapping, clearUserMapping } = useSupabaseUserMapping();
-  const { authenticateUser, isLoading: dbAuthLoading } = useDatabaseAuth();
+    const { setUser, setAuthenticated, logout: clearStore, isAuthenticated, user } = useAuthStore();
+    const [loading, setLoading] = useState(false);
+    const [isInitialized, setIsInitialized] = useState(false);
 
-  // Persist manual authentication in sessionStorage
-  const persistManualAuth = (userMapping: any, sessionData: Session) => {
-    try {
-      sessionStorage.setItem('manual_auth_mapping', JSON.stringify(userMapping));
-      sessionStorage.setItem('manual_auth_session', JSON.stringify(sessionData));
-    } catch (error) {
-      console.error('Failed to persist manual auth:', error);
-    }
-  };
-
-  const loadPersistedManualAuth = () => {
-    try {
-      const persistedMapping = sessionStorage.getItem('manual_auth_mapping');
-      const persistedSession = sessionStorage.getItem('manual_auth_session');
-      
-      if (persistedMapping && persistedSession) {
-        const mapping = JSON.parse(persistedMapping);
-        const sessionData = JSON.parse(persistedSession);
-        
-        console.log('useSupabaseAuth: Loading persisted manual auth');
-        setManualUserMapping(mapping);
-        setSession(sessionData);
-        return true;
-      }
-    } catch (error) {
-      console.error('Failed to load persisted manual auth:', error);
-    }
-    return false;
-  };
-
-  const clearPersistedManualAuth = () => {
-    try {
-      sessionStorage.removeItem('manual_auth_mapping');
-      sessionStorage.removeItem('manual_auth_session');
-    } catch (error) {
-      console.error('Failed to clear persisted manual auth:', error);
-    }
-  };
-
-  useEffect(() => {
-    // Éviter les initialisations multiples
-    if (initializationInProgress.current) {
-      console.log('useSupabaseAuth: Initialization already in progress, skipping...');
-      return;
-    }
-
-    initializationInProgress.current = true;
-    let mounted = true;
-
-    const initializeAuth = async () => {
-      try {
-        console.log('useSupabaseAuth: Starting one-time initialization...');
-        setIsLoading(true);
-
-        // D'abord essayer de charger l'auth manuelle persistée
-        const hasPersistedAuth = loadPersistedManualAuth();
-        
-        if (hasPersistedAuth) {
-          console.log('useSupabaseAuth: Restored persisted manual authentication');
-          if (mounted) {
-            setIsLoading(false);
-            setIsInitialized(true);
-            initializationInProgress.current = false;
-          }
-          return;
-        }
-
-        // Get initial session
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('useSupabaseAuth: Error getting session:', error);
-        } else {
-          console.log('useSupabaseAuth: Initial session retrieved:', !!session);
-          
-          if (mounted) {
-            setSession(session);
-            
+    // Initialisation et écoute des changements de session (Rafraîchissement de page, etc.)
+    useEffect(() => {
+        const initAuth = async () => {
+            const { data: { session }, error } = await supabase.auth.getSession();
             if (session?.user) {
-              console.log('useSupabaseAuth: User found, fetching mapping...');
-              await findOrCreateUserMapping(session.user);
+                await fetchUserProfile(session.user.email);
+            } else {
+                clearStore();
             }
-          }
+            setIsInitialized(true);
+        };
+
+        initAuth();
+
+        // Écouteur en temps réel si le token expire ou si l'utilisateur se déconnecte d'un autre onglet
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN' && session?.user) {
+                await fetchUserProfile(session.user.email);
+            } else if (event === 'SIGNED_OUT') {
+                clearStore();
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    // Fonction pour lier l'Auth Supabase à TA table Utilisateurs
+    // Fonction pour lier l'Auth Supabase à TA table Utilisateurs
+    const fetchUserProfile = async (email?: string) => {
+        if (!email) return;
+
+        try {
+            // On va chercher le profil admin dans ta base de données via l'email
+            const { data: profile, error } = await supabase
+                .from('Utilisateurs')
+                .select('*')
+                .eq('Email', email) // <-- CORRECTION : 'Email' au lieu de 'AdresseEmail'
+                .single();
+
+            if (error || !profile) {
+                console.error("Profil non trouvé dans la table Utilisateurs:", error);
+                clearStore();
+                return;
+            }
+
+            // On met à jour ton Zustand store avec les bonnes données
+            setUser({
+                id: profile.IDUtilisateurs.toString(),
+                nom: profile.Nom,
+                prenom: profile.Prenom,
+                email: profile.Email, // <-- CORRECTION : 'Email' au lieu de 'AdresseEmail'
+                // On suppose que la catégorie 5 est Admin (à adapter selon ta table CatUtilisateurs)
+                role: profile.IDCatUtilisateurs === 5 ? 'administrateur' : 'moderateur',
+                dateInscription: profile.DateInscription || new Date().toISOString(),
+            });
+            setAuthenticated(true);
+
+        } catch (err) {
+            console.error("Erreur critique lors du fetch du profil:", err);
+            clearStore();
         }
-      } catch (error) {
-        console.error('useSupabaseAuth: Error during initialization:', error);
-      } finally {
-        if (mounted) {
-          setIsLoading(false);
-          setIsInitialized(true);
-          initializationInProgress.current = false;
-          console.log('useSupabaseAuth: Initialization complete');
+    };
+
+    // La fonction appelée par ton LoginPage.tsx
+    const signIn = async (email: string, password: string) => {
+        setLoading(true);
+        try {
+            // 1. Authentification sécurisée via Supabase
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (error) {
+                // Traduction des erreurs fréquentes
+                if (error.message === 'Invalid login credentials') {
+                    return { success: false, error: "Email ou mot de passe incorrect." };
+                }
+                return { success: false, error: error.message };
+            }
+
+            // 2. Si connexion réussie, on charge le profil
+            if (data.user) {
+                await fetchUserProfile(data.user.email);
+                return { success: true };
+            }
+
+            return { success: false, error: "Erreur inattendue." };
+        } catch (error: any) {
+            return { success: false, error: error.message };
+        } finally {
+            setLoading(false);
         }
-      }
     };
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('useSupabaseAuth: Auth state changed:', { event, hasSession: !!session });
-      
-      if (!mounted) return;
-
-      // Ne pas nettoyer l'auth manuelle sur INITIAL_SESSION
-      if (event === 'INITIAL_SESSION' && !session && manualUserMapping) {
-        console.log('useSupabaseAuth: Ignoring INITIAL_SESSION cleanup due to manual auth');
-        return;
-      }
-
-      if (event === 'SIGNED_IN' && session) {
-        setSession(session);
-        findOrCreateUserMapping(session.user);
-      } else if (event === 'SIGNED_OUT' || (!session && event !== 'INITIAL_SESSION')) {
-        console.log('useSupabaseAuth: User signed out, clearing states');
-        setSession(null);
-        clearUserMapping();
-        setManualUserMapping(null);
-        clearPersistedManualAuth();
-      }
-    });
-
-    // Initialize auth seulement si pas déjà initialisé
-    if (!isInitialized) {
-      initializeAuth();
-    }
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []); // Dépendances vides pour éviter les re-initialisations
-
-  const signIn = async (email: string, password: string) => {
-    try {
-      console.log('useSupabaseAuth: Starting hybrid sign in process for:', email);
-
-      // 1. D'abord essayer Supabase Auth
-      console.log('useSupabaseAuth: Trying Supabase Auth...');
-      const { data: supabaseData, error: supabaseError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (!supabaseError && supabaseData.user) {
-        console.log('useSupabaseAuth: Supabase Auth successful');
-        return { success: true, user: supabaseData.user, source: 'supabase' };
-      }
-
-      console.log('useSupabaseAuth: Supabase Auth failed, trying database authentication...');
-
-      // 2. Si Supabase Auth échoue, essayer l'authentification directe en base
-      const dbResult = await authenticateUser(email, password);
-      
-      if (dbResult.success && dbResult.userMapping) {
-        console.log('useSupabaseAuth: Database authentication successful');
-        
-        // Créer une session manuelle pour les utilisateurs de la DB
-        const mockSession = {
-          user: {
-            id: dbResult.userMapping.supabaseUserId,
-            email: dbResult.userMapping.email,
-            created_at: new Date().toISOString(),
-          }
-        } as Session;
-
-        setSession(mockSession);
-        setManualUserMapping(dbResult.userMapping);
-        
-        // Persister l'authentification manuelle
-        persistManualAuth(dbResult.userMapping, mockSession);
-
-        return { success: true, user: mockSession.user, source: 'database' };
-      }
-
-      return { success: false, error: dbResult.error || 'Identifiants incorrects' };
-
-    } catch (error) {
-      console.error('useSupabaseAuth: Sign in exception:', error);
-      return { success: false, error: 'Erreur de connexion' };
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      console.log('useSupabaseAuth: Starting sign out process...');
-      
-      // Nettoyer d'abord les états locaux
-      setSession(null);
-      clearUserMapping();
-      setManualUserMapping(null);
-      clearPersistedManualAuth();
-      
-      // Essayer de déconnecter de Supabase (peut échouer si c'était une session manuelle)
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.log('useSupabaseAuth: Supabase sign out error (ignoré):', error);
-      }
-      
-      console.log('useSupabaseAuth: Sign out completed');
-      return { success: true };
-    } catch (error) {
-      console.log('useSupabaseAuth: Sign out exception (ignoré):', error);
-      return { success: true };
-    }
-  };
-
-  // Convert user mapping to app User type
-  const convertToAppUser = (): User | null => {
-    // Utiliser le mapping manuel si disponible (utilisateurs DB), sinon le mapping Supabase
-    const activeMapping = manualUserMapping || userMapping;
-    
-    if (!activeMapping || !session?.user) {
-      return null;
-    }
-    
-    const appUser: User = {
-      id: activeMapping.dbUserId.toString(),
-      nom: activeMapping.nom,
-      prenom: activeMapping.prenom,
-      email: activeMapping.email,
-      role: activeMapping.role as User['role'],
-      dateInscription: session.user.created_at || new Date().toISOString(),
+    const signOut = async () => {
+        await supabase.auth.signOut();
+        clearStore();
     };
 
-    return appUser;
-  };
-
-  const appUser = convertToAppUser();
-  
-  // Un utilisateur est authentifié s'il a une session ET un mapping (manuel ou Supabase)
-  const isAuthenticated = isInitialized && !!session?.user && !!(manualUserMapping || userMapping);
-  const loading = isLoading || mappingLoading || dbAuthLoading || !isInitialized;
-
-  console.log('useSupabaseAuth: Current state:', {
-    hasSession: !!session,
-    hasSupabaseUserMapping: !!userMapping,
-    hasManualUserMapping: !!manualUserMapping,
-    isAuthenticated,
-    loading,
-    isInitialized,
-    userRole: appUser?.role
-  });
-
-  return {
-    session,
-    loading,
-    user: appUser,
-    isAuthenticated,
-    isInitialized,
-    signIn,
-    signOut,
-  };
+    return {
+        signIn,
+        signOut,
+        loading,
+        isInitialized,
+        isAuthenticated,
+        user,
+    };
 };
