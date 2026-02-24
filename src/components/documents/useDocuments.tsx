@@ -1,219 +1,67 @@
-
-import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export interface Document {
-  id: number;
-  name: string;
-  type: string;
-  category: string;
-  status: string;
-  uploadDate: string;
-  size?: number;
-  description?: string;
-  utilisateurId?: number;
-  utilisateurNom?: string;
-  url?: string; // Ajout de l'URL pour le téléchargement
+    id: number;
+    name: string;
+    type: string;
+    category: string;
+    status: string;
+    uploadDate: string;
+    size?: number;
+    utilisateurNom?: string;
+    url?: string;
 }
 
 export const useDocuments = () => {
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const { toast } = useToast();
+    const queryClient = useQueryClient();
+    const { toast } = useToast();
 
-  const fetchDocuments = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("Document")
-        .select(`
-          IDDocument,
-          Titre,
-          TypeFichier,
-          URLFichier,
-          DateUpload,
-          TailleFichier,
-          Statut,
-          IDUtilisateurs,
+    // 1. Chargement avec cache et auto-refresh
+    const { data: documents = [], isLoading } = useQuery({
+        queryKey: ["admin-documents"],
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from("Document")
+                .select(`
+          IDDocument, Titre, TypeFichier, URLFichier, DateUpload, TailleFichier, Statut,
           CategorieDocument!inner(NomCategorie),
           Utilisateurs(Nom, Prenom)
-        `);
+        `)
+                .order('DateUpload', { ascending: false });
 
-      if (error) {
-        console.error("Error fetching documents:", error);
-        toast({
-          title: "Erreur",
-          description: "Impossible de charger les documents",
-          variant: "destructive"
-        });
-        return;
-      }
+            if (error) throw error;
 
-      // Fonction pour extraire le type de fichier à partir de l'URL
-      const getFileTypeFromUrl = (url: string): string => {
-        if (!url) return "Inconnu";
-        
-        // Extraire l'extension du fichier
-        const extension = url.split('.').pop()?.toLowerCase();
-        
-        switch (extension) {
-          case 'pdf':
-            return 'PDF';
-          case 'doc':
-          case 'docx':
-            return 'Word';
-          case 'xls':
-          case 'xlsx':
-            return 'Excel';
-          case 'ppt':
-          case 'pptx':
-            return 'PowerPoint';
-          case 'jpg':
-          case 'jpeg':
-            return 'JPEG';
-          case 'png':
-            return 'PNG';
-          case 'gif':
-            return 'GIF';
-          case 'txt':
-            return 'Texte';
-          case 'zip':
-          case 'rar':
-            return 'Archive';
-          default:
-            return extension?.toUpperCase() || 'Fichier';
+            return data.map((doc: any) => ({
+                id: doc.IDDocument,
+                name: doc.Titre,
+                type: doc.TypeFichier,
+                category: doc.CategorieDocument.NomCategorie,
+                status: doc.Statut,
+                uploadDate: doc.DateUpload,
+                size: doc.TailleFichier,
+                utilisateurNom: doc.Utilisateurs ? `${doc.Utilisateurs.Prenom} ${doc.Utilisateurs.Nom}` : "Non assigné",
+                url: doc.URLFichier
+            }));
+        },
+    });
+
+    // 2. Mutation pour la suppression (Mise à jour instantanée de l'UI)
+    const deleteMutation = useMutation({
+        mutationFn: async (id: number) => {
+            const { error } = await supabase.from("Document").delete().eq("IDDocument", id);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["admin-documents"] });
+            toast({ title: "Supprimé", description: "Le document a été supprimé." });
         }
-      };
+    });
 
-      const transformedDocuments: Document[] = data.map((doc: any) => ({
-        id: doc.IDDocument,
-        name: doc.Titre,
-        type: getFileTypeFromUrl(doc.URLFichier),
-        category: doc.CategorieDocument.NomCategorie,
-        status: doc.Statut,
-        uploadDate: doc.DateUpload,
-        size: doc.TailleFichier,
-        utilisateurId: doc.IDUtilisateurs,
-        utilisateurNom: doc.Utilisateurs ? `${doc.Utilisateurs.Prenom} ${doc.Utilisateurs.Nom}` : "Non assigné",
-        url: doc.URLFichier // Conserver l'URL pour le téléchargement
-      }));
-
-      setDocuments(transformedDocuments);
-    } catch (error) {
-      console.error("Error in fetchDocuments:", error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur s'est produite lors du chargement des documents",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("CategorieDocument")
-        .select("NomCategorie");
-
-      if (error) {
-        console.error("Error fetching categories:", error);
-        return;
-      }
-
-      setCategories(data.map(cat => cat.NomCategorie));
-    } catch (error) {
-      console.error("Error in fetchCategories:", error);
-    }
-  };
-
-  const handleEditDocument = async (id: number, updatedDoc: Partial<Document>) => {
-    try {
-      // Récupérer l'ID de la catégorie à partir du nom
-      let categoryId = null;
-      if (updatedDoc.category) {
-        const { data: categoryData, error: categoryError } = await supabase
-          .from("CategorieDocument")
-          .select("IDCategorieDocument")
-          .eq("NomCategorie", updatedDoc.category)
-          .single();
-
-        if (categoryError) {
-          throw categoryError;
-        }
-        categoryId = categoryData.IDCategorieDocument;
-      }
-
-      // Préparer les données pour la mise à jour
-      const updateData: any = {};
-      if (updatedDoc.name) updateData.Titre = updatedDoc.name;
-      if (updatedDoc.status) updateData.Statut = updatedDoc.status;
-      if (categoryId) updateData.IDCategorieDocument = categoryId;
-      if (updatedDoc.utilisateurId) updateData.IDUtilisateurs = updatedDoc.utilisateurId;
-
-      const { error } = await supabase
-        .from("Document")
-        .update(updateData)
-        .eq("IDDocument", id);
-
-      if (error) {
-        throw error;
-      }
-
-      // Recharger les documents après la modification
-      await fetchDocuments();
-
-      toast({
-        title: "Document modifié",
-        description: "Le document a été modifié avec succès"
-      });
-    } catch (error) {
-      console.error("Error updating document:", error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de modifier le document",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleDeleteDocument = async (id: number) => {
-    try {
-      const { error } = await supabase
-        .from("Document")
-        .delete()
-        .eq("IDDocument", id);
-
-      if (error) {
-        throw error;
-      }
-
-      // Recharger les documents après la suppression
-      await fetchDocuments();
-
-      toast({
-        title: "Document supprimé",
-        description: "Le document a été supprimé avec succès"
-      });
-    } catch (error) {
-      console.error("Error deleting document:", error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer le document",
-        variant: "destructive"
-      });
-    }
-  };
-
-  useEffect(() => {
-    fetchDocuments();
-    fetchCategories();
-  }, []);
-
-  return {
-    documents,
-    categories,
-    handleEditDocument,
-    handleDeleteDocument,
-    fetchDocuments
-  };
+    return {
+        documents,
+        isLoading,
+        handleDeleteDocument: deleteMutation.mutate,
+    };
 };
