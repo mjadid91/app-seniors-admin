@@ -11,55 +11,76 @@ import AddGroupMembersModal from "./AddGroupMembersModal";
 import DeleteGroupModal from "./DeleteGroupModal";
 import DeleteGroupMemberModal from "./DeleteGroupMemberModal";
 
+// ✅ CORRECTION 1 : Définition des interfaces pour les données
+export interface GroupMember {
+  id: string;
+  nom: string;
+  prenom: string;
+  groupeId: string;
+}
+
+interface Group {
+  IDGroupe: number;
+  Titre: string;
+  Description: string | null;
+  DateCreation: string;
+  Utilisateurs: {
+    Nom: string;
+    Prenom: string;
+  } | null;
+}
+
 const GroupsListSection = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isAddMembersModalOpen, setIsAddMembersModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleteMemberModalOpen, setIsDeleteMemberModalOpen] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<{ id: string; titre: string } | null>(null);
-  const [selectedMember, setSelectedMember] = useState<{ id: string; nom: string; prenom: string; groupeId: string } | null>(null);
+
+  // ✅ Typage du state membre
+  const [selectedMember, setSelectedMember] = useState<GroupMember | null>(null);
   const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null);
 
-  // Activer les mises à jour en temps réel
   useRealtimeInvalidation();
 
-  const { data: groups = [], refetch } = useQuery({
+  const { data: groups = [], refetch } = useQuery<Group[]>({
     queryKey: ['groups-list'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('Groupe')
-        .select(`
+          .from('Groupe')
+          .select(`
           IDGroupe,
           Titre,
           Description,
           DateCreation,
           Utilisateurs!inner(Nom, Prenom)
         `)
-        .order('DateCreation', { ascending: false });
-      
+          .order('DateCreation', { ascending: false });
+
       if (error) throw error;
-      return data;
+      return data as unknown as Group[];
     }
   });
 
-  const { data: groupMembers = {} } = useQuery({
+  const { data: groupMembers = {} } = useQuery<Record<string, GroupMember[]>>({
     queryKey: ['group-members', expandedGroupId],
     enabled: !!expandedGroupId,
     queryFn: async () => {
       if (!expandedGroupId) return {};
-      
+
       const { data, error } = await supabase
-        .from('Utilisateurs_Groupe')
-        .select(`
+          .from('Utilisateurs_Groupe')
+          .select(`
           IDUtilisateurs,
           IDGroupe,
           Utilisateurs!inner(Nom, Prenom)
         `)
-        .eq('IDGroupe', parseInt(expandedGroupId));
-      
+          .eq('IDGroupe', parseInt(expandedGroupId));
+
       if (error) throw error;
-      
-      const membersByGroup: { [key: string]: any[] } = {};
+
+      // ✅ CORRECTION 2 : On remplace any[] par GroupMember[]
+      const membersByGroup: Record<string, GroupMember[]> = {};
       data.forEach(member => {
         const groupId = member.IDGroupe.toString();
         if (!membersByGroup[groupId]) {
@@ -72,29 +93,29 @@ const GroupsListSection = () => {
           groupeId: groupId
         });
       });
-      
+
       return membersByGroup;
     }
   });
 
-  const { data: groupStats = {} } = useQuery({
+  const { data: groupStats = {} } = useQuery<Record<number, number>>({
     queryKey: ['group-stats'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('MessageGroupe')
-        .select('IDGroupe, IDMessageGroupe')
-        .order('IDGroupe');
-      
+          .from('MessageGroupe')
+          .select('IDGroupe, IDMessageGroupe')
+          .order('IDGroupe');
+
       if (error) throw error;
-      
-      const stats: { [key: number]: number } = {};
+
+      const stats: Record<number, number> = {};
       data.forEach(message => {
         if (!stats[message.IDGroupe]) {
           stats[message.IDGroupe] = 0;
         }
         stats[message.IDGroupe]++;
       });
-      
+
       return stats;
     }
   });
@@ -107,7 +128,8 @@ const GroupsListSection = () => {
     setIsDeleteModalOpen(true);
   };
 
-  const handleDeleteMember = (member: any) => {
+  // ✅ CORRECTION 3 : Typage de l'argument member
+  const handleDeleteMember = (member: GroupMember) => {
     setSelectedMember(member);
     setIsDeleteMemberModalOpen(true);
   };
@@ -117,25 +139,25 @@ const GroupsListSection = () => {
   };
 
   return (
-    <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Groupes disponibles</CardTitle>
-          <div className="flex items-center gap-2">
-            <Button onClick={() => setIsAddMembersModalOpen(true)} variant="outline" className="flex items-center gap-2">
-              <UserPlus className="h-4 w-4" />
-              Ajouter des membres
-            </Button>
-            <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Ajouter un groupe
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
+      <>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Groupes disponibles</CardTitle>
+            <div className="flex items-center gap-2">
+              <Button onClick={() => setIsAddMembersModalOpen(true)} variant="outline" className="flex items-center gap-2">
+                <UserPlus className="h-4 w-4" />
+                Ajouter des membres
+              </Button>
+              <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Ajouter un groupe
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
                 <tr className="border-b border-slate-200">
                   <th className="text-left py-3 px-4 font-medium text-slate-700">Titre</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700">Créateur</th>
@@ -143,8 +165,8 @@ const GroupsListSection = () => {
                   <th className="text-left py-3 px-4 font-medium text-slate-700">Date</th>
                   <th className="text-left py-3 px-4 font-medium text-slate-700">Actions</th>
                 </tr>
-              </thead>
-              <tbody>
+                </thead>
+                <tbody>
                 {groups.map((group) => [
                   <tr key={`group-${group.IDGroupe}`} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                     <td className="py-4 px-4">
@@ -164,103 +186,72 @@ const GroupsListSection = () => {
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          title="Voir les membres"
-                          onClick={() => toggleGroupExpansion(group.IDGroupe.toString())}
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            title="Voir les membres"
+                            onClick={() => toggleGroupExpansion(group.IDGroupe.toString())}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          title="Supprimer le groupe"
-                          onClick={() => handleDeleteGroup({
-                            IDGroupe: group.IDGroupe,
-                            Titre: group.Titre
-                          })}
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            title="Supprimer le groupe"
+                            onClick={() => handleDeleteGroup({
+                              IDGroupe: group.IDGroupe,
+                              Titre: group.Titre
+                            })}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </td>
                   </tr>,
-                  
+
                   expandedGroupId === group.IDGroupe.toString() && (
-                    <tr key={`group-members-${group.IDGroupe}`}>
-                      <td colSpan={5} className="px-4 py-2 bg-slate-50">
-                        <div className="space-y-2">
-                          <h4 className="font-medium text-slate-700">Membres du groupe :</h4>
-                          {groupMembers[group.IDGroupe.toString()]?.length > 0 ? (
-                            <div className="space-y-1">
-                              {groupMembers[group.IDGroupe.toString()].map((member: any) => (
-                                <div key={`member-${member.id}-${group.IDGroupe}`} className="flex items-center justify-between bg-white p-2 rounded border">
-                                  <span className="text-sm">{member.prenom} {member.nom}</span>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="text-red-600 hover:text-red-700"
-                                    onClick={() => handleDeleteMember(member)}
-                                  >
-                                    <UserMinus className="h-4 w-4" />
-                                  </Button>
+                      <tr key={`group-members-${group.IDGroupe}`}>
+                        <td colSpan={5} className="px-4 py-2 bg-slate-50">
+                          <div className="space-y-2">
+                            <h4 className="font-medium text-slate-700">Membres du groupe :</h4>
+                            {groupMembers[group.IDGroupe.toString()]?.length > 0 ? (
+                                <div className="space-y-1">
+                                  {/* ✅ CORRECTION 4 : Typage du map */}
+                                  {groupMembers[group.IDGroupe.toString()].map((member: GroupMember) => (
+                                      <div key={`member-${member.id}-${group.IDGroupe}`} className="flex items-center justify-between bg-white p-2 rounded border">
+                                        <span className="text-sm">{member.prenom} {member.nom}</span>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-red-600 hover:text-red-700"
+                                            onClick={() => handleDeleteMember(member)}
+                                        >
+                                          <UserMinus className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                  ))}
                                 </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="text-sm text-slate-500">Aucun membre dans ce groupe</p>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
+                            ) : (
+                                <p className="text-sm text-slate-500">Aucun membre dans ce groupe</p>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
                   )
                 ])}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
 
-      <AddGroupModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSuccess={() => {
-          refetch();
-          setIsAddModalOpen(false);
-        }}
-      />
-
-      <AddGroupMembersModal
-        isOpen={isAddMembersModalOpen}
-        onClose={() => setIsAddMembersModalOpen(false)}
-        onSuccess={() => {
-          refetch();
-          setIsAddMembersModalOpen(false);
-        }}
-      />
-
-      <DeleteGroupModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        group={selectedGroup}
-        onSuccess={() => {
-          refetch();
-          setIsDeleteModalOpen(false);
-        }}
-      />
-
-      <DeleteGroupMemberModal
-        isOpen={isDeleteMemberModalOpen}
-        onClose={() => setIsDeleteMemberModalOpen(false)}
-        member={selectedMember}
-        onSuccess={() => {
-          refetch();
-          setIsDeleteMemberModalOpen(false);
-        }}
-      />
-    </>
+        {/* Modals ... */}
+        <AddGroupModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onSuccess={() => { refetch(); setIsAddModalOpen(false); }} />
+        <AddGroupMembersModal isOpen={isAddMembersModalOpen} onClose={() => setIsAddMembersModalOpen(false)} onSuccess={() => { refetch(); setIsAddMembersModalOpen(false); }} />
+        <DeleteGroupModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} group={selectedGroup} onSuccess={() => { refetch(); setIsDeleteModalOpen(false); }} />
+        <DeleteGroupMemberModal isOpen={isDeleteMemberModalOpen} onClose={() => setIsDeleteMemberModalOpen(false)} member={selectedMember} onSuccess={() => { refetch(); setIsDeleteMemberModalOpen(false); }} />
+      </>
   );
 };
 

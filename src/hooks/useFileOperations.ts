@@ -18,7 +18,6 @@ export const useFileOperations = () => {
         onSuccess?: () => void,
         utilisateurId?: string
     ) => {
-        // Vérification de sécurité locale
         if (!isAuthenticated || !user) {
             toast({
                 title: "Erreur",
@@ -30,7 +29,6 @@ export const useFileOperations = () => {
 
         setUploading(true);
         try {
-            // Générer un nom de fichier unique pour éviter les écrasements
             const fileExt = file.name.split('.').pop();
             const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
             const filePath = `admin_uploads/${fileName}`;
@@ -64,7 +62,7 @@ export const useFileOperations = () => {
                 });
 
             if (insertError) {
-                // Nettoyage du storage si l'insertion en base échoue
+                // Nettoyage préventif
                 await supabase.storage.from('documents').remove([filePath]);
                 throw insertError;
             }
@@ -76,8 +74,10 @@ export const useFileOperations = () => {
 
             if (onSuccess) onSuccess();
 
-        } catch (error: any) {
-            console.error('Erreur upload:', error);
+        } catch (err) {
+            // ✅ CORRECTION 1 : Typage de l'erreur
+            const error = err as Error;
+            console.error('Erreur upload:', error.message);
             toast({
                 title: "Erreur d'upload",
                 description: error.message || "Impossible d'uploader le fichier",
@@ -89,25 +89,22 @@ export const useFileOperations = () => {
     };
 
     /**
-     * DOWNLOAD : Télécharge le fichier en utilisant le flux binaire (évite les erreurs CORS)
+     * DOWNLOAD : Télécharge le fichier en utilisant le flux binaire
      */
     const downloadFile = async (fileDocument: { URLFichier: string; Titre: string }) => {
         setDownloading(true);
         try {
-            // Extraction du chemin relatif du fichier depuis l'URL
             const urlParts = fileDocument.URLFichier.split('/documents/');
             const filePath = urlParts[1];
 
             if (!filePath) throw new Error("Chemin du fichier introuvable dans l'URL");
 
-            // Téléchargement du binaire via le SDK Supabase
             const { data, error } = await supabase.storage
                 .from('documents')
                 .download(filePath);
 
             if (error) throw error;
 
-            // Création d'un lien temporaire dans le navigateur pour déclencher le téléchargement
             const url = window.URL.createObjectURL(data);
             const link = document.createElement('a');
             link.href = url;
@@ -115,7 +112,6 @@ export const useFileOperations = () => {
             document.body.appendChild(link);
             link.click();
 
-            // Nettoyage de la mémoire et du DOM
             link.remove();
             window.URL.revokeObjectURL(url);
 
@@ -124,8 +120,10 @@ export const useFileOperations = () => {
                 description: `Le fichier "${fileDocument.Titre}" a été récupéré.`
             });
 
-        } catch (error: any) {
-            console.error('Erreur téléchargement:', error);
+        } catch (err) {
+            // ✅ CORRECTION 2 : Typage de l'erreur
+            const error = err as Error;
+            console.error('Erreur téléchargement:', error.message);
             toast({
                 title: "Erreur de téléchargement",
                 description: "Le fichier est inaccessible ou n'existe plus sur le serveur.",

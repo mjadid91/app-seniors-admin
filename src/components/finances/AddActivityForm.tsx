@@ -6,9 +6,32 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+// ✅ CORRECTION 1 : Définition des types pour l'activité et les seniors
+export interface ActiviteRemuneree {
+    IDActiviteRemuneree?: number;
+    DescriptionActivite: string;
+    TypeActiviteRemuneree: string;
+    TarifHoraire: number;
+    Disponibilite: string;
+    StatutActiviteRemuneree: string;
+    DateCreationActivite: string;
+    IDSeniors: number;
+    [key: string]: unknown;
+}
+
+export interface SeniorOption {
+    IDSeniors: number;
+    IDUtilisateurSenior: number;
+    Utilisateurs?: {
+        Nom: string;
+        Prenom: string;
+    } | null;
+}
+
 interface Props {
     onClose: () => void;
-    onSuccess: (newActivity: any) => void;
+    // ✅ CORRECTION 2 : On utilise notre nouvelle interface au lieu de "any"
+    onSuccess: (newActivity: ActiviteRemuneree) => void;
 }
 
 export const AddActivityForm = ({ onClose, onSuccess }: Props) => {
@@ -18,7 +41,9 @@ export const AddActivityForm = ({ onClose, onSuccess }: Props) => {
     const [disponibilite, setDisponibilite] = useState("");
     const [statutActiviteRemuneree, setStatutActiviteRemuneree] = useState("Disponible");
     const [idSeniors, setIdSeniors] = useState("");
-    const [seniors, setSeniors] = useState<any[]>([]);
+
+    // ✅ CORRECTION 3 : Typage du state des seniors
+    const [seniors, setSeniors] = useState<SeniorOption[]>([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -34,7 +59,8 @@ export const AddActivityForm = ({ onClose, onSuccess }: Props) => {
             if (error) {
                 console.error("Erreur lors du chargement des seniors:", error);
             } else {
-                setSeniors(data || []);
+                // On s'assure que TypeScript comprend la forme des données
+                setSeniors((data as unknown as SeniorOption[]) || []);
             }
         };
 
@@ -55,7 +81,6 @@ export const AddActivityForm = ({ onClose, onSuccess }: Props) => {
             TarifHoraire: parseFloat(tarifHoraire),
             Disponibilite: disponibilite,
             StatutActiviteRemuneree: statutActiviteRemuneree,
-            // Correction : Utilisation complète de l'ISO string pour le TIMESTAMP
             DateCreationActivite: new Date().toISOString(),
             IDSeniors: parseInt(idSeniors),
         }).select();
@@ -63,9 +88,10 @@ export const AddActivityForm = ({ onClose, onSuccess }: Props) => {
         setLoading(false);
         if (error) {
             toast.error("Erreur : " + error.message);
-        } else {
+        } else if (data && data.length > 0) {
             toast.success("Activité ajoutée avec succès.");
-            onSuccess(data[0]);
+            // On convertit le retour pour qu'il matche l'interface
+            onSuccess(data[0] as unknown as ActiviteRemuneree);
             onClose();
         }
     };
@@ -99,7 +125,6 @@ export const AddActivityForm = ({ onClose, onSuccess }: Props) => {
 
             <div>
                 <Label>Type d'activité</Label>
-                {/* Remplacement du <select> natif par le composant Shadcn UI */}
                 <Select value={typeActiviteRemuneree} onValueChange={setTypeActiviteRemuneree} required>
                     <SelectTrigger>
                         <SelectValue placeholder="-- Sélectionner un type --" />
@@ -137,7 +162,6 @@ export const AddActivityForm = ({ onClose, onSuccess }: Props) => {
 
             <div>
                 <Label>Statut</Label>
-                {/* Remplacement du <select> natif par le composant Shadcn UI */}
                 <Select value={statutActiviteRemuneree} onValueChange={setStatutActiviteRemuneree} required>
                     <SelectTrigger>
                         <SelectValue placeholder="-- Sélectionner un statut --" />

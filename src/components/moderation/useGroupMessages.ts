@@ -1,10 +1,20 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { GroupMessage } from "./types";
 
-// Mapping function
-const mapGroupMessage = (row: any): GroupMessage => ({
+// ✅ CORRECTION 1 : Définition de la structure brute venant de la vue SQL
+interface GroupMessageRow {
+  IDMessageGroupe: number | string;
+  Contenu: string;
+  PrenomAuteur: string;
+  NomAuteur: string;
+  NomGroupe: string;
+  DateEnvoi: string | null;
+  signalements?: number | string;
+}
+
+// ✅ CORRECTION 2 : On remplace "any" par notre nouvelle interface
+const mapGroupMessage = (row: GroupMessageRow): GroupMessage => ({
   id: String(row.IDMessageGroupe),
   contenu: row.Contenu,
   auteur: `${row.PrenomAuteur} ${row.NomAuteur}`,
@@ -38,9 +48,12 @@ export const useGroupMessages = () => {
         console.error('Erreur lors de la récupération des messages:', error);
         throw error;
       }
-      
+
       console.log('Messages récupérés:', data?.length || 0);
-      return (data || []).map(mapGroupMessage);
+
+      // ✅ CORRECTION 3 : On indique à TypeScript que data est un tableau de GroupMessageRow
+      const rows = (data as unknown as GroupMessageRow[]) || [];
+      return rows.map(mapGroupMessage);
     },
   });
 };

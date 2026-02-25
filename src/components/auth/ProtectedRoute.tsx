@@ -1,9 +1,9 @@
-
 import { ReactNode } from 'react';
 import { useSupabaseAuth } from '../../hooks/useSupabaseAuth';
 import { usePermissions } from '../../hooks/usePermissions';
 import { AlertTriangle, Lock } from 'lucide-react';
 
+// Récupération dynamique du type Permission depuis le hook
 type Permission = typeof import('../../hooks/usePermissions').PERMISSIONS[keyof typeof import('../../hooks/usePermissions').PERMISSIONS];
 
 interface ProtectedRouteProps {
@@ -13,91 +13,96 @@ interface ProtectedRouteProps {
   fallback?: ReactNode;
 }
 
-const ProtectedRoute = ({ 
-  children, 
-  requiredPage, 
-  requiredPermission, 
-  fallback 
-}: ProtectedRouteProps) => {
+const ProtectedRoute = ({
+                          children,
+                          requiredPage,
+                          requiredPermission,
+                          fallback
+                        }: ProtectedRouteProps) => {
   const { isAuthenticated, loading, isInitialized, user } = useSupabaseAuth();
   const { canAccessPage, hasPermission } = usePermissions();
 
-  // Afficher le chargement si l'auth n'est pas encore initialisée ou en cours
-  // IMPORTANT: Attendre que l'utilisateur soit complètement chargé avant de vérifier les permissions
-  if (!isInitialized || loading || !user) {
+  // --- ÉTAPE 1 : CHARGEMENT ---
+  // On affiche le spinner UNIQUEMENT pendant que l'auth s'initialise
+  if (!isInitialized || loading) {
     return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-slate-600">Vérification des autorisations...</p>
+        <div className="min-h-[400px] flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="text-slate-600 font-medium">Vérification des autorisations...</p>
+          </div>
         </div>
-      </div>
     );
   }
 
-  // Si pas authentifié, ne pas afficher le contenu
-  if (!isAuthenticated) {
-    console.log('ProtectedRoute: User not authenticated');
+  // --- ÉTAPE 2 : AUTHENTIFICATION ---
+  // Si le chargement est fini mais qu'on n'a pas d'utilisateur (ou pas authentifié)
+  if (!isAuthenticated || !user) {
+    console.warn('ProtectedRoute: Accès refusé (Utilisateur non authentifié)');
     return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-              <Lock className="h-8 w-8 text-red-600" />
+        <div className="min-h-[400px] flex items-center justify-center p-4">
+          <div className="text-center space-y-6 max-w-md">
+            <div className="flex justify-center">
+              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center shadow-sm">
+                <Lock className="h-10 w-10 text-slate-400" />
+              </div>
             </div>
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold text-slate-800">Authentification requise</h3>
-            <p className="text-slate-600 max-w-md">
-              Vous devez être connecté pour accéder à cette section.
-            </p>
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold text-slate-800">Session expirée ou utilisateur inconnu</h3>
+              <p className="text-slate-600">
+                Votre session n'est plus valide ou votre compte n'a pas été trouvé dans notre base de données.
+              </p>
+            </div>
+            <button
+                onClick={() => window.location.href = '/login'}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Retour à la connexion
+            </button>
           </div>
         </div>
-      </div>
     );
   }
 
-  const hasAccess = () => { // Vérifie si l'utilisateur a accès à la page
-    // ou à la permission requise
-    if (requiredPage && !canAccessPage(requiredPage)) {
-      return false;
-    }
-    if (requiredPermission && !hasPermission(requiredPermission)) {
-      return false;
-    }
+  // --- ÉTAPE 3 : AUTORISATIONS (RÔLES) ---
+  const checkAccess = () => {
+    if (requiredPage && !canAccessPage(requiredPage)) return false;
+    if (requiredPermission && !hasPermission(requiredPermission)) return false;
     return true;
   };
 
-  if (!hasAccess()) {
-    if (fallback) {return <>{fallback}</>;}
+  if (!checkAccess()) {
+    console.error(`ProtectedRoute: L'utilisateur ${user.email} n'a pas les droits pour cette section.`);
+
+    if (fallback) return <>{fallback}</>;
+
     return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="flex justify-center">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-              <Lock className="h-8 w-8 text-red-600" />
+        <div className="min-h-[400px] flex items-center justify-center p-4">
+          <div className="text-center space-y-6 max-w-md">
+            <div className="flex justify-center">
+              <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center border border-red-100">
+                <Lock className="h-10 w-10 text-red-600" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold text-slate-800">Accès restreint</h3>
+              <p className="text-slate-600">
+                Votre rôle actuel (<span className="font-semibold text-slate-900">{user.role}</span>)
+                ne vous permet pas de consulter cette page.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 px-4 py-3 rounded-xl shadow-sm">
+              <AlertTriangle className="h-5 w-5 shrink-0" />
+              <span className="text-left">
+              Si vous devriez avoir accès, contactez l'administrateur système.
+            </span>
             </div>
           </div>
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold text-slate-800">Accès restreint</h3>
-            <p className="text-slate-600 max-w-md">Votre rôle ({user.role})
-              ne permet pas d'accéder à cette section.
-            </p>
-          </div>
-          <div className="flex items-center justify-center gap-2 text-sm text-amber-600 bg-amber-50 px-4 py-2 rounded-lg">
-            <AlertTriangle className="h-4 w-4" />
-            <span>Contactez votre administrateur si vous pensez qu'il s'agit d'une erreur</span>
-          </div>
         </div>
-      </div>
-    );}
+    );
+  }
 
-
-
-
-
-
-
+  // --- ÉTAPE 4 : ACCÈS AUTORISÉ ---
   return <>{children}</>;
 };
 

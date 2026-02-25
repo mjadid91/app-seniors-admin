@@ -27,8 +27,6 @@ export const useFinancesTransactions = () => {
             console.log("Récupération des transactions depuis la vue SQL...");
 
             try {
-                // Appelle simplement notre nouvelle vue !
-                // Finis les téléchargements de 4 tables géantes
                 const { data, error } = await supabase
                     .from("v_finances_transactions_admin")
                     .select("*")
@@ -39,7 +37,6 @@ export const useFinancesTransactions = () => {
                     throw error;
                 }
 
-                // On rajoute juste un ID unique pour le rendu React (.map)
                 return (data as FinanceTransaction[]).map((transaction, index) => ({
                     ...transaction,
                     id: index + 1

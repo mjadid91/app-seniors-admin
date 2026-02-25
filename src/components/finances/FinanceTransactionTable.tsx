@@ -10,7 +10,7 @@ import { FinanceTransaction } from "@/hooks/useFinancesTransactions";
 interface FinanceTransactionTableProps {
   transactions: FinanceTransaction[];
   isLoading: boolean;
-  error: any;
+  error: Error | null;
   onRefetch: () => void;
   canManageFinances: boolean;
 }

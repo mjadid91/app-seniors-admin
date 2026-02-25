@@ -147,8 +147,9 @@ const SignalementsTable = ({ refreshTrigger }: SignalementsTableProps) => {
 
       refetch();
       setDeleteSignalementId(null);
-    } catch (error: any) {
-      console.error('Erreur lors de la suppression:', error);
+    } catch (err) {
+      const error = err as Error;
+      console.error('Erreur lors de la suppression:', error.message);
       toast({
         title: "Erreur",
         description: "Impossible de supprimer le signalement",

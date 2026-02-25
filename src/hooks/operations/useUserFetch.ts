@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '../../stores/authStore';
 import { convertSupabaseUserToAppUser } from '../utils/userConversion';

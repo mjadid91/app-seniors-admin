@@ -1,113 +1,77 @@
-
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
-interface UserMapping {
+export interface UserMapping {
   supabaseUserId: string;
   dbUserId: number;
   nom: string;
   prenom: string;
   email: string;
-  role: string;
+  role: 'administrateur' | 'moderateur' | 'support' | 'visualisateur';
 }
 
 export const useSupabaseUserMapping = () => {
   const { toast } = useToast();
-  const [userMapping, setUserMapping] = useState<UserMapping | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const findOrCreateUserMapping = async (supabaseUser: any): Promise<UserMapping | null> => {
-    if (!supabaseUser?.id || !supabaseUser?.email) {
-      console.warn('useSupabaseUserMapping: Invalid supabase user data', supabaseUser);
-      return null;
-    }
+  const findOrCreateUserMapping = useCallback(async (supabaseUser: SupabaseUser | null): Promise<UserMapping | null> => {
+    if (!supabaseUser?.id || !supabaseUser?.email) return null;
+
     setIsLoading(true);
     try {
-      // Chercher l'utilisateur par email dans notre base de données
-      const { data: existingUser, error: searchError } = await supabase
-        .from('Utilisateurs')
-        .select(`
-          IDUtilisateurs,
-          Nom,
-          Prenom,
-          Email,
-          EstDesactive,
+      const { data, error: searchError } = await supabase
+          .from('Utilisateurs')
+          .select(`
+          IDUtilisateurs, Nom, Prenom, Email, EstDesactive,
           CatUtilisateurs:IDCatUtilisateurs (
-            EstAdministrateur,
-            EstModerateur,
-            EstSupport,
-            EstSenior,
-            EstAidant
+            EstAdministrateur, EstModerateur, EstSupport
           )
         `)
-        .eq('Email', supabaseUser.email)
-        .single();
+          .eq('Email', supabaseUser.email)
+          .single();
 
-      if (searchError && searchError.code !== 'PGRST116') {
-        console.error('useSupabaseUserMapping: Error searching for user:', searchError);
+      if (searchError) {
+        if (searchError.code === 'PGRST116') {
+          console.warn("Utilisateur non trouvé dans la table Utilisateurs");
+        }
         throw searchError;
       }
 
-      if (existingUser) {
-        // Vérifier si le compte est désactivé
-        if (existingUser.EstDesactive) {
+      if (data) {
+        if (data.EstDesactive) {
           toast({
             title: "Compte désactivé",
-            description: "Votre compte a été désactivé par l'administrateur. Veuillez contacter l'administrateur à l'adresse admin@appseniors.fr pour plus d'informations.",
+            description: "Contactez l'administrateur.",
             variant: "destructive",
           });
           return null;
         }
-        // Déterminer le rôle basé sur la catégorie avec logique améliorée
-        let role = 'visualisateur'; // rôle par défaut
-        if (existingUser.CatUtilisateurs) {
-          const cat = existingUser.CatUtilisateurs;
-          if (cat.EstAdministrateur) { role = 'administrateur';
-          } else if (cat.EstModerateur) { role = 'moderateur';
-          } else if (cat.EstSupport) { role = 'support';
-          } else { role = 'visualisateur'; }
-        }
 
-        const mapping: UserMapping = {
-          supabaseUserId: supabaseUser.id,  dbUserId: existingUser.IDUtilisateurs,
-          nom: existingUser.Nom || '', prenom: existingUser.Prenom || '',
-          email: existingUser.Email || '', role
+        let role: UserMapping['role'] = 'visualisateur';
+        const cat = data.CatUtilisateurs as any;
+        if (cat?.EstAdministrateur) role = 'administrateur';
+        else if (cat?.EstModerateur) role = 'moderateur';
+        else if (cat?.EstSupport) role = 'support';
+
+        return {
+          supabaseUserId: supabaseUser.id,
+          dbUserId: data.IDUtilisateurs,
+          nom: data.Nom || '',
+          prenom: data.Prenom || '',
+          email: data.Email || '',
+          role
         };
-
-        setUserMapping(mapping);
-        return mapping;
-      } else {
-        console.log('useSupabaseUserMapping: User not found in database');
-        toast({
-          title: "Utilisateur non trouvé",
-          description: "Cet utilisateur doit être créé dans le panel admin avant de pouvoir se connecter.",
-          variant: "destructive",
-        });
-        return null;
       }
+      return null;
     } catch (error) {
-      console.error('useSupabaseUserMapping: Error in findOrCreateUserMapping:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les données utilisateur.",
-        variant: "destructive",
-      });
+      console.error('Erreur Mapping:', error);
       return null;
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
-  const clearUserMapping = () => {
-    console.log('useSupabaseUserMapping: Clearing user mapping');
-    setUserMapping(null);
-  };
-
-  return {
-    userMapping,
-    isLoading,
-    findOrCreateUserMapping,
-    clearUserMapping
-  };
+  return { isLoading, findOrCreateUserMapping };
 };

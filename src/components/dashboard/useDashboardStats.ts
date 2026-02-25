@@ -20,18 +20,16 @@ export const useDashboardStats = () => {
             setError(null);
 
             try {
-                // UNE SEULE REQUÊTE RPC !
-                // Le "as any" permet de contourner l'erreur TS en attendant
-                // la prochaine mise à jour du fichier types.ts
-                const { data, error } = await supabase.rpc('get_admin_dashboard_stats' as any);
+                const { data, error } = await supabase.rpc('get_admin_dashboard_stats' as never);
 
                 if (error) throw error;
 
                 // Le JSON retourné par SQL correspond exactement à notre interface
                 setStats(data as unknown as DashboardStats);
 
-            } catch (err: any) {
-                console.error("Erreur Dashboard RPC:", err);
+            } catch (err) {
+                const error = err as Error;
+                console.error("Erreur Dashboard RPC:", error.message || error);
                 setError("Erreur lors du chargement des statistiques globales.");
                 setStats(null);
             } finally {

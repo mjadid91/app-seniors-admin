@@ -2,30 +2,65 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Senior, Aidant } from '../types/seniors';
 
+// ✅ CORRECTION 1 : Interfaces pour les données brutes des jointures
+interface RawUser {
+    IDUtilisateurs: number;
+    Nom: string;
+    Prenom: string;
+    Email: string;
+    Telephone: string | null;
+    DateNaissance: string | null;
+    Adresse: string | null;
+    Genre: string | null;
+    DateInscription: string;
+}
+
+interface RawSeniorRow {
+    IDSeniors: number;
+    NiveauAutonomie: number | null;
+    Utilisateurs: RawUser | null;
+}
+
+interface RawAidantRow {
+    IDAidant: number;
+    Experience: string | null;
+    TarifAidant: number | null;
+    Utilisateurs: RawUser | null;
+}
+
+interface UserUpdatePayload {
+    Nom?: string;
+    Prenom?: string;
+    Email?: string;
+    Telephone?: string;
+    Adresse?: string;
+    DateNaissance?: string;
+    Genre?: string;
+    DateModification: string;
+}
+
 export const useSupabaseSeniors = () => {
     const [seniors, setSeniors] = useState<Senior[]>([]);
     const [aidants, setAidants] = useState<Aidant[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // ==========================================
-    // LECTURE (FETCH) - OPTIMISÉE AVEC JOINTURES
-    // ==========================================
     const fetchSeniors = async () => {
         try {
-            const { data, error } = await supabase
+            const { data, error: supabaseError } = await supabase
                 .from('Seniors')
                 .select(`
-          IDSeniors,
-          NiveauAutonomie,
-          Utilisateurs:IDUtilisateurSenior (
-            IDUtilisateurs, Nom, Prenom, Email, Telephone, DateNaissance, Adresse, Genre, DateInscription
-          )
-        `);
+                  IDSeniors,
+                  NiveauAutonomie,
+                  Utilisateurs:IDUtilisateurSenior (
+                    IDUtilisateurs, Nom, Prenom, Email, Telephone, DateNaissance, Adresse, Genre, DateInscription
+                  )
+                `);
 
-            if (error) throw error;
+            if (supabaseError) throw supabaseError;
 
-            const formattedSeniors: Senior[] = (data || []).map((row: any) => {
+            // ✅ Typage de la ligne SQL
+            const formattedSeniors: Senior[] = (data as unknown as RawSeniorRow[] || []).map((row) => {
                 const u = row.Utilisateurs;
                 return {
                     id: row.IDSeniors.toString(),
@@ -45,28 +80,29 @@ export const useSupabaseSeniors = () => {
             });
 
             setSeniors(formattedSeniors);
-        } catch (err: any) {
-            console.error('Erreur fetchSeniors:', err);
-            setError(err.message);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Erreur inconnue";
+            console.error('Erreur fetchSeniors:', message);
+            setError(message);
         }
     };
 
     const fetchAidants = async () => {
         try {
-            const { data, error } = await supabase
+            const { data, error: supabaseError } = await supabase
                 .from('Aidant')
                 .select(`
-          IDAidant,
-          Experience,
-          TarifAidant,
-          Utilisateurs:IDUtilisateurs (
-            IDUtilisateurs, Nom, Prenom, Email, Telephone, DateNaissance, Adresse, Genre, DateInscription
-          )
-        `);
+                  IDAidant,
+                  Experience,
+                  TarifAidant,
+                  Utilisateurs:IDUtilisateurs (
+                    IDUtilisateurs, Nom, Prenom, Email, Telephone, DateNaissance, Adresse, Genre, DateInscription
+                  )
+                `);
 
-            if (error) throw error;
+            if (supabaseError) throw supabaseError;
 
-            const formattedAidants: Aidant[] = (data || []).map((row: any) => {
+            const formattedAidants: Aidant[] = (data as unknown as RawAidantRow[] || []).map((row) => {
                 const u = row.Utilisateurs;
                 return {
                     id: row.IDAidant.toString(),
@@ -89,13 +125,13 @@ export const useSupabaseSeniors = () => {
             });
 
             setAidants(formattedAidants);
-        } catch (err: any) {
-            console.error('Erreur fetchAidants:', err);
-            setError(err.message);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : "Erreur inconnue";
+            console.error('Erreur fetchAidants:', message);
+            setError(message);
         }
     };
 
-    // On déclare fetchData ici pour qu'elle soit accessible par les fonctions en dessous
     const fetchData = async () => {
         setLoading(true);
         setError(null);
@@ -103,12 +139,8 @@ export const useSupabaseSeniors = () => {
         setLoading(false);
     };
 
-    // ==========================================
-    // CRÉATION - DÉLÉGUÉE AUX TRIGGERS SQL
-    // ==========================================
-    const addSenior = async (seniorData: any) => {
+    const addSenior = async (seniorData: Partial<Senior>) => {
         try {
-            // Ajout des champs requis manquants (Commentaire, DateModification, Photo)
             const { data: userData, error: userError } = await supabase
                 .from('Utilisateurs')
                 .insert({
@@ -121,9 +153,9 @@ export const useSupabaseSeniors = () => {
                     Genre: seniorData.genre || 'Non précisé',
                     IDCatUtilisateurs: 1,
                     DateInscription: new Date().toISOString(),
-                    DateModification: new Date().toISOString(), // <-- Ajouté
-                    Commentaire: '', // <-- Ajouté
-                    Photo: '', // <-- Ajouté
+                    DateModification: new Date().toISOString(),
+                    Commentaire: '',
+                    Photo: '',
                     LangueSite: 'fr',
                     EstDesactive: false,
                     EstRGPD: false
@@ -149,9 +181,8 @@ export const useSupabaseSeniors = () => {
         }
     };
 
-    const addAidant = async (aidantData: any) => {
+    const addAidant = async (aidantData: Partial<Aidant>) => {
         try {
-            // Ajout des champs requis manquants
             const { data: userData, error: userError } = await supabase
                 .from('Utilisateurs')
                 .insert({
@@ -164,9 +195,9 @@ export const useSupabaseSeniors = () => {
                     Genre: aidantData.genre || 'Non précisé',
                     IDCatUtilisateurs: 4,
                     DateInscription: new Date().toISOString(),
-                    DateModification: new Date().toISOString(), // <-- Ajouté
-                    Commentaire: '', // <-- Ajouté
-                    Photo: '', // <-- Ajouté
+                    DateModification: new Date().toISOString(),
+                    Commentaire: '',
+                    Photo: '',
                     LangueSite: 'fr',
                     EstDesactive: false,
                     EstRGPD: false
@@ -192,15 +223,12 @@ export const useSupabaseSeniors = () => {
         }
     };
 
-    // ==========================================
-    // MISE À JOUR ET SUPPRESSION
-    // ==========================================
     const updateSenior = async (seniorId: string, updates: Partial<Senior>) => {
         try {
             const { data: seniorData } = await supabase.from('Seniors').select('IDUtilisateurSenior').eq('IDSeniors', parseInt(seniorId)).single();
             if (!seniorData) return;
 
-            const userUpdates: any = { DateModification: new Date().toISOString() };
+            const userUpdates: UserUpdatePayload = { DateModification: new Date().toISOString() };
             if (updates.nom) userUpdates.Nom = updates.nom;
             if (updates.prenom) userUpdates.Prenom = updates.prenom;
             if (updates.email) userUpdates.Email = updates.email;
@@ -241,7 +269,7 @@ export const useSupabaseSeniors = () => {
             const { data: aidantData } = await supabase.from('Aidant').select('IDUtilisateurs').eq('IDAidant', parseInt(aidantId)).single();
             if (!aidantData) return;
 
-            const userUpdates: any = { DateModification: new Date().toISOString() };
+            const userUpdates: UserUpdatePayload = { DateModification: new Date().toISOString() };
             if (updates.nom) userUpdates.Nom = updates.nom;
             if (updates.prenom) userUpdates.Prenom = updates.prenom;
             if (updates.email) userUpdates.Email = updates.email;
@@ -252,7 +280,8 @@ export const useSupabaseSeniors = () => {
 
             await supabase.from('Utilisateurs').update(userUpdates).eq('IDUtilisateurs', aidantData.IDUtilisateurs);
 
-            const aidantUpdates: any = {};
+            // ✅ Typage strict des colonnes de la table Aidant
+            const aidantUpdates: { Experience?: string, TarifAidant?: number } = {};
             if (updates.experience) aidantUpdates.Experience = updates.experience;
             if (updates.tarifHoraire !== undefined) aidantUpdates.TarifAidant = updates.tarifHoraire;
 

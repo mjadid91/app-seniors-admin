@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -25,8 +24,9 @@ export const usePartnerServices = () => {
       }
 
       setServices(data || []);
-    } catch (error: any) {
-      console.error('Erreur lors du chargement des services:', error);
+    } catch (err) {
+      const error = err as Error;
+      console.error('Erreur lors du chargement des services:', error.message);
       toast({
         title: "Erreur",
         description: "Impossible de charger les services partenaires.",

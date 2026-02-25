@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Users, Calendar, MessageSquare, Eye } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import {DialogDescription} from "@radix-ui/react-dialog";
 
 interface Forum {
   IDForum: number;
@@ -69,10 +69,11 @@ const ViewForumDetailsModal = ({ isOpen, onClose, forum }: ViewForumDetailsModal
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Eye className="h-5 w-5 text-blue-600" />
-            Détails du forum
-          </DialogTitle>
+          <DialogTitle>{forum?.TitreForum}</DialogTitle>
+          <Eye className="h-5 w-5 text-blue-600" />
+          <DialogDescription>
+            Informations administratives sur le forum et ses statistiques.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">

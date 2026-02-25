@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, UserCheck, Heart, HeartHandshake } from "lucide-react";
 import { SeniorsStats as SeniorsStatsType } from "../../types/seniors";

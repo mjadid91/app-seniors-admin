@@ -19,7 +19,7 @@ export const useDocuments = () => {
     const { toast } = useToast();
 
     // 1. Chargement avec cache et auto-refresh
-    const { data: documents = [], isLoading } = useQuery({
+    const { data: documents = [], isLoading, refetch } = useQuery({
         queryKey: ["admin-documents"],
         queryFn: async () => {
             const { data, error } = await supabase
@@ -37,7 +37,7 @@ export const useDocuments = () => {
                 id: doc.IDDocument,
                 name: doc.Titre,
                 type: doc.TypeFichier,
-                category: doc.CategorieDocument.NomCategorie,
+                category: doc.CategorieDocument?.NomCategorie || "Sans catégorie",
                 status: doc.Statut,
                 uploadDate: doc.DateUpload,
                 size: doc.TailleFichier,
@@ -47,7 +47,11 @@ export const useDocuments = () => {
         },
     });
 
-    // 2. Mutation pour la suppression (Mise à jour instantanée de l'UI)
+    // 2. Extraction des catégories uniques pour le filtre
+    // On crée un tableau des catégories sans doublons
+    const categories = Array.from(new Set(documents.map((doc) => doc.category))).filter(Boolean);
+
+    // 3. Mutation pour la suppression (Mise à jour instantanée de l'UI)
     const deleteMutation = useMutation({
         mutationFn: async (id: number) => {
             const { error } = await supabase.from("Document").delete().eq("IDDocument", id);
@@ -59,9 +63,18 @@ export const useDocuments = () => {
         }
     });
 
+    // 4. (Optionnel) Fonction temporaire pour l'édition pour éviter un crash
+    const handleEditDocument = async (id: number, updates: any) => {
+        console.log("Édition à implémenter :", id, updates);
+        toast({ title: "Info", description: "La modification arrive bientôt." });
+    };
+
     return {
         documents,
+        categories,
         isLoading,
         handleDeleteDocument: deleteMutation.mutate,
+        handleEditDocument,
+        fetchDocuments: refetch
     };
 };

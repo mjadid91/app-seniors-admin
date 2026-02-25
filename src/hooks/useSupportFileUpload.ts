@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -11,22 +10,21 @@ export const useSupportFileUpload = () => {
     if (!file) return null;
 
     setIsUploading(true);
-    
+
     try {
       console.log("Upload du fichier pour le ticket:", ticketId);
-      
-      // Générer un nom de fichier unique
+
       const fileExt = file.name.split('.').pop();
       const fileName = `ticket-${ticketId}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      
+
       console.log("Nom du fichier:", fileName);
 
       const { data, error } = await supabase.storage
-        .from('support-files')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+          .from('support-files')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
       if (error) {
         console.error("Erreur lors de l'upload:", error);
@@ -35,16 +33,18 @@ export const useSupportFileUpload = () => {
 
       console.log("Fichier uploadé avec succès:", data);
 
-      // Récupérer l'URL publique du fichier
       const { data: { publicUrl } } = supabase.storage
-        .from('support-files')
-        .getPublicUrl(fileName);
+          .from('support-files')
+          .getPublicUrl(fileName);
 
       console.log("URL publique du fichier:", publicUrl);
-      
+
       return publicUrl;
-    } catch (error: any) {
-      console.error("Erreur lors de l'upload du fichier:", error);
+    } catch (error) {
+      // ✅ CORRECTION : On remplace "any" par une vérification de type
+      const errorMessage = error instanceof Error ? error.message : "Une erreur inconnue est survenue";
+
+      console.error("Erreur lors de l'upload du fichier:", errorMessage);
       toast({
         title: "Erreur d'upload",
         description: "Impossible d'uploader le fichier. Veuillez réessayer.",

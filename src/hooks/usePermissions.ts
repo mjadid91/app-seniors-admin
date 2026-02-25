@@ -1,4 +1,3 @@
-
 import { useSupabaseAuth } from './useSupabaseAuth';
 
 // Définition des permissions par rôle
@@ -46,12 +45,6 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.VIEW_RGPD, PERMISSIONS.VIEW_FINANCES,
     // Aucune permission de gestion/modification pour le visualisateur
   ],};
-
-
-
-
-
-
 
 // Pages accessibles par rôle selon vos spécifications
 export const ACCESSIBLE_PAGES = {

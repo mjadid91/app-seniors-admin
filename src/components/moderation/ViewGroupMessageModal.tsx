@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { User, Calendar, Users, MessageCircle, Shield } from "lucide-react";
 import { GroupMessage } from './types';
 import { getStatutBadgeColor } from './utils';
+import {DialogDescription} from "@radix-ui/react-dialog";
 
 interface ViewGroupMessageModalProps {
   isOpen: boolean;
@@ -31,6 +32,13 @@ const ViewGroupMessageModal = ({ isOpen, onClose, message, onModerate }: ViewGro
             <MessageCircle className="h-5 w-5 text-blue-600" />
             Détails du message de groupe
           </DialogTitle>
+        </DialogHeader>
+        <DialogHeader>
+          <DialogTitle>Détails du message</DialogTitle>
+          <MessageCircle className="h-5 w-5 text-blue-600" />
+          <DialogDescription>
+            Visualisation du contenu du message et des informations de l'auteur.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">

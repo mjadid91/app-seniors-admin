@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,17 +15,16 @@ interface TicketReplyFormProps {
 const TicketReplyForm = ({ ticketId, onReplySubmitted }: TicketReplyFormProps) => {
   const [reply, setReply] = useState("");
   const { toast } = useToast();
-  const { session } = useSupabaseAuth();
-  
+  const { user } = useSupabaseAuth();
   const { addReply, isAddingReply } = useSupportReplies(ticketId);
 
-  // Get current user ID from session - use ID 8 (Mohamed Jadid) as fallback since he's logged in
-  const currentUserId = session?.user?.id ? parseInt(session.user.id) || 8 : 8;
-  
-  console.log("Debug TicketReplyForm:", { 
-    sessionUserId: session?.user?.id, 
+  // On récupère l'ID depuis user.id, sinon on utilise 8 (Mohamed) par défaut
+  const currentUserId = user?.id ? (typeof user.id === 'string' ? parseInt(user.id) : user.id) : 8;
+
+  console.log("Debug TicketReplyForm:", {
+    userId: user?.id,
     currentUserId,
-    hasSession: !!session 
+    hasUser: !!user
   });
 
   const handleSubmitReply = async () => {
@@ -40,7 +38,6 @@ const TicketReplyForm = ({ ticketId, onReplySubmitted }: TicketReplyFormProps) =
     }
 
     try {
-      // Ajouter la réponse
       addReply({
         content: reply,
         authorId: currentUserId
@@ -49,9 +46,10 @@ const TicketReplyForm = ({ ticketId, onReplySubmitted }: TicketReplyFormProps) =
       // Réinitialiser le formulaire
       setReply("");
       onReplySubmitted();
-      
+
     } catch (error) {
-      console.error("Erreur lors de l'envoi de la réponse:", error);
+      const err = error as Error;
+      console.error("Erreur lors de l'envoi de la réponse:", err.message);
       toast({
         title: "Erreur",
         description: "Impossible d'envoyer la réponse. Veuillez réessayer.",
@@ -63,46 +61,46 @@ const TicketReplyForm = ({ ticketId, onReplySubmitted }: TicketReplyFormProps) =
   const isSubmitting = isAddingReply;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Répondre au ticket</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <label htmlFor="reply" className="block text-sm font-medium text-slate-700 mb-2">
-            Votre réponse
-          </label>
-          <Textarea
-            id="reply"
-            value={reply}
-            onChange={(e) => setReply(e.target.value)}
-            placeholder="Tapez votre réponse ici..."
-            rows={4}
-            className="resize-none"
-            disabled={isSubmitting}
-          />
-        </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Répondre au ticket</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <label htmlFor="reply" className="block text-sm font-medium text-slate-700 mb-2">
+              Votre réponse
+            </label>
+            <Textarea
+                id="reply"
+                value={reply}
+                onChange={(e) => setReply(e.target.value)}
+                placeholder="Tapez votre réponse ici..."
+                rows={4}
+                className="resize-none"
+                disabled={isSubmitting}
+            />
+          </div>
 
-        <div className="flex justify-end">
-          <Button 
-            onClick={handleSubmitReply} 
-            disabled={isSubmitting || !reply.trim()}
-          >
-            {isSubmitting ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Envoi en cours...
-              </>
-            ) : (
-              <>
-                <Send className="h-4 w-4 mr-2" />
-                Envoyer la réponse
-              </>
-            )}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+          <div className="flex justify-end">
+            <Button
+                onClick={handleSubmitReply}
+                disabled={isSubmitting || !reply.trim()}
+            >
+              {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Envoi en cours...
+                  </>
+              ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Envoyer la réponse
+                  </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
   );
 };
 

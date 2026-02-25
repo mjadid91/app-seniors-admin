@@ -162,8 +162,9 @@ const AddPatrimonialDocumentModal = ({ isOpen, onClose, onUploadSuccess }: AddPa
       onClose();
       resetForm();
       
-    } catch (error: any) {
-      console.error('Erreur lors de l\'ajout du document:', error);
+    } catch (error) {
+      const err = error as Error;
+      console.error('Erreur lors de l\'ajout du document:', err);
       toast({
         title: "Erreur",
         description: error.message || "Impossible d'ajouter le document. Veuillez réessayer.",

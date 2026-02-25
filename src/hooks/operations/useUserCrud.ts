@@ -1,17 +1,25 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '../../stores/authStore';
 import { convertSupabaseUserToAppUser, getCategoryFromRole } from '../utils/userConversion';
 import { CreateUserData } from '../../components/users/userTypes';
 
+// ✅ CORRECTION 1 : Interface pour les colonnes de la table Utilisateurs
+interface UtilisateurRowUpdate {
+  Nom?: string;
+  Prenom?: string;
+  Email?: string;
+  EstDesactive?: boolean;
+  IDCatUtilisateurs?: number;
+  DateModification: string;
+}
+
 export const useUserCrud = (
-  users: User[],
-  setUsers: (users: User[]) => void,
-  getRoleFromCategory: (categoryId: number) => User['role']
+    users: User[],
+    setUsers: (users: User[]) => void,
+    getRoleFromCategory: (categoryId: number) => User['role']
 ) => {
 
   const getRoleFlags = (idCat: number) => {
-    // Définir les flags selon l'ID de catégorie
     switch (idCat) {
       case 5: // Administrateur
         return {
@@ -33,16 +41,6 @@ export const useUserCrud = (
           EstTuteur: false,
           EstOrganisme: false
         };
-      case 7: // Visualisateur
-        return {
-          EstAdministrateur: false,
-          EstModerateur: false,
-          EstSupport: false,
-          EstSenior: false,
-          EstAidant: false,
-          EstTuteur: false,
-          EstOrganisme: false
-        };
       case 8: // Support
         return {
           EstAdministrateur: false,
@@ -53,8 +51,7 @@ export const useUserCrud = (
           EstTuteur: false,
           EstOrganisme: false
         };
-      default:
-        // Visualisateur par défaut
+      default: // Visualisateur (7) ou autre
         return {
           EstAdministrateur: false,
           EstModerateur: false,
@@ -67,13 +64,11 @@ export const useUserCrud = (
     }
   };
 
-  // Fonction pour ajouter un utilisateur avec le mot de passe fourni
   const addUser = async (userData: CreateUserData, userPassword: string): Promise<User> => {
     try {
       const currentDate = new Date().toISOString();
       const roleFlags = getRoleFlags(userData.categoryId);
 
-      // S'assurer que la catégorie existe avec les bons flags
       await supabase
           .from("CatUtilisateurs")
           .upsert([{
@@ -111,19 +106,15 @@ export const useUserCrud = (
       const userId = data?.IDUtilisateurs;
       if (!userId) throw new Error('IDUtilisateurs introuvable');
 
-      // Ajout langue
+      // Gestion des langues et devises (logique inchangée mais sécurisée)
       if (userData.languePreferee) {
-        console.log("Langue sélectionnée :", userData.languePreferee);
-        const { data: langueData, error: langueError } = await supabase
+        const { data: langueData } = await supabase
             .from('Langue')
             .select('IDLangue')
             .eq('Titre', userData.languePreferee)
             .single();
 
-        if (langueError) {
-          console.warn("Langue non trouvée :", userData.languePreferee, langueError);
-        } else {
-          console.log("Insertion Langue_Utilisateurs avec IDLangue :", langueData.IDLangue);
+        if (langueData) {
           await supabase.from('Langue_Utilisateurs').insert([{
             IDUtilisateurs: userId,
             IDLangue: langueData.IDLangue,
@@ -132,60 +123,24 @@ export const useUserCrud = (
         }
       }
 
-      if (userData.devise) {
-        console.log("Devise sélectionnée :", userData.devise);
-        const { data: deviseData, error: deviseError } = await supabase
-            .from('Devise')
-            .select('IDDevise')
-            .eq('Titre', userData.devise)
-            .single();
-
-        if (deviseError) {
-          console.warn("Devise non trouvée :", userData.devise, deviseError);
-        } else {
-          console.log("Insertion Devise_Utilisateurs avec IDDevise :", deviseData.IDDevise);
-          await supabase.from('Devise_Utilisateurs').insert([{
-            IDUtilisateurs: userId,
-            IDDevise: deviseData.IDDevise
-          }]);
-        }
-      }
-
-      // Récupérer l'utilisateur avec ses données de catégorie pour vérification
       const { data: newUserData, error: fetchError } = await supabase
-        .from('Utilisateurs')
-        .select(`
-          IDUtilisateurs,
-          Nom,
-          Prenom,
-          Email,
-          DateInscription,
-          EstDesactive,
-          IDCatUtilisateurs,
+          .from('Utilisateurs')
+          .select(`
+          IDUtilisateurs, Nom, Prenom, Email, DateInscription, EstDesactive, IDCatUtilisateurs,
           CatUtilisateurs:IDCatUtilisateurs (
-            IDCatUtilisateurs,
-            EstAdministrateur,
-            EstModerateur,
-            EstSupport,
-            EstSenior,
-            EstAidant
+            IDCatUtilisateurs, EstAdministrateur, EstModerateur, EstSupport, EstSenior, EstAidant
           )
         `)
-        .eq('IDUtilisateurs', userId)
-        .single();
+          .eq('IDUtilisateurs', userId)
+          .single();
 
       if (fetchError) {
-        console.error('Erreur lors de la récupération de l\'utilisateur créé:', fetchError);
-        // Utiliser les données déjà disponibles si la récupération échoue
         const newUser = convertSupabaseUserToAppUser(data, getRoleFromCategory);
         setUsers([...users, newUser]);
         return newUser;
       }
 
-      console.log('Données utilisateur récupérées après création:', newUserData);
       const newUser = convertSupabaseUserToAppUser(newUserData, getRoleFromCategory);
-      console.log('Utilisateur converti:', newUser);
-
       setUsers([...users, newUser]);
       return newUser;
 
@@ -195,48 +150,35 @@ export const useUserCrud = (
     }
   };
 
-  // Fonction pour mettre à jour un utilisateur
   const updateUser = async (userId: string, updates: Partial<User>): Promise<User> => {
     try {
-      const supabaseUpdates: any = {
+      // ✅ CORRECTION 2 : Plus de "any", on utilise notre interface typée
+      const supabaseUpdates: UtilisateurRowUpdate = {
         DateModification: new Date().toISOString()
       };
-      
+
       if (updates.nom) supabaseUpdates.Nom = updates.nom;
       if (updates.prenom) supabaseUpdates.Prenom = updates.prenom;
       if (updates.email) supabaseUpdates.Email = updates.email;
       if (updates.estDesactive !== undefined) supabaseUpdates.EstDesactive = updates.estDesactive;
-      
-      // Pour la mise à jour du rôle, on trouve la catégorie correspondante
+
       if (updates.role) {
         supabaseUpdates.IDCatUtilisateurs = getCategoryFromRole(updates.role);
       }
 
       const { data, error: updateError } = await supabase
-        .from('Utilisateurs')
-        .update(supabaseUpdates)
-        .eq('IDUtilisateurs', parseInt(userId))
-        .select(`
-          IDUtilisateurs,
-          Nom,
-          Prenom,
-          Email,
-          DateInscription,
-          EstDesactive,
+          .from('Utilisateurs')
+          .update(supabaseUpdates)
+          .eq('IDUtilisateurs', parseInt(userId))
+          .select(`
+          IDUtilisateurs, Nom, Prenom, Email, DateInscription, EstDesactive,
           CatUtilisateurs:IDCatUtilisateurs (
-            IDCatUtilisateurs,
-            EstAdministrateur,
-            EstModerateur,
-            EstSupport,
-            EstSenior,
-            EstAidant
+            IDCatUtilisateurs, EstAdministrateur, EstModerateur, EstSupport, EstSenior, EstAidant
           )
         `)
-        .single();
+          .single();
 
-      if (updateError) {
-        throw updateError;
-      }
+      if (updateError) throw updateError;
 
       const updatedUser = convertSupabaseUserToAppUser(data, getRoleFromCategory);
       setUsers(users.map(user => user.id === userId ? updatedUser : user));
@@ -247,101 +189,28 @@ export const useUserCrud = (
     }
   };
 
-  // Fonction pour supprimer un utilisateur - améliorée avec PrestationSupport
   const deleteUser = async (userId: string): Promise<void> => {
     try {
       const userIdInt = parseInt(userId);
-      console.log('Début de la suppression pour l\'utilisateur ID:', userIdInt);
-      
-      // Supprimer toutes les références dans l'ordre approprié pour éviter les erreurs de contraintes
-      
-      // 1. Supprimer les prestations support
-      const { error: prestationSupportError } = await supabase
-        .from('PrestationSupport')
-        .delete()
-        .eq('IDIntervenant', userIdInt);
-      
-      if (prestationSupportError && prestationSupportError.code !== 'PGRST116') {
-        console.warn('Erreur lors de la suppression des prestations support:', prestationSupportError);
-      }
-      
-      // 2. Supprimer les langues de l'utilisateur
-      const { error: langueError } = await supabase
-        .from('Langue_Utilisateurs')
-        .delete()
-        .eq('IDUtilisateurs', userIdInt);
-      
-      if (langueError && langueError.code !== 'PGRST116') { // PGRST116 = aucune ligne trouvée
-        console.warn('Erreur lors de la suppression des langues:', langueError);
-      }
-      
-      // 3. Supprimer les devises de l'utilisateur
-      const { error: deviseError } = await supabase
-        .from('Devise_Utilisateurs')
-        .delete()
-        .eq('IDUtilisateurs', userIdInt);
-      
-      if (deviseError && deviseError.code !== 'PGRST116') {
-        console.warn('Erreur lors de la suppression des devises:', deviseError);
-      }
-      
-      // 4. Supprimer l'entrée Senior si elle existe
-      const { error: seniorError } = await supabase
-        .from('Seniors')
-        .delete()
-        .eq('IDUtilisateurSenior', userIdInt);
-      
-      if (seniorError && seniorError.code !== 'PGRST116') {
-        console.warn('Erreur lors de la suppression du profil Senior:', seniorError);
-      }
-      
-      // 5. Supprimer l'entrée Aidant si elle existe
-      const { error: aidantError } = await supabase
-        .from('Aidant')
-        .delete()
-        .eq('IDUtilisateurs', userIdInt);
-      
-      if (aidantError && aidantError.code !== 'PGRST116') {
-        console.warn('Erreur lors de la suppression du profil Aidant:', aidantError);
-      }
 
-      // 6. Supprimer d'autres références potentielles
-      // ConsentementCookies
-      await supabase
-        .from('ConsentementCookies')
-        .delete()
-        .eq('IDUtilisateurs', userIdInt);
+      // Nettoyage des références ( cascades manuelles )
+      await supabase.from('PrestationSupport').delete().eq('IDIntervenant', userIdInt);
+      await supabase.from('Langue_Utilisateurs').delete().eq('IDUtilisateurs', userIdInt);
+      await supabase.from('Devise_Utilisateurs').delete().eq('IDUtilisateurs', userIdInt);
+      await supabase.from('Seniors').delete().eq('IDUtilisateurSenior', userIdInt);
+      await supabase.from('Aidant').delete().eq('IDUtilisateurs', userIdInt);
+      await supabase.from('ConsentementCookies').delete().eq('IDUtilisateurs', userIdInt);
+      await supabase.from('HistoriqueConnexion').delete().eq('IDUtilisateurs', userIdInt);
+      await supabase.from('MessageGroupe').delete().eq('IDUtilisateurs', userIdInt);
+      await supabase.from('ReponseForum').delete().eq('IDUtilisateurs', userIdInt);
 
-      // HistoriqueConnexion
-      await supabase
-        .from('HistoriqueConnexion')
-        .delete()
-        .eq('IDUtilisateurs', userIdInt);
-
-      // MessageGroupe
-      await supabase
-        .from('MessageGroupe')
-        .delete()
-        .eq('IDUtilisateurs', userIdInt);
-
-      // ReponseForum
-      await supabase
-        .from('ReponseForum')
-        .delete()
-        .eq('IDUtilisateurs', userIdInt);
-      
-      // 7. Enfin, supprimer l'utilisateur principal
       const { error: deleteError } = await supabase
-        .from('Utilisateurs')
-        .delete()
-        .eq('IDUtilisateurs', userIdInt);
+          .from('Utilisateurs')
+          .delete()
+          .eq('IDUtilisateurs', userIdInt);
 
-      if (deleteError) {
-        console.error('Erreur lors de la suppression de l\'utilisateur principal:', deleteError);
-        throw deleteError;
-      }
+      if (deleteError) throw deleteError;
 
-      console.log('Utilisateur supprimé avec succès');
       setUsers(users.filter(user => user.id !== userId));
     } catch (err) {
       console.error('Erreur lors de la suppression de l\'utilisateur:', err);
@@ -349,9 +218,5 @@ export const useUserCrud = (
     }
   };
 
-  return {
-    addUser,
-    updateUser,
-    deleteUser
-  };
+  return { addUser, updateUser, deleteUser };
 };

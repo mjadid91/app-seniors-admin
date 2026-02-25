@@ -3,11 +3,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calculator, DollarSign, Percent, Receipt } from "lucide-react";
+import {FinanceTransaction} from "@/hooks/useFinancesTransactions.ts";
 
 interface TransactionDetailsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  transaction: any;
+  transaction: FinanceTransaction | null;
 }
 
 const TransactionDetailsModal = ({ isOpen, onClose, transaction }: TransactionDetailsModalProps) => {

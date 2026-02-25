@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,19 +6,30 @@ export const useModerationActions = () => {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const handleError = (error: unknown, defaultMessage: string) => {
+    const errorMessage = error instanceof Error ? error.message : defaultMessage;
+    console.error(defaultMessage, error);
+    toast({
+      title: "Erreur",
+      description: errorMessage,
+      variant: "destructive"
+    });
+  };
+
   const markAsProcessed = async (type: 'forum' | 'group', itemId: string) => {
     setIsProcessing(true);
-    
     try {
+      // ✅ Correction : On définit explicitement les colonnes valides pour Supabase
       const column = type === 'forum' ? 'IDReponseForum' : 'IDMessageGroupe';
-      
+      const id = parseInt(itemId);
+
       const { error } = await supabase
-        .from('SignalementContenu')
-        .update({ 
-          Traité: true,
-          ActionModeration: 'Traité par modérateur'
-        })
-        .eq(column, parseInt(itemId));
+          .from('SignalementContenu')
+          .update({
+            Traité: true,
+            ActionModeration: 'Traité par modérateur'
+          })
+          .eq(column as "IDReponseForum" | "IDMessageGroupe", id);
 
       if (error) throw error;
 
@@ -27,15 +37,9 @@ export const useModerationActions = () => {
         title: "Signalement traité",
         description: "Le signalement a été marqué comme traité"
       });
-
       return true;
-    } catch (error: any) {
-      console.error('Erreur lors du traitement:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de traiter le signalement",
-        variant: "destructive"
-      });
+    } catch (error) {
+      handleError(error, "Impossible de traiter le signalement");
       return false;
     } finally {
       setIsProcessing(false);
@@ -44,63 +48,39 @@ export const useModerationActions = () => {
 
   const hideContent = async (type: 'forum' | 'group', itemId: string) => {
     setIsProcessing(true);
-    
     try {
-      const itemIdNum = parseInt(itemId);
-      
-      if (type === 'forum') {
-        const { error: hideError } = await supabase
-          .from('ReponseForum')
-          .update({ 
-            ContenuReponse: '[Contenu masqué par la modération]'
-          })
-          .eq('IDReponseForum', itemIdNum);
+      const id = parseInt(itemId);
+      const maskedText = '[Contenu masqué par la modération]';
 
+      if (type === 'forum') {
+        // ✅ Correction : Appels directs aux tables pour éviter "as any"
+        const { error: hideError } = await supabase
+            .from('ReponseForum')
+            .update({ ContenuReponse: maskedText })
+            .eq('IDReponseForum', id);
         if (hideError) throw hideError;
 
-        const { error: signalError } = await supabase
-          .from('SignalementContenu')
-          .update({ 
-            Traité: true,
-            ActionModeration: 'Contenu masqué'
-          })
-          .eq('IDReponseForum', itemIdNum);
-
-        if (signalError) throw signalError;
+        await supabase
+            .from('SignalementContenu')
+            .update({ Traité: true, ActionModeration: 'Contenu masqué' })
+            .eq('IDReponseForum', id);
       } else {
         const { error: hideError } = await supabase
-          .from('MessageGroupe')
-          .update({ 
-            Contenu: '[Contenu masqué par la modération]'
-          })
-          .eq('IDMessageGroupe', itemIdNum);
-
+            .from('MessageGroupe')
+            .update({ Contenu: maskedText })
+            .eq('IDMessageGroupe', id);
         if (hideError) throw hideError;
 
-        const { error: signalError } = await supabase
-          .from('SignalementContenu')
-          .update({ 
-            Traité: true,
-            ActionModeration: 'Contenu masqué'
-          })
-          .eq('IDMessageGroupe', itemIdNum);
-
-        if (signalError) throw signalError;
+        await supabase
+            .from('SignalementContenu')
+            .update({ Traité: true, ActionModeration: 'Contenu masqué' })
+            .eq('IDMessageGroupe', id);
       }
 
-      toast({
-        title: "Contenu masqué",
-        description: "Le contenu a été masqué et le signalement traité"
-      });
-
+      toast({ title: "Contenu masqué", description: "Le contenu a été masqué." });
       return true;
-    } catch (error: any) {
-      console.error('Erreur lors du masquage:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de masquer le contenu",
-        variant: "destructive"
-      });
+    } catch (error) {
+      handleError(error, "Impossible de masquer le contenu");
       return false;
     } finally {
       setIsProcessing(false);
@@ -109,60 +89,35 @@ export const useModerationActions = () => {
 
   const deleteContent = async (type: 'forum' | 'group', itemId: string) => {
     setIsProcessing(true);
-    
     try {
-      const itemIdNum = parseInt(itemId);
-      
-      // D'abord supprimer tous les signalements associés
+      const id = parseInt(itemId);
       const column = type === 'forum' ? 'IDReponseForum' : 'IDMessageGroupe';
-      
-      const { error: deleteSignalError } = await supabase
-        .from('SignalementContenu')
-        .delete()
-        .eq(column, itemIdNum);
 
-      if (deleteSignalError) throw deleteSignalError;
+      // 1. Supprimer les signalements
+      const { error: signalError } = await supabase
+          .from('SignalementContenu')
+          .delete()
+          .eq(column as "IDReponseForum" | "IDMessageGroupe", id);
+      if (signalError) throw signalError;
 
-      // Ensuite supprimer le contenu
+      // 2. Supprimer le contenu selon le type
       if (type === 'forum') {
-        const { error: deleteError } = await supabase
-          .from('ReponseForum')
-          .delete()
-          .eq('IDReponseForum', itemIdNum);
-
-        if (deleteError) throw deleteError;
+        const { error } = await supabase.from('ReponseForum').delete().eq('IDReponseForum', id);
+        if (error) throw error;
       } else {
-        const { error: deleteError } = await supabase
-          .from('MessageGroupe')
-          .delete()
-          .eq('IDMessageGroupe', itemIdNum);
-
-        if (deleteError) throw deleteError;
+        const { error } = await supabase.from('MessageGroupe').delete().eq('IDMessageGroupe', id);
+        if (error) throw error;
       }
 
-      toast({
-        title: "Contenu supprimé",
-        description: "Le contenu et tous ses signalements ont été supprimés définitivement"
-      });
-
+      toast({ title: "Contenu supprimé", description: "Suppression définitive effectuée." });
       return true;
-    } catch (error: any) {
-      console.error('Erreur lors de la suppression:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer le contenu",
-        variant: "destructive"
-      });
+    } catch (error) {
+      handleError(error, "Impossible de supprimer le contenu");
       return false;
     } finally {
       setIsProcessing(false);
     }
   };
 
-  return {
-    markAsProcessed,
-    hideContent,
-    deleteContent,
-    isProcessing
-  };
+  return { markAsProcessed, hideContent, deleteContent, isProcessing };
 };

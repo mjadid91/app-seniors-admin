@@ -1,5 +1,4 @@
-
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { User, Calendar, Settings } from "lucide-react";
@@ -19,9 +18,10 @@ const ViewForumPostModal = ({ isOpen, onClose, post, onModerate }: ViewForumPost
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            Détails du sujet : {post.titre}
-          </DialogTitle>
+          <DialogTitle>{post?.titre}</DialogTitle>
+          <DialogDescription>
+            Détails et contenu du sujet de forum sélectionné.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">

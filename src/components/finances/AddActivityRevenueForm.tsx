@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,11 +5,25 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { AddActivityForm } from "./AddActivityForm";
+// ✅ CORRECTION 1 : On importe ton interface fraîchement créée !
+import { AddActivityForm, ActiviteRemuneree } from "./AddActivityForm";
 
 interface Props {
     onClose: () => void;
     onSuccess: () => void;
+}
+
+// ✅ CORRECTION 2 : Définition des types pour les requêtes Supabase
+interface SimpleUser {
+    IDUtilisateurs: number;
+    Prenom: string;
+    Nom: string;
+    Email: string;
+}
+
+interface SimpleActivity {
+    IDActiviteRemuneree: number;
+    DescriptionActivite: string;
 }
 
 const AddActivityRevenueForm = ({ onClose, onSuccess }: Props) => {
@@ -18,8 +31,11 @@ const AddActivityRevenueForm = ({ onClose, onSuccess }: Props) => {
     const [montant, setMontant] = useState("");
     const [activiteId, setActiviteId] = useState("");
     const [loading, setLoading] = useState(false);
-    const [users, setUsers] = useState<any[]>([]);
-    const [activites, setActivites] = useState<any[]>([]);
+
+    // ✅ CORRECTION 3 : On remplace les <any[]> par nos interfaces
+    const [users, setUsers] = useState<SimpleUser[]>([]);
+    const [activites, setActivites] = useState<SimpleActivity[]>([]);
+
     const [isAddActivityModalOpen, setIsAddActivityModalOpen] = useState(false);
 
     useEffect(() => {
@@ -27,12 +43,12 @@ const AddActivityRevenueForm = ({ onClose, onSuccess }: Props) => {
             const { data: usersData } = await supabase
                 .from("Utilisateurs")
                 .select("IDUtilisateurs, Prenom, Nom, Email");
-            if (usersData) setUsers(usersData);
+            if (usersData) setUsers(usersData as SimpleUser[]);
 
             const { data: activiteData } = await supabase
                 .from("ActiviteRemuneree")
                 .select("IDActiviteRemuneree, DescriptionActivite");
-            if (activiteData) setActivites(activiteData);
+            if (activiteData) setActivites(activiteData as SimpleActivity[]);
         };
 
         fetchData();
@@ -42,12 +58,18 @@ const AddActivityRevenueForm = ({ onClose, onSuccess }: Props) => {
         const { data: activiteData } = await supabase
             .from("ActiviteRemuneree")
             .select("IDActiviteRemuneree, DescriptionActivite");
-        if (activiteData) setActivites(activiteData);
+        if (activiteData) setActivites(activiteData as SimpleActivity[]);
     };
 
-    const handleAddActivitySuccess = (newActivity: any) => {
-        setActivites(prev => [...prev, newActivity]);
-        setActiviteId(newActivity.IDActiviteRemuneree.toString());
+    // ✅ CORRECTION 4 : On type newActivity avec ton interface importée
+    const handleAddActivitySuccess = (newActivity: ActiviteRemuneree) => {
+        if (newActivity.IDActiviteRemuneree) {
+            setActivites(prev => [...prev, {
+                IDActiviteRemuneree: newActivity.IDActiviteRemuneree as number,
+                DescriptionActivite: newActivity.DescriptionActivite
+            }]);
+            setActiviteId(newActivity.IDActiviteRemuneree.toString());
+        }
     };
 
     const handleActiviteChange = (value: string) => {
