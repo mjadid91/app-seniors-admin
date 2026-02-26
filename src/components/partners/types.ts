@@ -7,8 +7,6 @@ export interface Partner {
   email: string;
   telephone: string;
   adresse: string;
-  statut: string;
-  evaluation: number;
   services: string[];
   dateInscription: string;
   // Champs système cohérents

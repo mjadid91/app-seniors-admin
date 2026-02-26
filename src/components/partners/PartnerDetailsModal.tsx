@@ -17,15 +17,6 @@ const PartnerDetailsModal = ({ isOpen, onClose, partner, onContact }: PartnerDet
 
   if (!partner) return null;
 
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`h-4 w-4 ${i < rating ? 'text-yellow-500 fill-current' : 'text-gray-300'}`}
-      />
-    ));
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
@@ -64,32 +55,9 @@ const PartnerDetailsModal = ({ isOpen, onClose, partner, onContact }: PartnerDet
                   </p>
                 </div>
               </div>
-              <div>
-                <label className="text-sm font-medium text-slate-700">Statut</label>
-                <div className="mt-1">
-                  <Badge className={`${
-                    partner.statut === 'Actif' 
-                      ? 'bg-green-100 text-green-700' 
-                      : partner.statut === 'En attente'
-                      ? 'bg-yellow-100 text-yellow-700'
-                      : 'bg-red-100 text-red-700'
-                  }`}>
-                    {partner.statut}
-                  </Badge>
-                </div>
-              </div>
             </div>
             
             <div className="space-y-3">
-              <div>
-                <label className="text-sm font-medium text-slate-700">Note moyenne</label>
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="flex items-center gap-1">
-                    {renderStars(partner.evaluation)}
-                  </div>
-                  <span className="text-sm font-medium text-slate-700">{partner.evaluation}/5</span>
-                </div>
-              </div>
               <div>
                 <label className="text-sm font-medium text-slate-700">Nombre de prestations</label>
                 <div className="flex items-center gap-2">

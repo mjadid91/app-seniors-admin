@@ -50,11 +50,6 @@ const PartnerStats = ({ partners }: PartnerStatsProps) => {
         <p className="text-3xl font-bold text-yellow-600">{pendingPartners}</p>
         <p className="text-sm text-slate-500">À valider</p>
       </div>
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-        <h3 className="font-semibold text-slate-800 mb-2">Note moyenne</h3>
-        <p className="text-3xl font-bold text-purple-600">{averageRating}</p>
-        <p className="text-sm text-slate-500">Sur 5 étoiles</p>
-      </div>
     </div>
   );
 };

@@ -34,7 +34,6 @@ const PartnerCard = ({ partner, onView, onEdit, onDelete }: PartnerCardProps) =>
             <Building2 className="h-5 w-5 text-blue-600" />
             <CardTitle className="text-lg">{partner.raisonSociale}</CardTitle>
           </div>
-          {getStatusBadge(partner.statut || 'actif')}
         </div>
       </CardHeader>
       
