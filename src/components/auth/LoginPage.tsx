@@ -23,10 +23,8 @@ const LoginPage = () => {
 
   // S'assurer que l'état de connexion est nettoyé au chargement de la page
   useEffect(() => {
-    logout();
-    // Déclencher l'animation après un court délai
     setTimeout(() => setIsAnimated(true), 100);
-  }, [logout]);
+  }, []);
 
   // Rediriger vers dashboard si déjà authentifié
   useEffect(() => {

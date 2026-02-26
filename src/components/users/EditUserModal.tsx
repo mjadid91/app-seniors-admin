@@ -128,10 +128,8 @@ const EditUserModal = ({ isOpen, onClose, user, onEditUser }: EditUserModalProps
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Modifier l'utilisateur</DialogTitle>
-          <DialogDescription>
-            Modifiez les informations de l'utilisateur sélectionné.
-          </DialogDescription>
+          <DialogTitle>Titre</DialogTitle>
+          <DialogDescription>Modifier les informations de l'utilisateur.</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">

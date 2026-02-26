@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
-import { useSupabaseAuth } from '../../hooks/useSupabaseAuth';
 import { usePermissions } from '../../hooks/usePermissions';
 import { AlertTriangle, Lock } from 'lucide-react';
+import { useAuthStore } from '../../stores/authStore'; // <- store global d'auth
 
 // Récupération dynamique du type Permission depuis le hook
 type Permission = typeof import('../../hooks/usePermissions').PERMISSIONS[keyof typeof import('../../hooks/usePermissions').PERMISSIONS];
@@ -19,12 +19,14 @@ const ProtectedRoute = ({
                           requiredPermission,
                           fallback
                         }: ProtectedRouteProps) => {
-  const { isAuthenticated, loading, isInitialized, user } = useSupabaseAuth();
+  // On utilise uniquement le store global, plus de hook qui réinitialise
+  const { isAuthenticated, isInitialized, user } = useAuthStore();
+  const loading = !isInitialized;
+
   const { canAccessPage, hasPermission } = usePermissions();
 
   // --- ÉTAPE 1 : CHARGEMENT ---
-  // On affiche le spinner UNIQUEMENT pendant que l'auth s'initialise
-  if (!isInitialized || loading) {
+  if (loading) {
     return (
         <div className="min-h-[400px] flex items-center justify-center">
           <div className="text-center space-y-4">
@@ -36,7 +38,6 @@ const ProtectedRoute = ({
   }
 
   // --- ÉTAPE 2 : AUTHENTIFICATION ---
-  // Si le chargement est fini mais qu'on n'a pas d'utilisateur (ou pas authentifié)
   if (!isAuthenticated || !user) {
     console.warn('ProtectedRoute: Accès refusé (Utilisateur non authentifié)');
     return (
@@ -54,7 +55,7 @@ const ProtectedRoute = ({
               </p>
             </div>
             <button
-                onClick={() => window.location.href = '/login'}
+                onClick={() => window.location.href = '/connexion'}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               Retour à la connexion

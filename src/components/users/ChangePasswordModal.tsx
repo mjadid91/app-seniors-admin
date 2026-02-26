@@ -13,6 +13,7 @@ import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { User } from '../../stores/authStore';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import {DialogDescription} from "@radix-ui/react-dialog";
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -106,12 +107,8 @@ const ChangePasswordModal = ({ isOpen, onClose, user, onPasswordChanged }: Chang
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
-            Modifier le mot de passe
-          </DialogTitle>
-          <p className="text-sm text-app-text-light">
-            Utilisateur: {user.prenom} {user.nom}
-          </p>
+          <DialogTitle>Changer le mot de passe</DialogTitle>
+          <DialogDescription className="sr-only">Formulaire de modification du mot de passe.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">

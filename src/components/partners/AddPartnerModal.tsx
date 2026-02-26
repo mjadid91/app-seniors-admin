@@ -145,7 +145,6 @@ const AddPartnerModal = ({ isOpen, onClose, onAddPartner }: AddPartnerModalProps
           DateNaissance: '1970-01-01', // Valeur par défaut
           Adresse: formData.adresse,
           Genre: 'Non précisé',
-          MotDePasse: hashedPassword,
           IDCatUtilisateurs: 3, // Rôle Organisme
           DateInscription: currentDate.split('T')[0],
           Commentaire: 'Compte partenaire créé automatiquement',

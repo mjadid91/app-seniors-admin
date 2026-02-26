@@ -67,18 +67,18 @@ export const useRealtimeInvalidation = () => {
         },
         (payload) => {
           console.log('Changement détecté dans la base de données:', payload);
-          
+
           const tableName = payload.table;
           const queryKeys = TABLE_QUERY_MAPPING[tableName as keyof typeof TABLE_QUERY_MAPPING];
-          
+
           if (queryKeys) {
             console.log(`Invalidation des queries pour la table ${tableName}:`, queryKeys);
-            
+
             // Invalider toutes les queries associées à cette table
             queryKeys.forEach(queryKey => {
               queryClient.invalidateQueries({ queryKey: [queryKey] });
             });
-            
+
             // Forcer un refetch immédiat pour les données critiques de modération
             if (tableName === 'MessageGroupe') {
               queryClient.refetchQueries({ queryKey: ['moderation-groupMessages'] });
@@ -107,7 +107,7 @@ export const useRealtimeInvalidation = () => {
               queryClient.refetchQueries({ queryKey: ['groups-list'] });
               queryClient.refetchQueries({ queryKey: ['group-stats'] });
               // Invalider toutes les queries qui commencent par 'membres-groupe-signalement'
-              queryClient.invalidateQueries({ 
+              queryClient.invalidateQueries({
                 predicate: (query) => {
                   const queryKey = query.queryKey[0] as string;
                   return queryKey?.startsWith('membres-groupe-signalement');

@@ -3,7 +3,6 @@ import { User } from '../../stores/authStore';
 import { convertSupabaseUserToAppUser, getCategoryFromRole } from '../utils/userConversion';
 import { CreateUserData } from '../../components/users/userTypes';
 
-// ✅ CORRECTION 1 : Interface pour les colonnes de la table Utilisateurs
 interface UtilisateurRowUpdate {
   Nom?: string;
   Prenom?: string;
@@ -152,7 +151,6 @@ export const useUserCrud = (
 
   const updateUser = async (userId: string, updates: Partial<User>): Promise<User> => {
     try {
-      // ✅ CORRECTION 2 : Plus de "any", on utilise notre interface typée
       const supabaseUpdates: UtilisateurRowUpdate = {
         DateModification: new Date().toISOString()
       };

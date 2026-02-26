@@ -1,78 +1,98 @@
+// src/hooks/useSupabaseAuth.ts
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuthStore, User as StoreUser } from '../stores/authStore';
+import { useAuthStore } from '../stores/authStore';
 import { useSupabaseUserMapping } from './useSupabaseUserMapping';
 
 export const useSupabaseAuth = () => {
-    const { user, isAuthenticated, setUser, setAuthenticated, logout: clearStore } = useAuthStore();
+    const {
+        user,
+        isAuthenticated,
+        isInitialized,
+        setUser,
+        setAuthenticated,
+        setInitialized,
+    } = useAuthStore();
+
     const { findOrCreateUserMapping } = useSupabaseUserMapping();
-    const [loading, setLoading] = useState(true);
-    const [isInitialized, setIsInitialized] = useState(false);
 
-    // ✅ Fonctions d'action stables
-    const signIn = useCallback(async (email: string, password: string) => {
-        return await supabase.auth.signInWithPassword({ email, password });
-    }, []);
+    const [loading, setLoading] = useState(!isInitialized);
 
-    const signOut = useCallback(async () => {
-        const res = await supabase.auth.signOut();
-        clearStore();
-        return res;
-    }, [clearStore]);
+    // Fonction stable (utilisée dans initialize ET dans le listener)
+    const handleMapping = useCallback(async (supabaseUser: any) => {
+        if (!supabaseUser) return;
 
+        console.log('🔄 [Auth] Appel findOrCreateUserMapping pour:', supabaseUser.email);
+
+        try {
+            const mapping = await findOrCreateUserMapping(supabaseUser);
+
+            if (mapping) {
+                setUser({
+                    id: mapping.dbUserId.toString(),
+                    nom: mapping.nom,
+                    prenom: mapping.prenom,
+                    email: mapping.email,
+                    role: mapping.role as any,
+                    dateInscription: new Date().toISOString(),
+                });
+                setAuthenticated(true);
+                console.log('✅ [Auth] Mapping réussi – utilisateur chargé');
+            }
+        } catch (err) {
+            console.error('❌ [Auth] Erreur pendant le mapping:', err);
+        }
+    }, [findOrCreateUserMapping, setUser, setAuthenticated]);
+
+    // =========================
+    // INITIALIZATION (une seule fois)
+    // =========================
     useEffect(() => {
         let mounted = true;
 
-        const initializeAuth = async () => {
+        const initialize = async () => {
+            if (useAuthStore.getState().isInitialized) {
+                console.log('⏭️ [Auth] Déjà initialisé');
+                if (mounted) setLoading(false);
+                return;
+            }
+
+            console.log('🚀 [Auth] Début initialisation Seniors Admin...');
+            if (mounted) setLoading(true);
+
             try {
-                if (mounted) setLoading(true);
                 const { data: { session } } = await supabase.auth.getSession();
 
-                if (session?.user) {
-                    const mapping = await findOrCreateUserMapping(session.user);
-                    if (mounted && mapping) {
-                        setUser({
-                            id: mapping.dbUserId.toString(),
-                            nom: mapping.nom,
-                            prenom: mapping.prenom,
-                            email: mapping.email,
-                            role: mapping.role,
-                            dateInscription: new Date().toISOString(),
-                        });
-                        setAuthenticated(true);
-                    }
+                if (session?.user && mounted) {
+                    await handleMapping(session.user);
+                } else if (mounted) {
+                    setUser(null);
+                    setAuthenticated(false);
                 }
-            } catch (error) {
-                console.error("Auth Init Error:", error);
+            } catch (err) {
+                console.error("❌ [Auth] Erreur initialization:", err);
             } finally {
                 if (mounted) {
                     setLoading(false);
-                    setIsInitialized(true);
+                    setInitialized(true);
+                    console.log('🏁 [Auth] Initialisation TERMINÉE – isInitialized = true');
                 }
             }
         };
 
-        initializeAuth();
+        initialize();
 
+        // Listener unique
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_IN' && session?.user) {
-                const mapping = await findOrCreateUserMapping(session.user);
-                if (mapping && mounted) {
-                    setUser({
-                        id: mapping.dbUserId.toString(),
-                        nom: mapping.nom,
-                        prenom: mapping.prenom,
-                        email: mapping.email,
-                        role: mapping.role,
-                        dateInscription: new Date().toISOString(),
-                    });
-                    setAuthenticated(true);
-                }
-            } else if (event === 'SIGNED_OUT') {
-                if (mounted) {
-                    setUser(null);
-                    setAuthenticated(false);
-                }
+            console.log("🔄 [Auth] State changed:", event);
+
+            if (event === 'SIGNED_IN' && session?.user && mounted) {
+                await handleMapping(session.user);
+            }
+
+            if (event === 'SIGNED_OUT' && mounted) {
+                setUser(null);
+                setAuthenticated(false);
             }
         });
 
@@ -80,7 +100,27 @@ export const useSupabaseAuth = () => {
             mounted = false;
             subscription.unsubscribe();
         };
+    }, [handleMapping, setUser, setAuthenticated, setInitialized]);
+
+    // SIGN IN / SIGN OUT (inchangés)
+    const signIn = useCallback(async (email: string, password: string) => {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) return { success: false, error: error.message };
+        return { success: true };
+    }, []);
+
+    const signOut = useCallback(async () => {
+        await supabase.auth.signOut();
+        setUser(null);
+        setAuthenticated(false);
     }, [setUser, setAuthenticated]);
 
-    return { user, isAuthenticated, loading, isInitialized, signIn, signOut };
+    return {
+        user,
+        isAuthenticated,
+        loading,
+        isInitialized,
+        signIn,
+        signOut,
+    };
 };
