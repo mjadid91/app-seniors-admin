@@ -40,71 +40,83 @@ const EditTransactionModal = ({ isOpen, onClose, transaction, onTransactionUpdat
     if (!transaction) return;
 
     setLoading(true);
-    
+
     try {
       let updateResult;
       const montantValue = parseFloat(formData.montant);
-      
-      console.log("Mise à jour de la transaction:", {
-        type: transaction.type,
-        id: transaction.originalId || transaction.id,
-        formData
-      });
-      
+
+      // 💡 Astuce de dev : toujours logger l'objet exact pour vérifier ses clés
+      console.log("Payload transaction reçu :", transaction);
+
       if (transaction.type === "Commande") {
+        // On utilise les bonnes clés issues de ta vue (snake_case)
+        const targetId = transaction.id_commande || transaction.original_id;
+
         updateResult = await supabase
-          .from("Commande")
-          .update({
-            MontantTotal: montantValue,
-            StatutCommande: formData.statut
-          })
-          .eq("IDCommande", transaction.idCommande || transaction.originalId || transaction.id);
+            .from("Commande")
+            .update({
+              MontantTotal: montantValue,
+              StatutCommande: formData.statut
+            })
+            .eq("IDCommande", targetId);
+
       } else if (transaction.type === "Activité rémunérée") {
+        const targetActId = transaction.id_activite_remuneree || transaction.original_id;
+        const targetUserId = transaction.id_utilisateurs; // Indispensable !
+
         updateResult = await supabase
-          .from("ActiviteRemuneree_Utilisateurs")
-          .update({
-            MontantRevenu: montantValue,
-            StatutPaiement: formData.statut
-          })
-          .eq("IDActiviteRemuneree", transaction.id_activite_remuneree || transaction.originalId || transaction.id);
+            .from("ActiviteRemuneree_Utilisateurs")
+            .update({
+              MontantRevenu: montantValue,
+              StatutPaiement: formData.statut
+            })
+            // On cible précisément CETTE transaction pour CET utilisateur
+            .eq("IDActiviteRemuneree", targetActId)
+            .eq("IDUtilisateurs", targetUserId);
+
       } else if (transaction.type === "Service post-mortem") {
+        const targetId = transaction.id_service_post_mortem || transaction.original_id;
+
         updateResult = await supabase
-          .from("ServicePostMortem")
-          .update({
-            MontantPrestation: montantValue,
-            StatutService: formData.statut
-          })
-          .eq("IDServicePostMortem", transaction.id_service_post_mortem || transaction.originalId || transaction.id);
+            .from("ServicePostMortem")
+            .update({
+              MontantPrestation: montantValue,
+              StatutService: formData.statut
+            })
+            .eq("IDServicePostMortem", targetId);
+
       } else if (transaction.type === "Don cagnotte") {
-        // Pour les dons, supprimer le champ statut de paiement car il n'existe pas dans la DB
+        const targetId = transaction.id_don_cagnotte || transaction.original_id;
+
         updateResult = await supabase
-          .from("DonCagnotte")
-          .update({
-            Montant: montantValue
-          })
-          .eq("IDDonCagnotte", transaction.id_don_cagnotte || transaction.originalId || transaction.id);
+            .from("DonCagnotte")
+            .update({
+              Montant: montantValue
+            })
+            .eq("IDDonCagnotte", targetId);
       }
 
-      console.log("Résultat de la mise à jour:", updateResult);
-
+      // Gestion de l'erreur Supabase (très important pour le debug !)
       if (updateResult?.error) {
-        console.error("Erreur lors de la mise à jour:", updateResult.error);
-        throw updateResult.error;
+        console.error("Erreur SQL Supabase :", updateResult.error);
+        throw new Error(updateResult.error.message);
       }
 
       toast.success("Transaction mise à jour avec succès");
-      
+
+      // Invalidation du cache : excellente pratique !
+      // Cela va forcer le front-end (Seniors Admin) à refetcher la vue modifiée.
       // Invalider les caches React Query pour mise à jour automatique
       queryClient.invalidateQueries({ queryKey: ["finances-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["commission-rates"] });
       queryClient.invalidateQueries({ queryKey: ["total-commissions-count"] });
       queryClient.invalidateQueries({ queryKey: ["total-commissions-amount"] });
-      
+
       onTransactionUpdated();
       onClose();
     } catch (error) {
       console.error("Erreur lors de la mise à jour:", error);
-      toast.error("Erreur lors de la mise à jour de la transaction");
+      toast.error("Échec de la mise à jour en base de données.");
     } finally {
       setLoading(false);
     }

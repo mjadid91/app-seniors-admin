@@ -25,6 +25,7 @@ import MentionsLegales from "./pages/MentionsLegales";
 import PolitiqueConfidentialite from "./pages/PolitiqueConfidentialite";
 import ConditionsUtilisation from "./pages/ConditionsUtilisation";
 import ContactPage from "./pages/ContactPage";
+import {useAuthStore} from "@/stores/authStore.ts";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -42,8 +43,8 @@ const queryClient = new QueryClient({
 // Composant wrapper pour initialiser le système de rafraîchissement temps réel
 const AppContent = () => {
   // Active l'écoute temps réel des changements dans la base de données
-  useRealtimeInvalidation();
-  
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  useRealtimeInvalidation(isAuthenticated); // On passe la variable ici !
   return (
     <BrowserRouter>
         <Routes>

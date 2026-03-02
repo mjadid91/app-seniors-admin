@@ -280,7 +280,6 @@ export const useSupabaseSeniors = () => {
 
             await supabase.from('Utilisateurs').update(userUpdates).eq('IDUtilisateurs', aidantData.IDUtilisateurs);
 
-            // ✅ Typage strict des colonnes de la table Aidant
             const aidantUpdates: { Experience?: string, TarifAidant?: number } = {};
             if (updates.experience) aidantUpdates.Experience = updates.experience;
             if (updates.tarifHoraire !== undefined) aidantUpdates.TarifAidant = updates.tarifHoraire;

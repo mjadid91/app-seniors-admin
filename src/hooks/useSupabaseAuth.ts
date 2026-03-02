@@ -1,5 +1,5 @@
 // src/hooks/useSupabaseAuth.ts
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '../stores/authStore';
 import { useSupabaseUserMapping } from './useSupabaseUserMapping';
@@ -15,14 +15,26 @@ export const useSupabaseAuth = () => {
     } = useAuthStore();
 
     const { findOrCreateUserMapping } = useSupabaseUserMapping();
-
     const [loading, setLoading] = useState(!isInitialized);
+
+    // VERROU : Empêche les appels simultanés ou redondants
+    const isMappingRef = useRef(false);
 
     // Fonction stable (utilisée dans initialize ET dans le listener)
     const handleMapping = useCallback(async (supabaseUser: any) => {
-        if (!supabaseUser) return;
+        // Si on est déjà en train de mapper, ou si l'utilisateur courant du store
+        // a déjà le même email que la session Supabase, on ABANDONNE.
+        if (!supabaseUser || isMappingRef.current) return;
+
+        // On vérifie le store global : si on a déjà un user mappé avec le bon email, pas besoin de refaire l'appel DB.
+        const currentUser = useAuthStore.getState().user;
+        if (currentUser && currentUser.email === supabaseUser.email) {
+            console.log('⏭️ [Auth] Utilisateur déjà mappé dans le store, on ignore.');
+            return;
+        }
 
         console.log('🔄 [Auth] Appel findOrCreateUserMapping pour:', supabaseUser.email);
+        isMappingRef.current = true; // On verrouille
 
         try {
             const mapping = await findOrCreateUserMapping(supabaseUser);
@@ -38,21 +50,26 @@ export const useSupabaseAuth = () => {
                 });
                 setAuthenticated(true);
                 console.log('✅ [Auth] Mapping réussi – utilisateur chargé');
+            } else {
+                // Si le mapping échoue (ex: user non trouvé dans DB), on déconnecte
+                setUser(null);
+                setAuthenticated(false);
             }
         } catch (err) {
             console.error('❌ [Auth] Erreur pendant le mapping:', err);
+        } finally {
+            isMappingRef.current = false; // On déverrouille
         }
     }, [findOrCreateUserMapping, setUser, setAuthenticated]);
 
     // =========================
-    // INITIALIZATION (une seule fois)
+    // INITIALIZATION
     // =========================
     useEffect(() => {
         let mounted = true;
 
         const initialize = async () => {
             if (useAuthStore.getState().isInitialized) {
-                console.log('⏭️ [Auth] Déjà initialisé');
                 if (mounted) setLoading(false);
                 return;
             }
@@ -75,7 +92,6 @@ export const useSupabaseAuth = () => {
                 if (mounted) {
                     setLoading(false);
                     setInitialized(true);
-                    console.log('🏁 [Auth] Initialisation TERMINÉE – isInitialized = true');
                 }
             }
         };
@@ -84,13 +100,17 @@ export const useSupabaseAuth = () => {
 
         // Listener unique
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            console.log("🔄 [Auth] State changed:", event);
+            console.log(`🔄 [Auth] State changed: ${event}`);
 
-            if (event === 'SIGNED_IN' && session?.user && mounted) {
+            // On ne mappe QUE sur INITIAL_SESSION, SIGNED_IN, ou TOKEN_REFRESHED
+            // ET on laisse handleMapping décider si c'est vraiment nécessaire
+            if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user && mounted) {
                 await handleMapping(session.user);
             }
 
             if (event === 'SIGNED_OUT' && mounted) {
+                // Nettoyage complet
+                isMappingRef.current = false;
                 setUser(null);
                 setAuthenticated(false);
             }
@@ -102,7 +122,7 @@ export const useSupabaseAuth = () => {
         };
     }, [handleMapping, setUser, setAuthenticated, setInitialized]);
 
-    // SIGN IN / SIGN OUT (inchangés)
+    // SIGN IN / SIGN OUT
     const signIn = useCallback(async (email: string, password: string) => {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) return { success: false, error: error.message };
@@ -111,6 +131,7 @@ export const useSupabaseAuth = () => {
 
     const signOut = useCallback(async () => {
         await supabase.auth.signOut();
+        // On force le nettoyage du store au cas où l'event SIGNED_OUT soit lent
         setUser(null);
         setAuthenticated(false);
     }, [setUser, setAuthenticated]);
